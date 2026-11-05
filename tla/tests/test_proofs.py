@@ -35,3 +35,9 @@ class ProofTests(unittest.TestCase):
     def test_scoped_definitions(self):
         code = compile_proofs(Path('tests/proofs/DefinitionScope.tla'))
         self.assertIn('«DefinitionScope».«A»', code)
+
+    def test_bounded_witness_annotations_are_proved(self):
+        code = compile_proofs(Path('tests/proofs/BoundedWitness.tla'))
+        self.assertIn('have witness_bound_', code)
+        self.assertIn('refine Exists.intro (_root_.TLAUniversal.integer 1)', code)
+        self.assertIn('refine Exists.intro (_root_.TLAUniversal.boolean', code)

@@ -1,5 +1,6 @@
 # Copyright (c) 2026 Eric Spencer. Released under Apache 2.0 license.
 """Reconstruct source proof scripts as Lean terms; no source fact is an axiom."""
+import copy
 import xml.etree.ElementTree as ET
 from compiler import CompileError
 from sany import parse_file
@@ -80,7 +81,39 @@ class Renderer:
                 lines.append(indent + 'intro locality_' + symbol.uid)
         return lines, env
 
-    def render(self, proof, env, indent='  '):
+    def goal_body(self, goal):
+        seen = set()
+        while goal is not None:
+            if goal.tag == 'AssumeProveNode':
+                goal = goal.find('prove')[0]
+            elif goal.tag in ('LetInNode', 'LabelNode'):
+                goal = goal.find('body')[0]
+            elif goal.tag == 'OpApplNode':
+                symbol = self.graph.operator(goal)
+                if symbol.uid in seen or symbol.node.tag != 'UserDefinedOpKind' or len(goal.find('operands')):
+                    break
+                seen.add(symbol.uid)
+                goal = symbol.body
+            else:
+                break
+        return goal
+
+    def consume_binder(self, goal):
+        goal = self.goal_body(goal)
+        if goal is None or goal.tag != 'OpApplNode' or goal.find('boundSymbols') is None:
+            return None, None
+        goal = copy.deepcopy(goal)
+        groups = goal.find('boundSymbols')
+        group = groups[0]
+        bounded = group.tag != 'unbound'
+        refs = group.findall('FormalParamNodeRef')
+        if group.find('tuple') is not None or len(refs) == 1:
+            groups.remove(group)
+        else:
+            group.remove(refs[0])
+        return bounded, goal if len(groups) else goal.find('operands')[0]
+
+    def render(self, proof, env, indent='  ', goal=None):
         if proof.tag in ('obvious', 'by'):
             return self.leaf(proof, indent)
         if proof.tag != 'steps':
@@ -90,11 +123,11 @@ class Renderer:
         saved = self.unfold
         self.unfold = list(saved)
         try:
-            return self.steps(refs, dict(env), indent)
+            return self.steps(refs, dict(env), indent, self.goal_body(goal))
         finally:
             self.unfold = saved
 
-    def steps(self, references, env, indent):
+    def steps(self, references, env, indent, goal):
         lines = []
         for index, reference in enumerate(references):
             if reference.tag == 'DefStepNode':
@@ -134,12 +167,13 @@ class Renderer:
             if name == '$Qed':
                 if index != len(references) - 1:
                     raise ProofError('QED must terminate its proof scope')
-                return lines + self.render(proof_node(step, implicit=True), env, indent)
+                return lines + self.render(proof_node(step, implicit=True), env, indent, goal)
             if name == '$Take':
                 lines.append(indent + 'first | apply (_root_.TLAUniversal.truth_boolean _).2 | skip')
                 for group in body.find('boundSymbols'):
                     if group.find('tuple') is not None:
                         refs = group.findall('FormalParamNodeRef')
+                        _, goal = self.consume_binder(goal)
                         variable = 'taken_tuple_' + refs[0].findtext('UID')
                         lines.append(indent + 'intro ' + variable)
                         for component, ref in enumerate(refs, 1):
@@ -150,6 +184,7 @@ class Renderer:
                         continue
                     for ref in group.findall('FormalParamNodeRef'):
                         uid = ref.findtext('UID')
+                        _, goal = self.consume_binder(goal)
                         variable = 'taken_' + uid
                         lines.append(indent + 'intro ' + variable)
                         env[uid] = ValueBinding(variable)
@@ -159,6 +194,12 @@ class Renderer:
             if name == '$Witness':
                 lines.append(indent + 'first | apply (_root_.TLAUniversal.truth_boolean _).2 | skip')
                 for argument in args:
+                    bounded, goal = self.consume_binder(goal)
+                    if bounded and argument.tag == 'OpApplNode' and self.graph.operator(argument).name == '\\in':
+                        lines.append(indent + f'have witness_bound_{index} : '
+                                     + self.proposition(argument, env) + ' := by')
+                        lines += self.leaf(ET.Element('obvious'), indent + '  ')
+                        argument = argument.find('operands')[0]
                     value = qualify(self.compiler.expr(argument, env))
                     lines.append(indent + 'first')
                     lines.append(indent + f'| refine Exists.intro {value} ?_')
@@ -171,7 +212,7 @@ class Renderer:
                 existential = self.compiler.expr(body, env, operator_override='$UnboundedExists')
                 proposition = '_root_.TLAUniversal.truth ' + qualify(existential)
                 lines.append(indent + f'have {label} : {proposition} := by')
-                lines += self.render(proof_node(step, implicit=True), env, indent + '  ')
+                lines += self.render(proof_node(step, implicit=True), env, indent + '  ', body)
                 fields = []
                 for group in body.find('boundSymbols'):
                     if group.find('tuple') is not None:
@@ -198,9 +239,9 @@ class Renderer:
             if name == '$Pfcase':
                 lines.append(indent + f'by_cases {label} : {self.proposition(args[0], env)}')
                 lines.append(indent + '·')
-                lines += self.render(proof_node(step, implicit=True), dict(env), indent + '  ')
+                lines += self.render(proof_node(step, implicit=True), dict(env), indent + '  ', goal)
                 lines.append(indent + '·')
-                return lines + self.steps(references[index + 1:], dict(env), indent + '  ')
+                return lines + self.steps(references[index + 1:], dict(env), indent + '  ', goal)
             if name == '$Have':
                 lines.append(indent + f'have {label} : {self.proposition(args[0], env)} := by')
                 lines += self.leaf(ET.Element('obvious'), indent + '  ')
@@ -209,13 +250,14 @@ class Renderer:
                 if name == '$Suffices':
                     body = args[0]
                 lines.append(indent + f'suffices {label} : {self.proposition(body, env)} by')
-                lines += self.render(proof_node(step, implicit=True), dict(env), indent + '  ')
+                lines += self.render(proof_node(step, implicit=True), dict(env), indent + '  ', goal)
+                goal = self.goal_body(body)
                 opened, env = self.open_statement(body, env, indent)
                 lines += opened
                 continue
             lines.append(indent + f'have {label} : {self.proposition(body, env)} := by')
             opened, child_env = self.open_statement(body, env, indent + '  ')
-            lines += opened + self.render(proof_node(step, implicit=True), child_env, indent + '  ')
+            lines += opened + self.render(proof_node(step, implicit=True), child_env, indent + '  ', body)
         raise ProofError('hierarchical proof has no final QED')
 
 
@@ -245,7 +287,7 @@ def compile_proofs(source, **kwargs):
             unfold.append(exports['claims'][previous])
         renderer = Renderer(compiler, unfold)
         opened, environment = renderer.open_statement(theorem.body, {}, '  ')
-        lines += opened + renderer.render(proof, environment)
+        lines += opened + renderer.render(proof, environment, goal=theorem.body)
     lines += [f'def {exports["certificate_proof"]} (c : {exports["constants"]}) : '
               f'{exports["certificate"]} c :=',
               '  ⟨' + ', '.join(name + ' c' for name in names) + '⟩',
