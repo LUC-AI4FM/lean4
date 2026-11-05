@@ -123,4 +123,17 @@ theorem domain_record (fields : List (String × Value)) :
     domain (record fields) = enumerate (fields.map (fun field => string field.1)) :=
   domain_function _ _
 
+theorem apply_record (fields : List (String × Value)) (key : String) (value : Value)
+    (member : (key, value) ∈ fields)
+    (unique : ∀ field ∈ fields, field.1 = key → field.2 = value) :
+    apply (record fields) (string key) = value := by
+  unfold record
+  rw [apply_function]
+  · obtain ⟨field, hf, hk, hv⟩ := choose_spec
+      (fun v => ∃ field ∈ fields, string key = string field.1 ∧ v = field.2)
+      ⟨value, (key, value), member, rfl, rfl⟩
+    exact hv.trans (unique field hf (string_injective hk).symm)
+  · apply (mem_enumerate _ _).mpr
+    exact List.mem_map.mpr ⟨(key, value), member, rfl⟩
+
 end TLAUniversal

@@ -10,3 +10,4 @@ Additional unchanged sources: test/unit/e_arith/{intlit0,intlit1,intlitminus1}_t
 Additional unchanged sources: zenon/regression/backend/testbchoose.tla and zenon/regression/features/test_choose_in.tla.
 Additional unchanged sources: test/unit/g_tuples/{tupleapp,tupledom,tupleext}_test.tla.
 Additional unchanged sources: test/unit/f_data/{string,stringdistinct}_test.tla and test/unit/h_records/recorddom_test.tla.
+Additional unchanged source: test/unit/h_records/recorddot_test.tla.
