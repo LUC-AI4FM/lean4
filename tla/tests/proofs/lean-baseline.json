@@ -1,14 +1,14 @@
 {
-  "run": "https://github.com/LUC-AI4FM/lean4/actions/runs/42110411103",
-  "commit": "1537daeca648f8a035063968ab2cda173454a35a",
+  "run": "https://github.com/LUC-AI4FM/lean4/actions/runs/42130027759",
+  "commit": "3af6e68e69f5506abd6a46f30e3e1d696502403d",
   "reference_commit": "d1760ab9a1a3e7e76f81172166a955167cd163f2",
-  "note": "All inputs accounted for. Rejection or timeout of a negative does not establish that its intended backend was exercised. Full port incomplete.",
+  "note": "All inputs accounted for. 162/200 reference-positive scripts checked; 34 time out at the 60-second audit budget and 4 are rejected by the SANY frontend. No expected-false input accepted. Rejection or timeout of a negative does not establish that its intended backend was exercised. Full port incomplete.",
   "counts": {
     "translation_rejected": 72,
-    "timeout": 66,
-    "checked": 170,
-    "lean_rejected": 35,
-    "no_claims": 36
+    "timeout": 63,
+    "checked": 174,
+    "no_claims": 36,
+    "lean_rejected": 34
   },
   "results": [
     {
@@ -885,14 +885,14 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 1,
-      "status": "lean_rejected"
+      "status": "checked"
     },
     {
       "source": "test/fast/language/EXCEPTMultipleBrackets_test.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "checked"
     },
     {
       "source": "test/fast/language/EXTENDS_in_submodule_test.tla",
@@ -1105,7 +1105,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "checked"
     },
     {
       "source": "test/fast/regression/z3_fingerprint_test.tla",
@@ -1565,7 +1565,7 @@
       "expected_false": true,
       "reference_positive": false,
       "claims": 1,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue310_hash_collision_ptl_stest.tla",
@@ -2598,7 +2598,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 1,
-      "status": "lean_rejected"
+      "status": "checked"
     },
     {
       "source": "zenon/regression/misc/test4.tla",

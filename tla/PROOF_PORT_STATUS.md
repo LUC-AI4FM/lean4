@@ -4,49 +4,42 @@ Objective: unchanged TLAPS proof scripts produce proofs checked by Lean, with
 positive and negative reference tests, complete language/backend coverage and
 verified pushed changes. A leaf-only milestone is not completion.
 
-Current checkpoint (2026-11-05): full port remains incomplete.
-- Complete audit [42110411103](https://github.com/LUC-AI4FM/lean4/actions/runs/42110411103)
-  at 1537dae accounts for all 379 inputs: 158/200 reference-positive scripts
-  checked; 36 timeouts, 4 frontend rejections and 2 Lean rejections remain.
-  No previously checked reference-positive script regressed. None of the 34
-  expected-false inputs was accepted. A negative timeout/rejection does not
-  establish that its intended backend was exercised. The audit uses 60 seconds
-  per input; broadcast separately checks with the standard 120-second budget.
-- Main d1cee06 has green Linux/macOS CI including rebootstrap
-  ([42111924905](https://github.com/LUC-AI4FM/lean4/actions/runs/42111924905)).
-  All four universal proof shards and native/source checks passed
-  ([42108135925](https://github.com/LUC-AI4FM/lean4/actions/runs/42108135925)).
-- Active worktree: /private/tmp/lean4-tla-proof-followup, owned by this goal,
-  branch proof-compatibility-followup. Retained for concrete next integration;
-  main working copy remains the stable integration checkout. Heavy checks run
-  on public GitHub Actions; no NUC lease, helpers or paid hosts are in use.
-- Follow-up 81cd539 passed its full TLA suite (42119143324). It reconstructs
-  unchanged DuplicateEXCEPT and test3 through path normalization and a checked
-  Boolean-range lemma; Boolean inference is registered only for emitted source
-  using BOOLEAN to avoid broadening unrelated proof search. Nested sequential
-  EXCEPT (74c7e98) and its false counterpart pass focused run42123449006.
-- Integer witness reconstruction (9c385d9) compiled, checked unchanged
-  smt_domain_check_test and typingexp_test, and rejected FalseIntegerFunction
-  in focused run42124521872. Broadcast exceeded 120 seconds in that run.
-  Generated broadcast proof text was byte-for-byte identical to 81cd539.
-  Full run42123450206 at the earlier 74c7e98 also timed out on broadcast;
-  therefore the new integer lemma alone does not explain the slowdown.
-- Diagnostics 42125591025 (isolated integer helper) and 42125760804
-  (unused-simp-argument linter disabled) still exceeded 120 seconds on broadcast;
-  integer and nested-update positives continued to pass. Neither intervention
-  is sufficient to explain or fix the runtime. Lean's UnusedSimpArgs implementation
-  collects usage masks and warning messages; it does not rerun proof tactics.
-- Active diagnostic: 1fb7343 adds opt-in --trace / proof_trace, emitting claim
-  and leaf labels plus Lean goals. Focused run42126939875 is live. Inspect the
-  last reached goal before changing search. Kernel checking, negatives,
-  certificates and their consumer imports remain required. Candidate reset:
-  targeted logical reconstruction or a bounded checked first-order solver,
-  rather than enlarging the wall-clock limit again.
-- The follow-up branch is not integrated into main. Require its full TLA suite
-  to pass before integration. Main d1cee06 remains verified and clean.
-- Next frontier: exact BY/ONLY/USE/HIDE fact visibility; nested ENABLED and
-  composition; larger temporal/library proofs; SANY frontend differences.
-  Frozen reference manifest and complete audit denominator remain unchanged.
+Current checkpoint (2026-11-05, Claude takeover): full port remains incomplete.
+- Master 3af6e68 integrates the former proof-compatibility-followup branch
+  (fast-forward). Branch TLA suite [42129772420](https://github.com/LUC-AI4FM/lean4/actions/runs/42129772420)
+  passed all four universal shards and native/source checks.
+- Complete audit [42130027759](https://github.com/LUC-AI4FM/lean4/actions/runs/42130027759)
+  at 3af6e68 accounts for all 379 inputs: 162/200 reference-positive scripts
+  checked (was 158); 34 time out at the 60-second audit budget and 4 are
+  rejected by the SANY frontend (BagsTheorems_proofs: missing Functions
+  module; def_nondef_test, Operators_test, Forall: SANY semantic/parse errors
+  that TLAPM's own frontend tolerates). No reference-positive Lean rejections
+  remain. Newly checked: DuplicateEXCEPT, EXCEPTMultipleBrackets_test,
+  smt_domain_check_test, test3. No previously checked script regressed and no
+  expected-false input was accepted. tests/proofs/lean-baseline.json holds
+  every per-file status.
+- Broadcast timeout: root cause was proof search, not the integer lemma or
+  linting. Every level-1/2 step was attempted twice (fresh-behavior
+  generalization, then the specific step), and nested steps proved from
+  HAVE/CASE/PICK state hypotheses can never generalize, so each failed attempt
+  repeated the full leaf cascade. Generalization is now attempted only when no
+  state-level hypothesis is in scope. test_decompose_naive_bcast drops from
+  98 s to 67 s locally; in CI it checks well inside the 120 s budget. It still
+  exceeds the 60 s audit budget, so it is one of the 34 audit timeouts.
+- HIDE facts: HIDE of a step or theorem name wraps the hypothesis in an opaque
+  TLAHiddenFact and clears it for the rest of the scope; USE restores it and a
+  BY citation reveals it to that leaf only. FactScope (positive) and
+  FalseFactScope (negative: a hidden fact cannot close a later OBVIOUS) are in
+  the CI suite. HIDE of a module assumption is rejected explicitly. No
+  reference-positive input uses HIDE of facts; SANY accepts only step,
+  theorem and assumption names there.
+- BY/ONLY citations remain an over-approximation: every proved fact in scope
+  is visible to a leaf. This is sound (Lean checks each term) but slower than
+  TLAPS's cited-facts-only contexts and is the likeliest lever on the
+  remaining timeouts (Paxos, Bakery, EWD840, TwoPhase, library proofs,
+  enabled_cdot tests).
+- Next frontier: cited-fact contexts for BY/ONLY; nested ENABLED and \cdot;
+  larger temporal/library proofs; SANY frontend differences.
 
 Baseline: 9dae0d4 imports specifications and theorem obligations but does not
 translate proof scripts. SANY already exports resolved proof trees. Heavy Lean
