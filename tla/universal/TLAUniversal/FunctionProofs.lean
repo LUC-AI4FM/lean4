@@ -221,4 +221,19 @@ theorem mem_recordSpace (f : Value) (fields : List (String × Value)) :
       ∀ field ∈ fields, apply f (string field.1) ∈ field.2 := by
   simp only [recordSpace, ZFSet.mem_sep, ZFSet.mem_funs]
 
+theorem diagonal_contradiction (s f x : Value) (hx : x ∈ s)
+    (eq : apply f x = s.sep (fun z => z ∉ apply f z)) : False :=
+  diagonal_ne s f x hx eq
+
+theorem record_isFunc_of_domain (domain range : Value) (fields : List (String × Value))
+    (hd : domain = enumerate (fields.map (fun field => string field.1)))
+    (hr : ∀ field ∈ fields, field.2 ∈ range) :
+    ZFSet.IsFunc domain range (record fields) := by
+  subst domain
+  exact record_isFunc fields range hr
+
+theorem mem_union_enumerate (x : Value) (sets : List Value) :
+    x ∈ ZFSet.sUnion (enumerate sets) ↔ ∃ s ∈ sets, x ∈ s := by
+  simp only [ZFSet.mem_sUnion, mem_enumerate]
+
 end TLAUniversal
