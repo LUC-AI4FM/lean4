@@ -57,6 +57,7 @@ class Renderer:
                 unfold.append(self.compiler.emitted[symbol.uid][0])
         simplifiers = ', '.join(dict.fromkeys(unfold))
         return [indent + 'try (solve | trivial)',
+                indent + 'try (solve | simp (config := { maxSteps := 10000 }) [' + simplifiers + '])',
                 indent + 'all_goals first | simp_all only [' + simplifiers + '] | simp only [' + simplifiers + '] at *',
                 indent + 'all_goals first | (solve | apply _root_.TLAUniversal.diagonal_ne <;> assumption) | omega | (solve | norm_num) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_natural_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))']
 
