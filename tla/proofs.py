@@ -316,7 +316,7 @@ class Renderer:
             step_proof = proof_node(step, implicit=True)
             opened, child_env = self.open_statement(body, env, indent + '  ')
             proof_lines = opened + self.render(step_proof, child_env, indent + '  ', body)
-            if step.level in (1, 2) and step_proof.tag in ('obvious', 'by'):
+            if step.level in (1, 2):
                 # Generalization is attempted with a fresh behavior/time, but
                 # existing assumptions retain their original types. Lean must
                 # prove this stronger statement; a local premise cannot become
