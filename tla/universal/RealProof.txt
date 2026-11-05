@@ -9,4 +9,4 @@ example (c : RealNumbers.Constants) (b : Behavior) (n : Nat) :
 example (c : RealNumbers.Constants) (b : Behavior) (n : Nat) :
     truth (RealNumbers.Bound c b n) := by
   simp only [RealNumbers.Bound, realLess, truth_boolean]
-  exact Or.inr ⟨integer_mem_real _, rfl⟩
+  exact Or.inr ⟨integer_mem_real _, trivial⟩

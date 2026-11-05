@@ -4,7 +4,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from translate import translate, TranslationError
+from translate import translate, TranslationError, compile_file
 
 class TranslationTests(unittest.TestCase):
     def test_counter(self):
@@ -13,6 +13,13 @@ class TranslationTests(unittest.TestCase):
         self.assertIn('namespace «Counter»', result)
         self.assertIn('def «Spec»', result)
         self.assertNotIn('sorry', result)
+
+    def test_inherited_user_operator_is_exported(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'Base.tla').write_text('---- MODULE Base ----\nAnswer == 42\n====')
+            (root / 'Derived.tla').write_text('---- MODULE Derived ----\nEXTENDS Base\n====')
+            self.assertIn('def «Answer»', compile_file(root / 'Derived.tla'))
 
     def test_standard_library_source_definitions(self):
         result = translate(Path('tests/fixtures/StandardLibrary.tla').read_text())

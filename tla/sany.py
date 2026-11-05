@@ -97,9 +97,12 @@ class Graph:
             raise SanyError('expected exactly one operator reference')
         return self.resolve(container[0])
 
-    def definitions(self):
+    def definitions(self, *, include_imported=False):
+        standard = {'Naturals', 'Integers', 'Reals', 'Sequences', 'FiniteSets', 'Bags',
+                    'TLC', 'Randomization', 'RealTime', 'TLAPS', 'Json'}
         return [self.resolve(ref) for ref in self.root.node.findall('UserDefinedOpKindRef')
-                if self.resolve(ref).location == self.root.name]
+                if self.resolve(ref).location == self.root.name or
+                (include_imported and self.resolve(ref).location not in standard)]
 
     def variables(self):
         return [self.resolve(ref) for ref in self.root.node.findall('OpDeclNodeRef')

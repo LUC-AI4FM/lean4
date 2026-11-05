@@ -546,7 +546,7 @@ class UniversalCompiler:
         for constant in self.g.constants():
             ty = ' → '.join(['Value'] * (constant.arity + 1))
             lines.append(f'  {ident(constant.name)} : {ty}')
-        for definition in self.g.definitions():
+        for definition in self.g.definitions(include_imported=True):
             parameters, environment = [], {}
             for ref in definition.node.findall('params/leibnizparam/FormalParamNodeRef'):
                 parameter = self.g.resolve(ref)
