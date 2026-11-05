@@ -65,3 +65,12 @@ class ProofTests(unittest.TestCase):
         self.assertIn('_general : ∀ (b :', code)
         self.assertIn('intro b n', code)
         self.assertIn('| have step_', code)
+
+    def test_imported_declarations_are_proof_obligations(self):
+        for source in ('ImportedLaw', 'FalseImportedLaw'):
+            code = compile_proofs(Path('tests/proofs/imported') / (source + '.tla'))
+            self.assertEqual(code.count('theorem TLACheckedProof'), 2)
+            self.assertNotIn('axiom ', code)
+            self.assertNotIn('sorry', code)
+        with self.assertRaisesRegex(ProofError, 'no explicit proof'):
+            compile_proofs(Path('tests/proofs/imported/ImportedProofLibrary.tla'))

@@ -373,7 +373,11 @@ def compile_proofs(source, **kwargs):
                  '_root_.TLAUniversal.record_isFunc_of_domain')
     names = exports['proof_names']
     for index, theorem in enumerate(theorems):
-        proof = proof_node(theorem)
+        # Imported library declarations may omit a source proof. Reconstruct
+        # their statements in Lean before exposing them to later claims; never
+        # turn an imported declaration into an axiom. Root omissions still fail.
+        imported = bool(theorem.location) and theorem.location != graph.root.name
+        proof = proof_node(theorem, implicit=imported)
         unfold = [exports['assumptions'], exports['claims'][index], '_root_.TLAUniversal.truth_boolean',
                   *exports['instance_helpers']]
         lines += [f'theorem {names[index]} (c : {exports["constants"]}) '
