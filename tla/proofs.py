@@ -61,11 +61,11 @@ class Renderer:
                 lines.append(indent + f'intro premise_{i}')
                 continue
             symbol = self.graph.resolve(assumption.find('OpDeclNodeRef'))
-            if symbol.node.findtext('kind') == '25':
-                raise ProofError('NEW VARIABLE proof binders need trace reconstruction')
             name = 'new_' + symbol.uid
             lines.append(indent + 'intro ' + name)
-            if symbol.level and symbol.arity:
+            if symbol.node.findtext('kind') == '25':
+                env[symbol.uid] = ExpressionBinding(f'(fun (_ : _root_.TLAUniversal.Behavior) (k : _root_.Nat) => {name} k)')
+            elif symbol.level and symbol.arity:
                 env[symbol.uid] = ExpressionBinding(name, symbol.arity)
             elif symbol.level:
                 env[symbol.uid] = LevelBinding(name, symbol.level)
@@ -183,6 +183,8 @@ class Renderer:
                 lines += self.leaf(ET.Element('obvious'), indent + '  ')
                 continue
             if step.node.find('suffices') is not None:
+                if name == '$Suffices':
+                    body = args[0]
                 lines.append(indent + f'suffices {label} : {self.proposition(body, env)} by')
                 lines += self.render(proof_node(step, implicit=True), dict(env), indent + '  ')
                 opened, env = self.open_statement(body, env, indent)
