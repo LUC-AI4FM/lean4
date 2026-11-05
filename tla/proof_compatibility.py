@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import subprocess
 import tempfile
+from prover_process import run_prover
 from proofs import compile_proofs
 from sany import parse_file
 
@@ -46,8 +47,8 @@ def main():
                     item['status'] = 'no_claims'
                 else:
                     target.write_text(compile_proofs(source, includes=includes))
-                    result = subprocess.run([os.environ.get('LAKE', 'lake'), 'env', 'lean', str(target)],
-                                            cwd=root / 'universal', capture_output=True, text=True, timeout=60)
+                    result = run_prover([os.environ.get('LAKE', 'lake'), 'env', 'lean', str(target)],
+                                            cwd=root / 'universal', timeout=60)
                     item['status'] = 'checked' if result.returncode == 0 else 'lean_rejected'
                     if result.returncode:
                         item['diagnostic'] = result.stdout + result.stderr

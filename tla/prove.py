@@ -7,6 +7,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 from compiler import CompileError
+from prover_process import run_prover
 from proofs import compile_proofs
 from sany import SanyError
 
@@ -26,8 +27,8 @@ def main():
         with tempfile.TemporaryDirectory(prefix='proof-check-', dir=root / 'universal') as directory:
             target = Path(directory) / 'Proof.lean'
             target.write_text(code)
-            result = subprocess.run([os.environ.get('LAKE', 'lake'), 'env', 'lean', str(target)],
-                                    cwd=root / 'universal', capture_output=True, text=True, timeout=args.timeout)
+            result = run_prover([os.environ.get('LAKE', 'lake'), 'env', 'lean', str(target)],
+                                    cwd=root / 'universal', timeout=args.timeout)
             if result.returncode:
                 parser.exit(1, 'tla-proof: Lean rejected the generated proof:\n' + result.stdout + result.stderr)
         # Preserve existing output when translation or checking fails.
