@@ -359,7 +359,7 @@ def compile_proofs(source, **kwargs):
                   'string_eq_iff string_mem domain_record apply_record_lookup record_eq_iff mem_recordSpace mem_interval_iff mem_union_enumerate').split()
     lines.append('attribute [local simp] ' + ' '.join(
         '_root_.TLAUniversal.' + name for name in normalized)
-        + ' _root_.ZFSet.zftrue_ne_zffalse _root_.List.lookup_cons')
+        + ' _root_.ZFSet.zftrue_ne_zffalse _root_.ZFSet.pair_inj _root_.List.lookup_cons')
     lines.append('attribute [local simp ↓] _root_.TLAUniversal.apply_updatePath_other '
                  '_root_.TLAUniversal.apply_updatePath_single '
                  '_root_.TLAUniversal.update_other _root_.TLAUniversal.update_same '
