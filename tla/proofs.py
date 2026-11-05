@@ -203,10 +203,9 @@ class Renderer:
                     value = qualify(self.compiler.expr(argument, env))
                     lines.append(indent + 'first')
                     lines.append(indent + f'| refine Exists.intro {value} ?_')
-                    lines.append(indent + '| refine And.intro ?_ ?_')
-                    lines.append(indent + '  ·')
+                    lines.append(indent + '| refine And.intro (by')
                     lines += self.leaf(ET.Element('obvious'), indent + '    ')
-                    lines.append(indent + f'  · refine Exists.intro {value} ?_')
+                    lines.append(indent + f'    ) (Exists.intro {value} ?_)')
                 continue
             if name == '$Pick':
                 existential = self.compiler.expr(body, env, operator_override='$UnboundedExists')
