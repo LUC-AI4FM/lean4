@@ -201,6 +201,11 @@ theorem record_eq_iff (left right : List (String × Value))
         p ∈ left.map (fun f => ZFSet.pair (string f.1) f.2)) := by
   rw [record_as_pairs left hl, record_as_pairs right hr, enumerate_eq_iff]
 
+theorem powerset_subset_contradiction (domain range witness : Value)
+    (included : ZFSet.powerset domain ⊆ range)
+    (subset : witness ⊆ domain) (excluded : witness ∉ range) : False :=
+  excluded (included (ZFSet.mem_powerset.mpr subset))
+
 theorem separation_subset (s : Value) (p : Value → Prop) : s.sep p ⊆ s := by
   intro x hx
   exact (ZFSet.mem_sep.mp hx).1
