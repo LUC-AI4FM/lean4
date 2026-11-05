@@ -38,7 +38,7 @@ jobs:
       - name: Check unchanged modules
         working-directory: tla
         run: |
-          python3 compatibility.py ../reference-examples -I ../reference-community/modules -I tests/corpus/tlaps --shard ${{ matrix.shard }} --shards 4 --report ../compatibility-report/${{ matrix.shard }}.json
+          python3 compatibility.py ../reference-examples -I ../reference-community/modules -I tests/corpus/tlaps -I tests/corpus/support --shard ${{ matrix.shard }} --shards 4 --report ../compatibility-report/${{ matrix.shard }}.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:

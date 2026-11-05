@@ -122,3 +122,9 @@ example (c : Claims.Constants) : Claims.Certificate c := by
   simp [Claims.TLAProofClaim0]
   omega
 """)
+
+    def test_custom_numeric_module_does_not_use_trusted_overrides(self):
+        self.check(Path('tests/fixtures/custom/CustomArithmetic.tla'), r"""
+example (c : CustomArithmetic.Constants) (b : TLA.Behavior CustomArithmetic.State) (n : Nat) :
+    CustomArithmetic.Law c b n := by rfl
+""")

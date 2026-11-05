@@ -10,4 +10,8 @@ THEOREM TRUE
 PROOF OBVIOUS
 True == TRUE
 False == FALSE
+b(v) == v
+c(v) == b(v)
+n(v) == c(v)
+LocalNames == n(1) = 1
 ====

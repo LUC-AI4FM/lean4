@@ -16,7 +16,7 @@ lake = os.environ.get('LAKE', 'lake')
 subprocess.run([lake, 'build'], check=True)
 fixtures = ['Counter.tla'] + [
     str(p.relative_to(root.parent / 'tests'))
-    for p in sorted((root.parent / 'tests' / 'fixtures').glob('*.tla'))
+    for p in sorted((root.parent / 'tests' / 'fixtures').rglob('*.tla'))
     if p.name != 'FalseClaim.tla'  # Checked separately as a rejected certificate.
 ]
 fixtures += [str(p.relative_to(root.parent / 'tests')) for p in sorted((root.parent / 'tests' / 'corpus').glob('*.tla'))]
@@ -27,6 +27,16 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         target = Path(directory) / source.with_suffix('.lean').name
         code = compile_file(source, includes=[root.parent / 'tests' / 'corpus' / 'tlaps', root.parent / 'tests' / 'corpus' / 'community'])
         code += '\nopen TLAImported\n'
+        if source.name == 'ParameterizedClaims.tla':
+            code += '\nexample (c : ParameterizedClaims.Constants) : ParameterizedClaims.Certificate c := by\n  constructor; intros; simp [ParameterizedClaims.TLAProofClaim0, truth_boolean]\n'
+        if source.name == 'OperatorArguments.tla':
+            code += '\nexample (c : OperatorArguments.Constants) (b : Behavior) (n : Nat) : truth (OperatorArguments.PlusLaw c b n) := by\n  simp only [OperatorArguments.PlusLaw, OperatorArguments.Plus, truth_boolean, realBinary_add_integer]; rfl\nexample (c : OperatorArguments.Constants) (b : Behavior) (n : Nat) : truth (OperatorArguments.IntersectionLaw c b n) := by\n  simp [OperatorArguments.IntersectionLaw, OperatorArguments.Intersection, truth_boolean, mem_enumerate]\n'
+        if source.name == 'Names.tla':
+            code += '\nexample (c : Names.Constants_) (b : Behavior) (n : Nat) : truth (Names.LocalNames c b n) := by\n  simp [Names.LocalNames, Names.n, Names.c, Names.b, truth_boolean]\n'
+        if source.name == 'CustomArithmetic.tla':
+            code += '\nexample (c : CustomArithmetic.Constants) (b : Behavior) (n : Nat) : truth (CustomArithmetic.Law c b n) := by\n  simp [CustomArithmetic.Law, CustomArithmetic.«+», truth_boolean]\n'
+        if source.name == 'CustomNumbers.tla':
+            code += '\nexample (c : CustomNumbers.Constants) (b : Behavior) (n : Nat) : truth (CustomNumbers.Member c b n) := by\n  simp [CustomNumbers.Member, CustomNumbers.Int, truth_boolean, mem_enumerate]\n'
         if source.name == 'Bool.tla':
             code += '\nexample (c : TLAImported.Bool.Constants) : TLAImported.Bool.Certificate c := by\n  constructor; intros; rfl\n'
         if source.name == 'ArithmeticOperations.tla':

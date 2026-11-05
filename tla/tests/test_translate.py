@@ -57,9 +57,10 @@ class TranslationTests(unittest.TestCase):
             self.assertEqual(target.read_text(), 'existing')
             self.assertIn('SANY rejected', result.stderr)
 
-    def test_standard_module_shadowing_rejected(self):
-        with self.assertRaises(TranslationError):
-            translate('---- MODULE Integers ----\nFake == TRUE\n====')
+    def test_custom_standard_name_preserves_its_definition(self):
+        result = translate('---- MODULE Integers ----\nInt == {TRUE}\n====')
+        self.assertIn('def «Int»', result)
+        self.assertIn('TLAUniversal.enumerate', result)
 
     def test_local_standard_instances_preserve_defining_module(self):
         result = translate(Path('tests/fixtures/ToolDefinitions.tla').read_text())
@@ -78,3 +79,13 @@ class TranslationTests(unittest.TestCase):
         for backend in ('typed', 'universal'):
             with self.subTest(backend=backend):
                 self.assertIn('def «Answer»', translate(source, backend=backend))
+
+    def test_instance_dependencies_are_shared(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            definitions = ['D0 == k'] + [f'D{i} == <<D{i-1}, D{i-1}>>' for i in range(1, 12)]
+            (root / 'Base.tla').write_text('---- MODULE Base ----\nCONSTANT k\n' + '\n'.join(definitions) + '\n====')
+            (root / 'Shared.tla').write_text('---- MODULE Shared ----\nINSTANCE Base WITH k <- TRUE\n====')
+            result = compile_file(root / 'Shared.tla')
+            self.assertLess(len(result), 15000)
+            self.assertIn('_root_.TLAImported.«Shared».«D10»', result)

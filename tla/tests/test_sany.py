@@ -55,6 +55,11 @@ Spec == Init /\\ [][Next]_x /\\ WF_x(Next)
             Other='---- MODULE Other ----\nEXTENDS Integers\nCONSTANT c\nTwice == c + c\n====')
         self.assertIn('Answer', {n.name for n in graph.definitions()})
 
+    def test_warning_only_export_is_accepted(self):
+        graph = self.parse('---- MODULE Test ----\nSame == TRUE\nINSTANCE Base\n====',
+                           Base='---- MODULE Base ----\nSame == TRUE\n====')
+        self.assertIn('Same', {s.name for s in graph.definitions()})
+
     def test_reject_parse_and_level_errors(self):
         for body in ["VARIABLE x\nBad == x'' = 0", 'Bad == Unknown', 'Bad == (']:
             with self.subTest(body=body), self.assertRaises(SanyError):

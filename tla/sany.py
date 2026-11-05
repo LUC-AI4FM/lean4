@@ -45,8 +45,12 @@ class Symbol:
         return int(self.node.findtext('arity', '0'))
 
 class Graph:
+    STANDARD_MODULES = {'Naturals', 'Integers', 'Reals', 'Sequences', 'FiniteSets', 'Bags',
+                        'TLC', 'Randomization', 'RealTime', 'Toolbox', 'TLAPS', 'Json'}
+
     def __init__(self, document):
         self.document = document
+        self.standard_overrides = set()
         self.symbols = {}
         for entry in document.findall('context/entry'):
             uid = entry.findtext('UID')
@@ -98,8 +102,7 @@ class Graph:
         return self.resolve(container[0])
 
     def definitions(self, *, include_imported=False):
-        standard = {'Naturals', 'Integers', 'Reals', 'Sequences', 'FiniteSets', 'Bags',
-                    'TLC', 'Randomization', 'RealTime', 'TLAPS', 'Json'}
+        standard = self.STANDARD_MODULES - self.standard_overrides
         return [self.resolve(ref) for ref in self.root.node.findall('UserDefinedOpKindRef')
                 if self.resolve(ref).location == self.root.name or
                 (include_imported and self.resolve(ref).location not in standard)]
@@ -124,11 +127,11 @@ def parse_file(source, *, jar=None, includes=(), timeout=30):
         verify(jar)
     except ValueError as error:
         raise SanyError(str(error)) from error
-    standard_names = ('Naturals', 'Integers', 'Reals', 'Sequences', 'FiniteSets')
-    for directory in [source.parent, *includes]:
-        for name in standard_names:
-            if (Path(directory) / (name + '.tla')).exists():
-                raise SanyError(f'local module shadows trusted standard module {name}')
+    # Local modules may legally reuse standard names. Never apply trusted
+    # standard-module overrides to their user-defined operator bodies.
+    overrides = {name for directory in [source.parent, *includes]
+                 for name in Graph.STANDARD_MODULES
+                 if (Path(directory) / (name + '.tla')).exists()}
     command = ['java', '-Xmx512m', '-cp', str(jar), 'tla2sany.xml.XMLExporter', '-o']
     for directory in [source.parent, *includes]:
         command.extend(['-I', str(Path(directory).resolve())])
@@ -143,8 +146,28 @@ def parse_file(source, *, jar=None, includes=(), timeout=30):
     except (OSError, subprocess.TimeoutExpired) as error:
         raise SanyError(f'reference parser failed: {error}') from error
     # The pinned exporter can exit zero and emit XML after a level error.
-    failed = any(marker in result.stderr for marker in ('Semantic errors:', '*** Errors:', '*** Abort messages:'))
+    failed = any(marker in result.stderr for marker in ('*** Errors:', '*** Abort messages:'))
     if result.returncode or failed or not result.stdout.lstrip().startswith('<?xml'):
         diagnostics = (result.stderr + ('' if result.stdout.lstrip().startswith('<?xml') else result.stdout)).strip()
         raise SanyError(f'SANY rejected {source.name}:\n{diagnostics}')
-    return Graph.from_xml(result.stdout)
+    graph = Graph.from_xml(result.stdout)
+    # SANY's stock XML omits parameters of theorem/assumption definitions.
+    # Ask the lossless adapter when an application needs those bindings.
+    missing_parameters = any(
+        app.find('operands') is not None and len(app.find('operands')) > 0 and
+        any(ref.tag in ('TheoremDefRef', 'AssumeDefRef') and
+            graph.resolve(ref).node.find('params') is None for ref in app.find('operator'))
+        for app in graph.document.iter('OpApplNode'))
+    if missing_parameters:
+        adapter = Path(__file__).parent / 'java' / 'SemanticExport.java'
+        fallback = ['java', '-Xmx512m', '-cp', str(jar), str(adapter), str(source),
+                    str(source.parent), *(str(Path(p).resolve()) for p in includes)]
+        try:
+            result = subprocess.run(fallback, capture_output=True, text=True, timeout=timeout, cwd=source.parent)
+        except (OSError, subprocess.TimeoutExpired) as error:
+            raise SanyError(f'reference adapter failed: {error}') from error
+        if result.returncode:
+            raise SanyError(f'SANY adapter rejected {source.name}:\n{result.stderr}')
+        graph = Graph.from_xml(result.stdout)
+    graph.standard_overrides = overrides
+    return graph

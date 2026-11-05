@@ -68,6 +68,7 @@ class UniversalCompiler:
         self.consts = {s.uid for s in graph.constants()}
         self.active = []
         self.emitted = {}
+        self.instance_variants = {}
         self.serial = 0
         recursive = {uid: symbol for uid, symbol in graph.symbols.items()
                      if symbol.node.tag == 'UserDefinedOpKind' and symbol.node.find('recursive') is not None}
@@ -167,6 +168,10 @@ class UniversalCompiler:
             return self.expr(node.find('body')[0], env, b, n)
         if node.tag in ('SubstInNode', 'APSubstInNode'):
             substituted = dict(env)
+            # Only reuse closed instance variants: their original formal parameters
+            # are unchanged and every module substitution is identical.
+            substituted['@instance'] = (ET.tostring(node.find('substs'))
+                                        if '@instance' not in env else None)
             for subst in node.findall('substs/Subst'):
                 parts = [x for x in subst if x.tag not in ('location', 'level')]
                 if len(parts) != 2:
@@ -224,8 +229,9 @@ class UniversalCompiler:
         if symbol.uid in self.consts:
             values = [self.expr(a, env, b, n) for a in args]
             return f'(c.{ident(symbol.name)} {" ".join(values)})'
-        if symbol.uid in self.emitted:
-            name, arities = self.emitted[symbol.uid]
+        emitted_uid = self.instance_variants.get((symbol.uid, env.get('@instance')), symbol.uid)
+        if emitted_uid in self.emitted:
+            name, arities = self.emitted[emitted_uid]
             if len(args) == len(arities) and not any(arities):
                 actuals = []
                 for argument in args:
@@ -233,27 +239,16 @@ class UniversalCompiler:
                     body = self.expr(argument, env, trace, time)
                     actuals.append(f'(fun ({trace} : Behavior) ({time} : Nat) => {body})')
                 return '(' + ' '.join([name, *actuals, 'c', f'({b})', f'({n})']) + ')'
-        name, origin = operator_override or symbol.name, symbol.location
-        name = {'\\union': '\\cup', '\\intersect': '\\cap', '$NonRecursiveFcnSpec': '$FcnConstructor'}.get(name, name)
-        body = symbol.node.find('body')
-        if body is not None and len(body) == 1:
-            original = body[0]
-            while original.tag in ('SubstInNode', 'APSubstInNode'):
-                original = original.find('body')[0]
-            # LOCAL INSTANCE copies the declaration location into the importing
-            # module, while the expression retains its defining source location.
-            origin = original.findtext('location/filename', origin)
-        standard = origin in ('Naturals', 'Integers', 'Reals', 'Sequences', 'FiniteSets')
-        if standard:
-            name = name.rsplit('!', 1)[-1]
-        if standard:
-            standard = name in {
-                'Nat', 'Int', 'Real', 'Infinity', '+', '-', '*', '/', '\\div', '%', '^', '-.',
-                '<', '>', '\\leq', '\\geq', '..', 'Seq', 'Len', 'Append', '\\o',
-                'SubSeq', 'Head', 'Tail', 'IsFiniteSet', 'Cardinality'}
+        name, origin, standard = self.operator_info(symbol, operator_override)
         if symbol.node.tag != 'BuiltInKind' and not standard:
             if symbol.node.tag in ('AssumeDef', 'TheoremDefNode'):
-                return self.expr(symbol.body, env, b, n)
+                params = symbol.node.findall('params/leibnizparam/FormalParamNodeRef')
+                if len(params) != len(args):
+                    raise CompileError(f'theorem parameter arity mismatch: {name}')
+                extended = dict(env)
+                extended.update({p.findtext('UID'): SyntaxBinding(a, env, tuple(self.active))
+                                 for p, a in zip(params, args)})
+                return self.expr(symbol.body, extended, b, n)
             if symbol.node.tag != 'UserDefinedOpKind':
                 raise CompileError(f'unsupported universal symbol: {name}')
             if symbol.uid in self.active:
@@ -476,6 +471,27 @@ class UniversalCompiler:
         if standard and name == 'Tail': return f'(subsequence {values[0]} (integer 2) (length {values[0]}))'
         raise CompileError(f'unsupported universal operator {name!r} from {origin}')
 
+    def operator_info(self, symbol, operator_override=None):
+        name, origin = operator_override or symbol.name, symbol.location
+        name = {'\\union': '\\cup', '\\intersect': '\\cap', '$NonRecursiveFcnSpec': '$FcnConstructor'}.get(name, name)
+        body = symbol.node.find('body')
+        if body is not None and len(body) == 1:
+            original = body[0]
+            while original.tag in ('SubstInNode', 'APSubstInNode'):
+                original = original.find('body')[0]
+            # LOCAL INSTANCE copies the declaration location into the importing
+            # module, while the expression retains its defining source location.
+            origin = original.findtext('location/filename', origin)
+        standard = origin in ('Naturals', 'Integers', 'Reals', 'Sequences', 'FiniteSets') and origin not in self.g.standard_overrides
+        if standard:
+            name = name.rsplit('!', 1)[-1]
+        if standard:
+            standard = name in {
+                'Nat', 'Int', 'Real', 'Infinity', '+', '-', '*', '/', '\\div', '%', '^', '-.',
+                '<', '>', '\\leq', '\\geq', '..', 'Seq', 'Len', 'Append', '\\o',
+                'SubSeq', 'Head', 'Tail', 'IsFiniteSet', 'Cardinality'}
+        return name, origin, standard
+
     def expand_binding(self, binding, args, caller, b, n):
         # Actual parameters are evaluated in their caller's expansion context.
         # F(F(1)) is nested application, not a recursive definition of F.
@@ -509,6 +525,8 @@ class UniversalCompiler:
                 raise CompileError('constant operator argument arity mismatch')
             name = binding.name if isinstance(binding, OperatorBinding) else f'c.{ident(target.name)}'
             return '(' + ' '.join([name, *(self.expr(arg, caller, b, n) for arg in args)]) + ')'
+        if target.node.tag == 'BuiltInKind' or self.operator_info(target)[2]:
+            return self.expr(self.app(target, args), caller, b, n)
         if target.node.tag == 'UserDefinedOpKind':
             params = target.node.findall('params/leibnizparam/FormalParamNodeRef')
             if len(params) != len(args):
@@ -556,6 +574,42 @@ class UniversalCompiler:
 
     def compile(self):
         definitions = self.g.definitions(include_imported=True)
+        originals = {}
+        for symbol in self.g.symbols.values():
+            if symbol.node.tag == 'UserDefinedOpKind':
+                originals.setdefault(ET.tostring(symbol.body), []).append(symbol)
+        for definition in definitions:
+            if definition.body.tag != 'SubstInNode':
+                continue
+            body = definition.body.find('body')[0]
+            params = [r.findtext('UID') for r in definition.node.findall('params/leibnizparam/FormalParamNodeRef')]
+            for original in originals.get(ET.tostring(body), []):
+                original_params = [r.findtext('UID') for r in original.node.findall('params/leibnizparam/FormalParamNodeRef')]
+                if params == original_params:
+                    key = (original.uid, ET.tostring(definition.body.find('substs')))
+                    self.instance_variants[key] = definition.uid
+        # SANY's exported instance declarations need not be dependency ordered.
+        # Order the emitted DAG so calls can share definitions instead of expanding
+        # whole specifications at every use. Cycles retain the fixed-point path.
+        by_uid = {d.uid: d for d in definitions}
+        ordered, visited, visiting = [], set(), set()
+        def visit(definition):
+            if definition.uid in visited or definition.uid in visiting:
+                return
+            visiting.add(definition.uid)
+            context = (ET.tostring(definition.body.find('substs'))
+                       if definition.body.tag == 'SubstInNode' else None)
+            for ref in definition.body.iter('UserDefinedOpKindRef'):
+                uid = ref.findtext('UID')
+                uid = self.instance_variants.get((uid, context), uid)
+                if uid in by_uid:
+                    visit(by_uid[uid])
+            visiting.remove(definition.uid)
+            visited.add(definition.uid)
+            ordered.append(definition)
+        for definition in definitions:
+            visit(definition)
+        definitions = ordered
         occupied = {definition.name for definition in definitions}
         def declaration_name(base):
             while base in occupied:
@@ -590,7 +644,7 @@ class UniversalCompiler:
             context, trace, index = 'c', 'b', 'n'
             lines.extend([f'def {ident(definition.name)} {signature}({context} : {constants_type}) ({trace} : _root_.TLAUniversal.Behavior) ({index} : _root_.Nat) : _root_.TLAUniversal.Value :=', '  ' + code])
             refs = definition.node.findall('params/leibnizparam/FormalParamNodeRef')
-            self.emitted[definition.uid] = (ident(definition.name), [self.g.resolve(r).arity for r in refs])
+            self.emitted[definition.uid] = (f'_root_.{namespace}.{ident(definition.name)}', [self.g.resolve(r).arity for r in refs])
         assumptions = [qualify(self.expr(s.body)) for s in self.g.claims('AssumeNode')]
         obligations = [qualify(self.expr(s.body)) for s in self.g.claims('TheoremNode')]
         if assumptions or obligations:

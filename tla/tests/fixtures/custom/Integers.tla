@@ -1,0 +1,3 @@
+---- MODULE Integers ----
+Int == {TRUE}
+====

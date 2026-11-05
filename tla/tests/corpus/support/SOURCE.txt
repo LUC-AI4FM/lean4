@@ -1,0 +1,3 @@
+Unmodified reference support modules and their licenses.
+TLCExt.tla: tlaplus/tlaplus @309e489a512e8017f1cdc8388fa6a5e8a01cf597, tlatools/org.lamport.tlatools/src/tla2sany/StandardModules/TLCExt.tla
+Apalache.tla: apalache-mc/apalache @9a13950e0ebddcb3d7a79cb9e854b0866e1c5712, src/tla/Apalache.tla

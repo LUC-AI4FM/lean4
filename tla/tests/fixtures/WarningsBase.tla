@@ -1,0 +1,3 @@
+---- MODULE WarningsBase ----
+Same == TRUE
+====

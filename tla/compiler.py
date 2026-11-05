@@ -181,7 +181,7 @@ class Compiler:
             original_body = original[0].find('body')
             if original_body is not None and len(original_body) == 1:
                 origin = original_body[0].findtext('location/filename', origin)
-        standard = origin in ('Naturals', 'Integers', 'Sequences', 'FiniteSets')
+        standard = origin in ('Naturals', 'Integers', 'Sequences', 'FiniteSets') and origin not in self.g.standard_overrides
         if standard:
             name = name.rsplit('!', 1)[-1]
         builtin = op.node.tag == 'BuiltInKind'
