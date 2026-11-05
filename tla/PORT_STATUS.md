@@ -58,3 +58,10 @@ Universal CI diagnosis: Lake promoted the child package from 4.33.0 to the paren
 rather than rebuilding Mathlib on the coordinator. Existing local lightweight
 checks may use installed 4.33.1 explicitly; CI checks the pinned 4.33.0 build.
 Added multiple bounded quantifiers/comprehensions with generated Lean proofs.
+
+
+Universal CI reached Lean and exposed two concrete failures: temporal aliases
+were restricted to Type 0, and one domain proof destructuring pattern failed.
+Generalized temporal definitions to universe-polymorphic state types and fixed
+that proof. Added universal source generation and heterogeneous/quantifier/operator
+fixtures; those are queued for CI, not yet claimed passing. Main typed lane passed.

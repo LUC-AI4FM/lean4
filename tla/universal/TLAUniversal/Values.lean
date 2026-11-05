@@ -79,8 +79,9 @@ theorem mem_domain (f x : Value) : x ∈ domain f ↔ ∃ y, ZFSet.pair x y ∈ 
   rw [domain, ZFSet.mem_sep]
   constructor
   · exact And.right
-  · rintro h@⟨y, hy⟩
-    refine ⟨?_, h⟩
+  · intro h
+    obtain ⟨y, hy⟩ := h
+    refine ⟨?_, ⟨y, hy⟩⟩
     apply ZFSet.mem_sUnion.mpr
     refine ⟨{x}, ?_, by simp⟩
     apply ZFSet.mem_sUnion.mpr
@@ -92,6 +93,66 @@ def update (f x y : Value) : Value :=
 theorem update_same (f x y : Value) (hx : x ∈ domain f) : apply (update f x y) x = y := by
   rw [update, apply_function _ _ _ hx]
   simp
+
+def undefined : Value := choose (fun _ => False)
+
+def intUnary (op : Int → Int) (x : Value) : Value :=
+  if x ∈ ZFSet.Int then integer (op (toInt x)) else undefined
+
+def intBinary (op : Int → Int → Int) (x y : Value) : Value :=
+  if x ∈ ZFSet.Int ∧ y ∈ ZFSet.Int then integer (op (toInt x) (toInt y)) else undefined
+
+def intCompare (op : Int → Int → Prop) (x y : Value) : Value :=
+  boolean (x ∈ ZFSet.Int ∧ y ∈ ZFSet.Int ∧ op (toInt x) (toInt y))
+
+def tuple (values : List Value) : Value :=
+  function (interval (integer 1) (integer values.length))
+    (fun index => values[(toInt index - 1).toNat]?.getD undefined)
+
+def length (sequence : Value) : Value :=
+  choose (fun n => n ∈ naturals ∧ domain sequence = interval (integer 1) n)
+
+def sequences (elements : Value) : Value :=
+  ZFSet.sUnion (ZFSet.range (fun n : Nat => (interval (integer 1) (integer n)).funs elements))
+
+def append (sequence value : Value) : Value :=
+  function (interval (integer 1) (integer (toInt (length sequence) + 1)))
+    (fun i => if toInt i = toInt (length sequence) + 1 then value else apply sequence i)
+
+def concatenate (left right : Value) : Value :=
+  function (interval (integer 1) (integer (toInt (length left) + toInt (length right))))
+    (fun i => if toInt i ≤ toInt (length left) then apply left i
+      else apply right (integer (toInt i - toInt (length left))))
+
+def subsequence (sequence lo hi : Value) : Value :=
+  function (interval (integer 1) (integer (max 0 (toInt hi - toInt lo + 1))))
+    (fun i => apply sequence (integer (toInt lo + toInt i - 1)))
+
+def string (text : String) : Value :=
+  tuple (text.toList.map (fun c => ZFSet.pair (integer (-1)) (integer c.toNat)))
+
+def strings : Value := ZFSet.range string
+
+def record (fields : List (String × Value)) : Value :=
+  function (enumerate (fields.map (fun field => string field.1)))
+    (fun key => choose (fun value => ∃ field ∈ fields, key = string field.1 ∧ value = field.2))
+
+def recordSpace (fields : List (String × Value)) : Value :=
+  ((enumerate (fields.map (fun field => string field.1))).funs
+    (ZFSet.sUnion (enumerate (fields.map Prod.snd)))).sep
+      (fun f => ∀ field ∈ fields, apply f (string field.1) ∈ field.2)
+
+def selectPath (value : Value) (keys : List Value) : Value :=
+  keys.foldl apply value
+
+def updatePath (value : Value) (keys : List Value) (replacement : Value) : Value :=
+  match keys with
+  | [] => replacement
+  | key :: rest => update value key (updatePath (apply value key) rest replacement)
+
+theorem intBinary_integer (op : Int → Int → Int) (a b : Int) :
+    intBinary op (integer a) (integer b) = integer (op a b) := by
+  simp [intBinary, integer_mem, toInt_integer]
 
 /-- A native specification over the same untyped value universe as source specifications. -/
 def liftPredicate (p : State → Prop) : Expression := fun b n => boolean (p (b n))

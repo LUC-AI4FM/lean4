@@ -40,4 +40,6 @@ jobs:
           lake exe cache get
       - name: Check universal-value semantics
         working-directory: tla/universal
-        run: lake build
+        run: |
+          python3 ../tools.py
+          python3 check.py

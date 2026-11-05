@@ -3,10 +3,13 @@ module
 
 @[expose] public section
 namespace TLA
-abbrev Behavior (σ : Type) := Nat → σ
-abbrev Predicate (σ : Type) := σ → Prop
-abbrev Action (σ : Type) := σ → σ → Prop
-abbrev Formula (σ : Type) := Behavior σ → Nat → Prop
+universe u v
+abbrev Behavior (σ : Type u) := Nat → σ
+abbrev Predicate (σ : Type u) := σ → Prop
+abbrev Action (σ : Type u) := σ → σ → Prop
+abbrev Formula (σ : Type u) := Behavior σ → Nat → Prop
+
+variable {σ : Type u} {α : Type v}
 
 def state (p : Predicate σ) : Formula σ := fun b n => p (b n)
 def action (a : Action σ) : Formula σ := fun b n => a (b n) (b (n + 1))
