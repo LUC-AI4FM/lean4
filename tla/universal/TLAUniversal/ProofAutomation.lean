@@ -1,6 +1,7 @@
 /- Copyright (c) 2026 Eric Spencer. Released under Apache 2.0 license. -/
 module
 public import TLAUniversal.Values
+public import TLAUniversal.InductionProofs
 public import Lean
 
 open Lean Meta Elab Tactic
@@ -75,3 +76,16 @@ elab "tla_temporal_induction" : tactic => do
     else
       throwError "expected a future-time quantifier"
   throwError "too many premises before the future-time quantifier"
+
+-- Avoid inventing a constant predicate to apply induction to unrelated goals.
+elab "tla_natural_induction" : tactic => withMainContext do
+  let goal ← getMainGoal
+  let type ← whnf (← goal.getType)
+  if type.isForall && type.bindingBody!.isForall then
+    let bound := type.bindingBody!.bindingDomain!
+    if bound.isAppOfArity ``Membership.mem 5 then
+      let args := bound.getAppArgs
+      if args[3]!.isConstOf ``TLAUniversal.naturals && args[4]! == mkBVar 0 then
+        evalTactic (← `(tactic| refine TLAUniversal.natural_induction _ ?_ ?_))
+        return
+  throwError "expected a quantifier over TLA naturals"
