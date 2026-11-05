@@ -24,7 +24,7 @@ class ProofTests(unittest.TestCase):
 
     def test_hierarchical_proof_preserves_assertions_and_binders(self):
         code = compile_proofs(Path('tests/proofs/ProofShapes.tla'))
-        for instruction in ('intro taken_', 'refine ⟨', 'suffices step_', 'obtain ⟨picked_', 'by_cases step_'):
+        for instruction in ('intro taken_', 'refine Exists.intro', 'suffices step_', 'obtain ⟨picked_', 'by_cases step_'):
             self.assertIn(instruction, code)
 
     def test_false_intermediate_step_is_not_dropped(self):

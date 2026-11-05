@@ -139,7 +139,15 @@ class Renderer:
                 lines.append(indent + 'first | apply (_root_.TLAUniversal.truth_boolean _).2 | skip')
                 for group in body.find('boundSymbols'):
                     if group.find('tuple') is not None:
-                        raise ProofError('tuple TAKE reconstruction is not implemented')
+                        refs = group.findall('FormalParamNodeRef')
+                        variable = 'taken_tuple_' + refs[0].findtext('UID')
+                        lines.append(indent + 'intro ' + variable)
+                        for component, ref in enumerate(refs, 1):
+                            env[ref.findtext('UID')] = ValueBinding(
+                                f'(_root_.TLAUniversal.apply {variable} (_root_.TLAUniversal.integer {component}))')
+                        if group.tag != 'unbound':
+                            lines.append(indent + 'intro bound_' + variable)
+                        continue
                     for ref in group.findall('FormalParamNodeRef'):
                         uid = ref.findtext('UID')
                         variable = 'taken_' + uid
@@ -152,7 +160,12 @@ class Renderer:
                 lines.append(indent + 'first | apply (_root_.TLAUniversal.truth_boolean _).2 | skip')
                 for argument in args:
                     value = qualify(self.compiler.expr(argument, env))
-                    lines.append(indent + f'refine ⟨{value}, ?_⟩')
+                    lines.append(indent + 'first')
+                    lines.append(indent + f'| refine Exists.intro {value} ?_')
+                    lines.append(indent + '| refine And.intro ?_ ?_')
+                    lines.append(indent + '  ·')
+                    lines += self.leaf(ET.Element('obvious'), indent + '    ')
+                    lines.append(indent + f'  · refine Exists.intro {value} ?_')
                 continue
             if name == '$Pick':
                 existential = self.compiler.expr(body, env, operator_override='$UnboundedExists')
@@ -162,7 +175,15 @@ class Renderer:
                 fields = []
                 for group in body.find('boundSymbols'):
                     if group.find('tuple') is not None:
-                        raise ProofError('tuple PICK reconstruction is not implemented')
+                        refs = group.findall('FormalParamNodeRef')
+                        variable = 'picked_tuple_' + refs[0].findtext('UID')
+                        fields.append(variable)
+                        for component, ref in enumerate(refs, 1):
+                            env[ref.findtext('UID')] = ValueBinding(
+                                f'(_root_.TLAUniversal.apply {variable} (_root_.TLAUniversal.integer {component}))')
+                        if group.tag != 'unbound':
+                            fields.append('bound_' + variable)
+                        continue
                     for ref in group.findall('FormalParamNodeRef'):
                         uid = ref.findtext('UID')
                         variable = 'picked_' + uid
@@ -220,7 +241,7 @@ def compile_proofs(source, **kwargs):
         # Only already checked theorems enter the context. A BY reference is
         # never converted to an assumed proposition merely because SANY resolved it.
         for previous in range(index):
-            lines.append(f'  have prior_{previous} := {names[previous]} c b n source_assumptions')
+            lines.append(f'  have prior_{previous} := {names[previous]} c')
             unfold.append(exports['claims'][previous])
         renderer = Renderer(compiler, unfold)
         opened, environment = renderer.open_statement(theorem.body, {}, '  ')
