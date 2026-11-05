@@ -88,3 +88,11 @@ both frontend and Lean checks. Recursive operator implementation now follows
 Gonthier–Lamport's fixing-graph semantics (recursive-ops.pdf section 3.1), not an
 unconditional fixed-point equation. Recursive function definitions use CHOOSE.
 Higher-order and mutually recursive operators remain open coverage gates.
+
+Run 41965032146 passed at 8a8d3df, including finite-set/cardinality definitions,
+recursive source modules and the kernel-checked fixing-graph witness/constant
+lemmas. The corpus now includes unchanged MIT-licensed tlaplus/Examples modules
+at 0e32a039a4286cc3e1b0f70c00eaff3178d49f85: DieHard, CoffeeCan,
+DiningPhilosophers and Bakery. Their source provenance and licenses are retained.
+Bakery's TLAPS pragma dependency is pinned separately with its BSD license;
+pragma hints do not discharge generated Lean obligations.

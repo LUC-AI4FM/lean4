@@ -1,0 +1,8 @@
+Source: https://github.com/tlaplus/Examples
+Commit: 0e32a039a4286cc3e1b0f70c00eaff3178d49f85
+
+LICENSE.md
+specifications/DieHard/DieHard.tla
+specifications/Bakery-Boulangerie/Bakery.tla
+specifications/DiningPhilosophers/DiningPhilosophers.tla
+specifications/CoffeeCan/CoffeeCan.tla

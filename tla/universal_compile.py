@@ -14,6 +14,11 @@ class ValueBinding:
     code: str
 
 @dataclass
+class OperatorBinding:
+    name: str
+    arity: int
+
+@dataclass
 class RecursiveBinding:
     graph: str
     arity: int
@@ -63,6 +68,30 @@ class UniversalCompiler:
             return f'(integer {number})'
         if node.tag == 'StringNode':
             return '(string ' + lean_string(node.findtext('StringValue', '')) + ')'
+        if node.tag == 'AssumeProveNode':
+            def obligation(items, context):
+                if not items:
+                    return 'truth ' + self.expr(node.find('prove')[0], context, b, n)
+                head, *tail = items
+                if head.tag != 'NewSymbNode':
+                    premise = self.expr(head, context, b, n)
+                    return f'(truth {premise} → {obligation(tail, context)})'
+                declaration = self.g.resolve(head.find('OpDeclNodeRef'))
+                if declaration.level not in (None, 0):
+                    raise CompileError('NEW state/action/temporal symbols require level-specific quantification')
+                variable = self.fresh()
+                extended = dict(context)
+                extended[declaration.uid] = OperatorBinding(variable, declaration.arity)
+                ty = ' → '.join(['Value'] * (declaration.arity + 1))
+                body = obligation(tail, extended)
+                bounds = [x for x in head if x.tag not in ('location', 'level', 'OpDeclNodeRef')]
+                if bounds:
+                    if len(bounds) != 1 or declaration.arity:
+                        raise CompileError('invalid NEW symbol bound')
+                    domain = self.expr(bounds[0], context, b, n)
+                    body = f'({variable} ∈ {domain} → {body})'
+                return f'(∀ ({variable} : {ty}), {body})'
+            return '(boolean ' + obligation(list(node.find('assumes')), env) + ')'
         if node.tag == 'LetInNode':
             return self.expr(node.find('body')[0], env, b, n)
         if node.tag == 'SubstInNode':
@@ -84,6 +113,11 @@ class UniversalCompiler:
         args = list(node.find('operands'))
         if symbol.uid in env:
             binding = env[symbol.uid]
+            if isinstance(binding, OperatorBinding):
+                if len(args) != binding.arity:
+                    raise CompileError('operator arity mismatch')
+                values = [self.expr(a, env, b, n) for a in args]
+                return '(' + ' '.join([binding.name, *values]) + ')'
             if isinstance(binding, RecursiveBinding):
                 if len(args) != binding.arity:
                     raise CompileError('recursive operator arity mismatch')
@@ -121,6 +155,7 @@ class UniversalCompiler:
             values = [self.expr(a, env, b, n) for a in args]
             return f'(c.{ident(symbol.name)} {" ".join(values)})'
         name, origin = operator_override or symbol.name, symbol.location
+        name = {'\\union': '\\cup', '\\intersect': '\\cap'}.get(name, name)
         body = symbol.node.find('body')
         if body is not None and len(body) == 1 and body[0].tag == 'SubstInNode':
             original = body[0].find('body')
@@ -321,8 +356,8 @@ class UniversalCompiler:
         if name in ('\\in', '\\notin', '\\subseteq'):
             op = {'\\in': '∈', '\\notin': '∉', '\\subseteq': '⊆'}[name]
             return f'(boolean ({values[0]} {op} {values[1]}))'
-        if name in ('\\cup', '\\cap', '\\setminus'):
-            op = {'\\cup': '∪', '\\cap': '∩', '\\setminus': '\\'}[name]
+        if name in ('\\cup', '\\cap', '\\setminus', '\\'):
+            op = {'\\cup': '∪', '\\cap': '∩', '\\setminus': '\\', '\\': '\\'}[name]
             return f'({values[0]} {op} {values[1]})'
         if name in ('$SetEnumerate', '$Tuple'):
             fn = 'enumerate' if name == '$SetEnumerate' else 'tuple'
@@ -406,8 +441,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('source', type=Path)
     parser.add_argument('-o', '--output', type=Path, required=True)
+    parser.add_argument('-I', '--include', type=Path, action='append', default=[])
     args = parser.parse_args()
     try:
-        args.output.write_text(compile_file(args.source))
+        args.output.write_text(compile_file(args.source, includes=args.include))
     except (CompileError, OSError) as error:
         parser.exit(1, f'tla-universal: {error}\n')
