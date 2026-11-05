@@ -189,6 +189,14 @@ def source_modules(text):
 def parse_file(source, *, jar=None, includes=(), timeout=30):
     source = Path(source).resolve(strict=True)
     modules = source_modules(source.read_text())
+    if len(modules) == 1 and modules[0][0] != source.stem:
+        # TLAPM accepts a module whose declared name differs from its filename;
+        # SANY requires them to match. Stage the exact bytes under that name,
+        # retaining the original directory for dependency resolution.
+        with tempfile.TemporaryDirectory(prefix='tla-source-name-') as directory:
+            renamed = Path(directory) / (modules[0][0] + '.tla')
+            renamed.write_bytes(source.read_bytes())
+            return _parse_file(renamed, jar=jar, includes=[source.parent, *includes], timeout=timeout)
     if len(modules) <= 1:
         return _parse_file(source, jar=jar, includes=includes, timeout=timeout)
     names = [name for name, _ in modules]

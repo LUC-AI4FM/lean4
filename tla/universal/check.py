@@ -120,7 +120,8 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
                             '-o', str(proof_output.with_suffix('.olean')), str(proof_output)],
                            check=True, capture_output=True, text=True, timeout=120)
             consumer = Path(directory) / 'ProofConsumer.lean'
-            namespace = 'TLAImported.«' + proof_fixture + '»'
+            namespace = next(line.removeprefix('namespace ') for line in proof_output.read_text().splitlines()
+                             if line.startswith('namespace TLAImported.'))
             consumer.write_text('module\nimport CheckedProofs\n'
                                 + f'example (c : {namespace}.Constants) : '
                                 + f'{namespace}.Certificate c := '
