@@ -28,8 +28,8 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         code = compile_file(source, includes=[root.parent / 'tests' / 'corpus' / 'tlaps', root.parent / 'tests' / 'corpus' / 'community'])
         code += '\nopen TLAImported\n'
         if source.name == 'ClosedImport.tla':
-            helpers = [line.split()[1] for line in code.splitlines() if line.startswith('def «TLAInternal')]
-            code += '\nexample (c : ClosedImport.Constants) (b : Behavior) (n : Nat) : truth (ClosedImport.Law c b n) := by\n  simp [' + ', '.join(['ClosedImport.Law', 'ClosedImport.Result', *['ClosedImport.' + h for h in helpers], 'truth_boolean']) + ']\n'
+            helpers = [line.split()[1] for line in code.splitlines() if line.startswith('def «')]
+            code += '\nexample (c : ClosedImport.Constants) (b : Behavior) (n : Nat) : truth (ClosedImport.Law c b n) := by\n  simp [' + ', '.join([*['ClosedImport.' + h for h in helpers], 'truth_boolean']) + ']\n'
         if source.name == 'Bundled.tla':
             code += '\nexample (c : Bundled.Constants) (b : Behavior) (n : Nat) : truth (Bundled.Answer c b n) := by\n  simp [Bundled.Answer, Bundled.Base, truth_boolean]\n'
         if source.name == 'ParameterizedClaims.tla':
