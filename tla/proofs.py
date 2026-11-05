@@ -375,6 +375,8 @@ def compile_proofs(source, **kwargs):
                  '_root_.TLAUniversal.domain_updatePath_cons '
                  '_root_.TLAUniversal.domain_update _root_.TLAUniversal.domain_record')
     # Boolean range inference is useful only when the emitted source uses BOOLEAN.
+    if 'integers' in code:
+        lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.integer_function_apply')
     if 'ZFSet.𝔹' in code:
         lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.boolean_function_apply')
     lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.remainder_nonnegative '

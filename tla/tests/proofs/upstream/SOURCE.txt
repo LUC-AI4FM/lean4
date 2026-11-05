@@ -21,3 +21,4 @@ Additional unchanged sources: test/unit/e_arith/range_test.tla and zenon/regress
 
 Additional unchanged sources: test/fast/language/DuplicateEXCEPT.tla and zenon/regression/misc/test3.tla.
 Additional unchanged source: test/fast/language/EXCEPTMultipleBrackets_test.tla.
+Additional unchanged source: test/fast/regression/smt_domain_check_test.tla.
