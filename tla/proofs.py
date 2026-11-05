@@ -290,7 +290,8 @@ def compile_proofs(source, **kwargs):
                   'realSubtract_integer realLessEqual_integer realLess_integer '
                   'intBinary_integer numberInterval_integer integer_mem_interval '
                   'mem_enumerate apply_function domain_function function_isFunc_iff '
-                  'domain_update update_same update_other updatePath').split()
+                  'domain_update update_same update_other updatePath '
+                  'domain_tuple apply_tuple_at tuple_eq_iff length_tuple').split()
     lines.append('attribute [local simp] ' + ' '.join(
         '_root_.TLAUniversal.' + name for name in normalized)
         + ' _root_.ZFSet.zftrue_ne_zffalse')

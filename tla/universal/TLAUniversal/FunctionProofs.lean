@@ -79,4 +79,29 @@ theorem update_other (f x y z : Value) (hz : z ∈ domain f) (hne : z ≠ x) :
     apply (update f x y) z = apply f z := by
   simp [update, apply_function _ _ _ hz, hne]
 
+theorem domain_tuple (values : List Value) :
+    domain (tuple values) = interval (integer 1) (integer values.length) :=
+  domain_function _ _
+
+theorem apply_tuple_at (values : List Value) (i : Int)
+    (h : 1 ≤ i ∧ i ≤ values.length) :
+    apply (tuple values) (integer i) = values[(i - 1).toNat]?.getD undefined := by
+  unfold tuple
+  rw [apply_function _ _ _ ((integer_mem_interval _ _ _).mpr h)]
+  rw [toInt_integer]
+
+theorem tuple_injective : Function.Injective tuple := by
+  intro xs ys eq
+  have domains := congrArg domain eq
+  rw [domain_tuple, domain_tuple] at domains
+  have lengths := interval_nat_injective xs.length ys.length domains
+  apply List.ext_getElem lengths
+  intro i hx hy
+  have point := congrArg (fun f => apply f (integer ((i : Int) + 1))) eq
+  rw [apply_tuple xs i hx, apply_tuple ys i hy] at point
+  exact point
+
+theorem tuple_eq_iff (xs ys : List Value) : tuple xs = tuple ys ↔ xs = ys :=
+  tuple_injective.eq_iff
+
 end TLAUniversal
