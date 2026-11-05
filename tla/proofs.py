@@ -352,7 +352,7 @@ def compile_proofs(source, **kwargs):
                   'realBinary_add_integer realBinary_mul_integer realNegate_integer '
                   'realSubtract_integer realLessEqual_integer realLess_integer realPower_integer_nonnegative '
                   'intBinary_integer numberInterval_integer integer_mem_interval '
-                  'enumerate_nil mem_enumerate mem_image caseValue apply_function domain_function function_isFunc_iff '
+                  'enumerate_nil enumerate_subset_iff union_subset_iff mem_enumerate mem_image caseValue apply_function domain_function function_isFunc_iff '
                   'domain_update domain_updatePath_cons update_same update_other updatePath '
                   'domain_tuple apply_tuple_at tuple_eq_iff length_tuple '
                   'prepend_tuple mem_cartesian_cons mem_cartesian_nil '
@@ -371,6 +371,7 @@ def compile_proofs(source, **kwargs):
     lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.remainder_nonnegative '
                  '_root_.TLAUniversal.remainder_upper _root_.Int.emod_lt_of_pos '
                  '_root_.TLAUniversal.realPower_integer_mem '
+                 '_root_.TLAUniversal.update_isFunc '
                  '_root_.TLAUniversal.exists_state_pair '
                  '_root_.TLAUniversal.separation_subset '
                  '_root_.TLAUniversal.exists_container '
@@ -382,7 +383,9 @@ def compile_proofs(source, **kwargs):
                  '_root_.TLAUniversal.record_eq_keys '
                  '_root_.TLAUniversal.universal_set_contradiction '
                  '_root_.TLAUniversal.powerset_subset_contradiction '
-                 '_root_.TLAUniversal.function_range_mono')
+                 '_root_.TLAUniversal.function_range_mono '
+                 '_root_.TLAUniversal.singleton_range_isFunc '
+                 '_root_.TLAUniversal.subset_member')
     lines.append('attribute [local aesop unsafe 50% apply] _root_.TLAUniversal.function_ext '
                  '_root_.TLAUniversal.apply_record '
                  '_root_.TLAUniversal.record_isFunc_of_domain '

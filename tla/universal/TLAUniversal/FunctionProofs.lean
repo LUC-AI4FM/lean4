@@ -102,6 +102,43 @@ theorem apply_updatePath_single (value key replacement : Value)
     apply (updatePath value [key] replacement) key = replacement := by
   simp only [updatePath, update_same _ _ _ member]
 
+theorem update_isFunc {D E f key value : Value}
+    (hf : ZFSet.IsFunc D E f) (hv : value ∈ E) :
+    ZFSet.IsFunc D E (update f key value) := by
+  rw [update, domain_isFunc hf]
+  apply function_isFunc
+  intro x hx
+  split_ifs
+  · exact hv
+  · exact apply_mem hf hx
+
+theorem singleton_range_isFunc {D E f value : Value}
+    (hf : ZFSet.IsFunc D (enumerate [value]) f) (hv : value ∈ E) :
+    ZFSet.IsFunc D E f := by
+  apply function_range_mono hf
+  intro x hx
+  have eq : x = value := by simpa only [mem_enumerate, List.mem_singleton] using hx
+  simpa only [eq] using hv
+
+theorem subset_member {A B x : Value} (h : A ⊆ B) (hx : x ∈ A) : x ∈ B := h hx
+
+theorem union_subset_iff (A B C : Value) :
+    A ∪ B ⊆ C ↔ A ⊆ C ∧ B ⊆ C := by
+  constructor
+  · intro h
+    exact ⟨fun _ hx => h (ZFSet.mem_union.mpr (Or.inl hx)),
+      fun _ hx => h (ZFSet.mem_union.mpr (Or.inr hx))⟩
+  · rintro ⟨ha, hb⟩ x hx
+    exact (ZFSet.mem_union.mp hx).elim (ha ·) (hb ·)
+
+theorem enumerate_subset_iff (values : List Value) (target : Value) :
+    enumerate values ⊆ target ↔ ∀ x ∈ values, x ∈ target := by
+  constructor
+  · intro h x hx
+    exact h ((mem_enumerate _ _).mpr hx)
+  · intro h x hx
+    exact h x ((mem_enumerate _ _).mp hx)
+
 theorem domain_tuple (values : List Value) :
     domain (tuple values) = interval (integer 1) (integer values.length) :=
   domain_function _ _
