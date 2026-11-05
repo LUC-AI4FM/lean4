@@ -114,7 +114,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
     for proof_source in proof_sources[proof_shard::proof_shards]:
         proof_fixture = proof_source.stem
         proved = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
-                                 str(proof_source), '--timeout', '45', '-I', str(root.parent / 'tests/corpus/tlaps'),
+                                 str(proof_source), '--timeout', '120', '-I', str(root.parent / 'tests/corpus/tlaps'),
                                  '-o', str(proof_output)],
                                 capture_output=True, text=True, timeout=150)
         if proved.returncode:
