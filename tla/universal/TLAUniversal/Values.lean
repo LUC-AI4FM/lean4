@@ -51,6 +51,9 @@ theorem not_truth_false : ¬ truth ZFSet.zffalse :=
 theorem not_universal (x : Value) : ∃ y : Value, y ∉ x :=
   ⟨x, ZFSet.mem_irrefl x⟩
 
+theorem universal_set_contradiction (s : Value) (h : ∀ x : Value, x ∈ s) : False :=
+  ZFSet.mem_irrefl s (h s)
+
 abbrev real := Numeric.encode
 abbrev toReal := Numeric.decode
 

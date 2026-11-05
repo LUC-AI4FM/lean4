@@ -369,7 +369,8 @@ def compile_proofs(source, **kwargs):
     lines.append('attribute [local aesop safe forward] _root_.TLAUniversal.domain_isFunc '
                  '_root_.TLAUniversal.apply_mem '
                  '_root_.TLAUniversal.diagonal_contradiction '
-                 '_root_.TLAUniversal.record_eq_keys')
+                 '_root_.TLAUniversal.record_eq_keys '
+                 '_root_.TLAUniversal.universal_set_contradiction')
     lines.append('attribute [local aesop unsafe 50% apply] _root_.TLAUniversal.function_ext '
                  '_root_.TLAUniversal.apply_record '
                  '_root_.TLAUniversal.record_isFunc_of_domain')
