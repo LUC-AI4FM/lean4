@@ -13,7 +13,7 @@ from sany import parse_file, SanyError
 SEMANTIC_NAMES = set("""Value State Behavior Expression truth boolean integer integers toInt naturals interval real reals realUnary realBinary realDivide realPower realLess realLessEqual infinity
     enumerate image choose function apply domain update undefined intUnary intBinary intCompare
     tuple length sequences append prepend cartesian caseValue concatenate subsequence string strings
-    record recordSpace selectPath updatePath finite cardinality intPower recursiveOperator""".split())
+    record recordSpace selectPath updatePath finite cardinality intPower recursiveOperator expressionLevel""".split())
 
 def qualify(code):
     # Keep source identifiers and string literals intact while qualifying library names.
@@ -121,9 +121,17 @@ class UniversalCompiler:
                 variable = self.fresh()
                 extended = dict(context)
                 level = declaration.level or 0
+
+                locality = None
                 if level and declaration.arity:
-                    raise CompileError('level-specific NEW operator arguments require a locality contract')
-                if declaration.node.findtext('kind') == '25':
+                    extended[declaration.uid] = ExpressionBinding(variable, declaration.arity)
+                    ty = ' → '.join(['Expression'] * (declaration.arity + 1))
+                    parameters = [self.fresh() for _ in range(declaration.arity)]
+                    signature = ' '.join(f'({p} : Expression)' for p in parameters)
+                    premises = ' → '.join(f'expressionLevel {level} {p}' for p in parameters)
+                    application = '(' + ' '.join([variable, *parameters]) + ')'
+                    locality = f'(∀ {signature}, {premises} → expressionLevel {level} {application})'
+                elif declaration.node.findtext('kind') == '25':
                     key, time, field = '$new:' + declaration.uid, self.fresh(), self.fresh()
                     extended[declaration.uid] = StateBinding(key)
                     trace = f'(fun {time} {field} => if {field} = {lean_string(key)} then {variable} {time} else ({trace}) {time} {field})'
@@ -135,7 +143,9 @@ class UniversalCompiler:
                     extended[declaration.uid] = OperatorBinding(variable, declaration.arity)
                     ty = ' → '.join(['Value'] * (declaration.arity + 1))
                 body = obligation(tail, extended, trace)
-                if level == 3:
+                if locality:
+                    body = f'({locality} → {body})'
+                elif level == 3:
                     left, right = self.fresh(), self.fresh()
                     body = f'((∀ ({left} {right} : Behavior), TLA.stutteringEquivalent {left} {right} → {variable} {left} = {variable} {right}) → {body})'
                 bounds = [x for x in head if x.tag not in ('location', 'level', 'OpDeclNodeRef')]

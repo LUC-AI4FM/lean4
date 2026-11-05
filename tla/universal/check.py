@@ -26,7 +26,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         if source.name == 'Counter.tla':
             code += (root / 'CounterProof.txt').read_text()
         if source.name == 'LevelClaims.tla':
-            code += "\nexample (c : LevelClaims.Constants) : LevelClaims.Certificate c := by\n  constructor <;> intros <;> simp [LevelClaims.TLAProofClaim0, LevelClaims.TLAProofClaim1, LevelClaims.TLAProofClaim2, LevelClaims.TLAProofClaim3, truth_boolean]\n"
+            code += "\nexample (c : LevelClaims.Constants) : LevelClaims.Certificate c := by\n  constructor <;> intros <;> simp [LevelClaims.TLAProofClaim0, LevelClaims.TLAProofClaim1, LevelClaims.TLAProofClaim2, LevelClaims.TLAProofClaim3, LevelClaims.TLAProofClaim4, LevelClaims.TLAProofClaim5, truth_boolean]\n"
         if source.name == 'HigherOrder.tla':
             code += "\nexample (c : HigherOrder.Constants) (b : Behavior) (n : Nat) : HigherOrder.Answer c b n = integer 3 := by simp only [HigherOrder.Answer, intBinary_integer]; rfl\nexample (c : HigherOrder.Constants) (b : Behavior) (n : Nat) : HigherOrder.ConstantCall c b n = c.F (integer 2) := rfl\n"
         if source.name == 'Labels.tla':

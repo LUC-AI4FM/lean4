@@ -14,6 +14,15 @@ abbrev State := String → Value
 abbrev Behavior := TLA.Behavior State
 abbrev Expression := Behavior → Nat → Value
 
+/-- Semantic locality of source expressions at the four SANY levels. -/
+def expressionLevel (level : Nat) (e : Expression) : Prop :=
+  match level with
+  | 0 => ∀ b n c m, e b n = e c m
+  | 1 => ∀ b n c m, b n = c m → e b n = e c m
+  | 2 => ∀ b n c m, b n = c m → b (n + 1) = c (m + 1) → e b n = e c m
+  | _ => ∀ b n c m,
+      TLA.stutteringEquivalent (fun k => b (n + k)) (fun k => c (m + k)) → e b n = e c m
+
 def truth (v : Value) : Prop := v = ZFSet.zftrue
 def boolean (p : Prop) : Value := if p then ZFSet.zftrue else ZFSet.zffalse
 
