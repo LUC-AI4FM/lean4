@@ -22,7 +22,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
     for fixture in fixtures:
         source = root.parent / 'tests' / fixture
         target = Path(directory) / source.with_suffix('.lean').name
-        code = compile_file(source, includes=[root.parent / 'tests' / 'corpus' / 'tlaps'])
+        code = compile_file(source, includes=[root.parent / 'tests' / 'corpus' / 'tlaps', root.parent / 'tests' / 'corpus' / 'community'])
         if source.name == 'Counter.tla':
             code += (root / 'CounterProof.txt').read_text()
         if source.name == 'LevelClaims.tla':

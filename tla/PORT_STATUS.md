@@ -110,3 +110,10 @@ proofs pass locally. Source labels/subexpressions, LAMBDA, forwarded operator
 arguments and STRING universes are now covered by fixtures. The pinned SANY
 frontend rejects operator-valued recursive parameters; they are not silently
 accepted by the importer.
+
+Run 41968420324 passed at 4cbb7ca: shared integer/real arithmetic and the source
+real-number proofs pass, as do recursion, standard-library fixtures, level-aware
+claims and the original corpus. Added unchanged Consensus, Paxos, Voting,
+TwoPhase, Alternate, Majority and Prisoners modules, with pinned TLAPS theorem
+and CommunityModules dependencies. The expanded corpus is awaiting CI; imported
+library theorem statements remain obligations, not trusted source proofs.

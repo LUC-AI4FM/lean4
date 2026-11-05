@@ -1,0 +1,5 @@
+https://github.com/tlaplus/CommunityModules
+Commit: 1805e9d5e1cef05d74806309fb87788e69b48f26
+LICENSE
+modules/Functions.tla
+modules/Folds.tla
