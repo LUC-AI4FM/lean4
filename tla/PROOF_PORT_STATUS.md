@@ -401,3 +401,17 @@ Contextual simplification checkpoint (2026-11-05):
 - Small liveness examples also need fairness normalization/inference; current
   source/native semantics define weak/strong fairness but proof automation has
   no dedicated rules for them. Full port remains incomplete.
+
+Fairness reconstruction checkpoint (2026-11-05):
+- 3395c61 adds weak_fairness_continuously_enabled and weak_fairness_progress
+  to the Lean-native TLA.Basic API. Both kernel-check in the core-only file
+  with local Lean 4.33.1; pinned CI uses 4.33.0 and remains the final gate.
+- Source proof normalization now exposes weak/strong fairness and their
+  underlying temporal/action definitions. New Fairness and FalseFairness
+  sources parse unchanged; the negative removes the fairness assumption.
+- cf4666d adds direct checked paths for strong-implies-weak and continuous
+  enabling under weak fairness, avoiding generic quantifier-witness search.
+  Focused 42098722165 (normalization) and 42098901381 (direct rules) are pending.
+- Local frontend/process suite: 25 pass. No source-level fairness success is
+  claimed until CI completes. Existing full audit baseline remains 152/200;
+  the full TLAPS port is incomplete.
