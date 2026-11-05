@@ -70,6 +70,17 @@ def interval (lo hi : Value) : Value :=
 
 def enumerate (values : List Value) : Value := values.foldr Insert.insert ∅
 
+theorem mem_enumerate (value : Value) (values : List Value) :
+    value ∈ enumerate values ↔ value ∈ values := by
+  induction values with
+  | nil => simp [enumerate]
+  | cons head tail ih =>
+    simpa [enumerate] using (or_congr (Iff.refl (value = head)) ih)
+
+theorem integer_mem_interval (value lo hi : Int) :
+    integer value ∈ interval (integer lo) (integer hi) ↔ lo ≤ value ∧ value ≤ hi := by
+  simp only [interval, ZFSet.mem_sep, integer_mem, toInt_integer, true_and]
+
 def image (domain : Value) (f : Value → Value) : Value :=
   ZFSet.range (fun x : domain => f x.val)
 
@@ -195,6 +206,14 @@ def tuple (values : List Value) : Value :=
   function (interval (integer 1) (integer values.length))
     (fun index => values[(toInt index - 1).toNat]?.getD undefined)
 
+theorem apply_tuple (values : List Value) (index : Nat) (h : index < values.length) :
+    apply (tuple values) (integer ((index : Int) + 1)) = values[index] := by
+  unfold tuple
+  rw [apply_function]
+  · simp [toInt_integer, h]
+  · apply integer_mem_interval.mpr
+    omega
+
 def length (sequence : Value) : Value :=
   choose (fun n => n ∈ naturals ∧ domain sequence = interval (integer 1) n)
 
@@ -222,6 +241,16 @@ def caseValue (clauses : List (Value × Value)) (fallback : Value) : Value :=
   if ∃ clause ∈ clauses, truth clause.1 then
     choose (fun value => ∃ clause ∈ clauses, truth clause.1 ∧ value = clause.2)
   else fallback
+
+theorem caseValue_spec (clauses : List (Value × Value)) (fallback : Value)
+    (h : ∃ clause ∈ clauses, truth clause.1) :
+    ∃ clause ∈ clauses, truth clause.1 ∧ caseValue clauses fallback = clause.2 := by
+  unfold caseValue
+  rw [if_pos h]
+  have witness : ∃ value, ∃ clause ∈ clauses, truth clause.1 ∧ value = clause.2 := by
+    obtain ⟨clause, member, guard⟩ := h
+    exact ⟨clause.2, clause, member, guard, rfl⟩
+  exact choose_spec _ witness
 
 def subsequence (sequence lo hi : Value) : Value :=
   function (interval (integer 1) (integer (max 0 (toInt hi - toInt lo + 1))))

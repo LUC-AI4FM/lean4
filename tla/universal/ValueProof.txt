@@ -1,0 +1,15 @@
+
+example (c : ValueLaws.Constants) (b : Behavior) (n : Nat) :
+    truth (ValueLaws.MixedMember c b n) := by
+  simp [ValueLaws.MixedMember, truth_boolean, mem_enumerate]
+
+example (c : ValueLaws.Constants) (b : Behavior) (n : Nat) :
+    truth (ValueLaws.TupleRead c b n) := by
+  simp only [ValueLaws.TupleRead, truth_boolean]
+  exact apply_tuple [integer 1, ZFSet.zftrue, string "x"] 1 (by decide)
+
+example (c : ValueLaws.Constants) (b : Behavior) (n : Nat) :
+    truth (ValueLaws.FunctionRead c b n) := by
+  simp only [ValueLaws.FunctionRead, ValueLaws.Identity, truth_boolean]
+  apply apply_function
+  simp [mem_enumerate]
