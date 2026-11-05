@@ -123,6 +123,23 @@ theorem domain_record (fields : List (String × Value)) :
     domain (record fields) = enumerate (fields.map (fun field => string field.1)) :=
   domain_function _ _
 
+-- Equality of records preserves every field name, independent of field values.
+-- Keep the quantifiers bounded by the literal field lists so normalization can
+-- expose a missing field without guessing a set-membership witness.
+theorem record_eq_keys (left right : List (String × Value))
+    (h : record left = record right) :
+    (∀ field ∈ left, string field.1 ∈ enumerate (right.map (fun f => string f.1))) ∧
+    (∀ field ∈ right, string field.1 ∈ enumerate (left.map (fun f => string f.1))) := by
+  have domains := congrArg domain h
+  rw [domain_record, domain_record] at domains
+  constructor
+  · intro field member
+    rw [← domains]
+    exact (mem_enumerate _ _).mpr (List.mem_map.mpr ⟨field, member, rfl⟩)
+  · intro field member
+    rw [domains]
+    exact (mem_enumerate _ _).mpr (List.mem_map.mpr ⟨field, member, rfl⟩)
+
 theorem apply_record (fields : List (String × Value)) (key : String) (value : Value)
     (member : (key, value) ∈ fields)
     (unique : ∀ field ∈ fields, field.1 = key → field.2 = value) :
