@@ -1,0 +1,65 @@
+name: TLAPS focused reconstruction
+on:
+  workflow_dispatch:
+    inputs:
+      sources:
+        description: 'Space-separated paths under tla; prefix a path with ! to require rejection'
+        required: true
+        default: 'tests/proofs/NaturalInduction.tla tests/proofs/TemporalInduction.tla tests/proofs/CaseReferences.tla tests/proofs/upstream/Cantor1.tla !tests/proofs/FalseStateGeneralization.tla !tests/proofs/FalseTemporalInduction.tla'
+permissions:
+  contents: read
+jobs:
+  proofs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install elan
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -o /tmp/elan-init.sh
+          sh /tmp/elan-init.sh -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Build checked backend
+        working-directory: tla/universal
+        run: |
+          lake update
+          lake exe cache get
+          lake build
+          python3 ../tools.py
+      - name: Reconstruct selected proofs
+        working-directory: tla
+        env:
+          PROOF_SOURCES: ${{ inputs.sources }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import subprocess
+          import sys
+          import tempfile
+          root = Path.cwd().resolve()
+          failures = []
+          sources = os.environ['PROOF_SOURCES'].split()
+          if not sources:
+              raise SystemExit('No proof sources selected')
+          with tempfile.TemporaryDirectory() as directory:
+              output = Path(directory) / 'Checked.lean'
+              for entry in sources:
+                  reject = entry.startswith('!')
+                  source = (root / entry.lstrip('!')).resolve()
+                  if not source.is_relative_to(root) or not source.is_file():
+                      raise SystemExit('Invalid source path: ' + entry)
+                  output.write_text('preserve existing output')
+                  result = subprocess.run([sys.executable, 'prove.py', str(source),
+                      '--timeout', '15' if reject else '60', '-I', 'tests/corpus/tlaps',
+                      '-o', str(output)], capture_output=True, text=True, timeout=100)
+                  passed = result.returncode != 0 if reject else result.returncode == 0
+                  if reject:
+                      passed = passed and output.read_text() == 'preserve existing output'
+                  print(('PASS ' if passed else 'FAIL ') + entry, flush=True)
+                  if not passed:
+                      failures.append(entry)
+                      print(result.stdout + result.stderr, flush=True)
+          if failures:
+              raise SystemExit('Failed: ' + ', '.join(failures))
+          PY
