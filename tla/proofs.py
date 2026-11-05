@@ -58,7 +58,7 @@ class Renderer:
         simplifiers = ', '.join(dict.fromkeys(unfold))
         return [indent + 'try (solve | trivial)',
                 indent + 'all_goals first | simp_all only [' + simplifiers + '] | simp only [' + simplifiers + '] at *',
-                indent + 'all_goals first | omega | (solve | norm_num) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_natural_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))']
+                indent + 'all_goals first | (solve | apply _root_.TLAUniversal.diagonal_ne <;> assumption) | omega | (solve | norm_num) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_natural_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))']
 
     def open_statement(self, node, env, indent):
         env = dict(env)
