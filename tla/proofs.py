@@ -347,7 +347,8 @@ def compile_proofs(source, **kwargs):
     if not theorems:
         return code
     code = code.replace('public import TLAUniversal', 'public import TLAUniversal\nimport Aesop\nimport Mathlib.Tactic.NormNum', 1)
-    lines = [f'namespace {exports["namespace"]}', '@[expose] public noncomputable section']
+    lines = [f'namespace {exports["namespace"]}', '@[expose] public noncomputable section',
+             'set_option maxHeartbeats 4000000']
     # Re-run semantic normalization inside proof search after quantified
     # domain witnesses are introduced, not only before the search begins.
     normalized = ('truth_boolean truth_true not_truth_false false_ne_true integer_eq_iff '
