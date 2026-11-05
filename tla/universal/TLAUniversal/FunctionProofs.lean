@@ -401,6 +401,22 @@ theorem record_isFunc (fields : List (String × Value)) (range : Value)
   rw [hv]
   exact hr selected hs
 
+theorem record_isFunc_iff (fields : List (String × Value)) (range : Value)
+    (distinct : (fields.map Prod.fst).Nodup) :
+    ZFSet.IsFunc (enumerate (fields.map (fun field => string field.1))) range
+      (record fields) ↔ ∀ field ∈ fields, field.2 ∈ range := by
+  constructor
+  · intro hf field member
+    have key : string field.1 ∈ enumerate (fields.map (fun entry => string entry.1)) :=
+      (mem_enumerate _ _).mpr (List.mem_map.mpr ⟨field, member, rfl⟩)
+    have value := apply_mem hf key
+    have selected : apply (record fields) (string field.1) = field.2 := by
+      apply apply_record fields field.1 field.2 member
+      intro other ho eq
+      exact record_unique_of_nodup fields distinct other ho field member eq
+    rwa [selected] at value
+  · exact record_isFunc fields range
+
 theorem record_eta (fields : List (String × Value)) (f range : Value)
     (hf : ZFSet.IsFunc (enumerate (fields.map (fun field => string field.1))) range f)
     (values : ∀ field ∈ fields, apply f (string field.1) = field.2) :
