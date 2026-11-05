@@ -142,3 +142,33 @@ Continuation checkpoint (2026-11-05, function/choice reconstruction):
   42069870841 is running for 020b0d0; these latest changes are NOT yet verified
   by the complete Lean suite. Earlier full proof audit coverage remains the
   baseline until a new all-input run completes. Full port remains incomplete.
+
+Continuation checkpoint (2026-11-05, scoped proof steps):
+- CI 42069870841 at 020b0d0 passed function/choice reconstruction, including
+  nested EXCEPT, both unchanged CHOOSE fixtures, and all negative regressions.
+- CI 42070566713 at c93a890 passed scoped CASE references and its false-case
+  regression. CASE names denote the condition inside the case and the proved
+  implication outside it. Later 8eddb22 also maps original quantified UIDs
+  through TAKE; Cantor4 and EWD840 now translate past their unbound-variable
+  errors. This later change is still awaiting its Lean suite.
+- CI 42071298844 at e6955ce passed tuple indexing/domain/equality, string
+  injectivity/membership, and record-domain fixtures. Record lookup was added
+  afterward at f2c686f; revalidate run 42073507972.
+- Proof audit 42070636502 at c93a890 is still running. Shards 0 and 1 each
+  accounted for 95/95 inputs: shard 0 has 27/49 reference positives checked;
+  shard 1 has 24/46 checked. Neither accepted a negative. Do not extrapolate
+  these partial results to the full 379 inputs or 200 reference positives.
+  Local artifacts: /private/tmp/tlaps-proof-audit-42070636502/shard{0,1}.
+- 8eddb22 adds checked separation-subset and nonnegative-Int-to-Nat witness
+  rules. 5d3c985 discharges bounded WITNESS membership immediately and keeps
+  original witness bindings available to later CASE statements; the unchanged
+  Cantor1 proof is now a positive regression awaiting Lean validation.
+- 2af49aa fixes HAVE to match TLAPM's implication-premise introduction rather
+  than an ordinary assertion, using an explicitly checked implication bridge.
+  Invalid HAVE on a non-implication is rejected. Its unchanged upstream
+  lsp/test/test_proof_steps.tla fixture awaits Lean validation. All 21 local
+  frontend/proof-generation tests pass.
+- Full proof port remains incomplete. Imported proofless induction libraries,
+  temporal proof reconstruction, scoped ONLY/HIDE facts, remaining syntax and
+  backend coverage, and proof-search limits still require work. No imported
+  theorem may be assumed merely because TLAPS accepts its library declaration.
