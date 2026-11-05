@@ -397,7 +397,8 @@ theorem mem_recordSpace_two (f A B : Value) (a b : String) (different : a ≠ b)
   · rintro ⟨x, hx, y, hy, rfl⟩
     constructor
     · exact record_isFunc [(a, x), (b, y)] (ZFSet.sUnion (enumerate [A, B]))
-        (by simp [mem_union_enumerate, hx, hy])
-    · simp [apply_record_lookup, different, Ne.symm different, List.lookup_cons, hx, hy]
+        (by simp [mem_enumerate, hx, hy])
+    · have hba : (b == a) = false := beq_eq_false_iff_ne.mpr (Ne.symm different)
+      simp [apply_record_lookup, different, Ne.symm different, List.lookup_cons, hba, hx, hy]
 
 end TLAUniversal
