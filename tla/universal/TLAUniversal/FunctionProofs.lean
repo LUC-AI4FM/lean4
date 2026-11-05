@@ -444,6 +444,25 @@ theorem mem_recordSpace (f : Value) (fields : List (String × Value)) :
       ∀ field ∈ fields, apply f (string field.1) ∈ field.2 := by
   simp only [recordSpace, ZFSet.mem_sep, ZFSet.mem_funs]
 
+theorem record_mem_singletonSpace (fields : List (String × Value))
+    (distinct : (fields.map Prod.fst).Nodup) :
+    record fields ∈ recordSpace (fields.map (fun field => (field.1, enumerate [field.2]))) := by
+  rw [mem_recordSpace]
+  simp only [List.map_map, Function.comp_def]
+  constructor
+  · apply record_isFunc
+    intro field member
+    apply ZFSet.mem_sUnion.mpr
+    refine ⟨enumerate [field.2], ?_, by simp [mem_enumerate]⟩
+    exact (mem_enumerate _ _).mpr (List.mem_map.mpr ⟨field, member, rfl⟩)
+  · intro field member
+    obtain ⟨original, ho, rfl⟩ := List.mem_map.mp member
+    have selected : apply (record fields) (string original.1) = original.2 := by
+      apply apply_record fields original.1 original.2 ho
+      intro other hm eq
+      exact record_unique_of_nodup fields distinct other hm original ho eq
+    simp [selected, mem_enumerate]
+
 theorem diagonal_contradiction (s f x : Value) (hx : x ∈ s)
     (eq : apply f x = s.sep (fun z => z ∉ apply f z)) : False :=
   diagonal_ne s f x hx eq
