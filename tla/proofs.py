@@ -277,13 +277,16 @@ def compile_proofs(source, **kwargs):
                   'realBinary_add_integer realBinary_mul_integer realNegate_integer '
                   'realSubtract_integer realLessEqual_integer realLess_integer '
                   'intBinary_integer numberInterval_integer integer_mem_interval '
-                  'mem_enumerate').split()
+                  'mem_enumerate apply_function domain_function function_isFunc_iff '
+                  'domain_update update_same update_other updatePath').split()
     lines.append('attribute [local simp] ' + ' '.join(
         '_root_.TLAUniversal.' + name for name in normalized)
         + ' _root_.ZFSet.zftrue_ne_zffalse')
     lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.remainder_nonnegative '
                  '_root_.TLAUniversal.remainder_upper _root_.Int.emod_lt_of_pos '
                  '_root_.TLAUniversal.exists_state_pair')
+    lines.append('attribute [local aesop safe forward] _root_.TLAUniversal.domain_isFunc')
+    lines.append('attribute [local aesop unsafe 50% apply] _root_.TLAUniversal.function_ext')
     names = exports['proof_names']
     for index, theorem in enumerate(theorems):
         proof = proof_node(theorem)
