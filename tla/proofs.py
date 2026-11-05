@@ -304,9 +304,27 @@ class Renderer:
                 opened, env = self.open_statement(body, env, indent)
                 lines += opened
                 continue
-            lines.append(indent + f'have {label} : {self.proposition(body, env)} := by')
+            proposition = self.proposition(body, env)
+            step_proof = proof_node(step, implicit=True)
             opened, child_env = self.open_statement(body, env, indent + '  ')
-            lines += opened + self.render(proof_node(step, implicit=True), child_env, indent + '  ', body)
+            proof_lines = opened + self.render(step_proof, child_env, indent + '  ', body)
+            if step.level in (1, 2) and step_proof.tag in ('obvious', 'by'):
+                # Generalization is attempted with a fresh behavior/time, but
+                # existing assumptions retain their original types. Lean must
+                # prove this stronger statement; a local premise cannot become
+                # a universally valid state fact merely by being cited.
+                general = label + '_general'
+                lines.append(indent + 'first')
+                lines.append(indent + f'| have {general} : ∀ (b : _root_.TLAUniversal.Behavior) '
+                             + f'(n : _root_.Nat), {proposition} := by')
+                lines.append(indent + '    intro b n')
+                lines += ['  ' + line for line in proof_lines]
+                lines.append(indent + f'  have {label} : {proposition} := {general} b n')
+                lines.append(indent + f'| have {label} : {proposition} := by')
+                lines += ['  ' + line for line in proof_lines]
+            else:
+                lines.append(indent + f'have {label} : {proposition} := by')
+                lines += proof_lines
         raise ProofError('hierarchical proof has no final QED')
 
 

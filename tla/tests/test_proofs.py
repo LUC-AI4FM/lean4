@@ -59,3 +59,9 @@ class ProofTests(unittest.TestCase):
         self.assertIn('suffices step_', code)
         with self.assertRaisesRegex(ProofError, 'HAVE requires an implication'):
             compile_proofs(Path('tests/proofs/FalseHave.tla'))
+
+    def test_state_generalization_requires_a_separate_lean_proof(self):
+        code = compile_proofs(Path('tests/proofs/FalseStateGeneralization.tla'))
+        self.assertIn('_general : ∀ (b :', code)
+        self.assertIn('intro b n', code)
+        self.assertIn('| have step_', code)
