@@ -36,6 +36,7 @@ class Renderer:
         unfold = list(self.unfold) + [
             '_root_.eq_self_iff_true',
             '_root_.not_true_eq_false',
+            '_root_.ne_eq',
             '_root_.imp_self',
             '_root_.TLAUniversal.truth_true',
             '_root_.TLAUniversal.not_truth_false',
@@ -373,7 +374,7 @@ def compile_proofs(source, **kwargs):
     lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.remainder_nonnegative '
                  '_root_.TLAUniversal.remainder_upper _root_.Int.emod_lt_of_pos '
                  '_root_.TLAUniversal.realPower_integer_mem '
-                 '_root_.TLAUniversal.update_isFunc '
+                 '_root_.TLAUniversal.update_isFunc _root_.TLAUniversal.record_isFunc _root_.TLAUniversal.subset_intro '
                  '_root_.TLAUniversal.exists_state_pair '
                  '_root_.TLAUniversal.separation_subset '
                  '_root_.TLAUniversal.exists_container '

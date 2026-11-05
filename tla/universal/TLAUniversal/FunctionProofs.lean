@@ -120,6 +120,8 @@ theorem singleton_range_isFunc {D E f value : Value}
   have eq : x = value := by simpa only [mem_enumerate, List.mem_singleton] using hx
   simpa only [eq] using hv
 
+theorem subset_intro {A B : Value} (h : ∀ x, x ∈ A → x ∈ B) : A ⊆ B := h
+
 theorem subset_member {A B x : Value} (h : A ⊆ B) (hx : x ∈ A) : x ∈ B := h hx
 
 theorem union_subset_iff (A B C : Value) :
