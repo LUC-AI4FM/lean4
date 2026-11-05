@@ -7,18 +7,18 @@ public import Mathlib.Algebra.Order.Archimedean.Real.Basic
 namespace TLAUniversal.Numeric
 open Classical
 
-private def intCode (n : Int) : ZFSet.{0} := (ZFSet.ZFInt.into (n : ZFSet.ZFInt)).val
+def intCode (n : Int) : ZFSet.{0} := (ZFSet.ZFInt.into (n : ZFSet.ZFInt)).val
 
-private theorem intCode_injective : Function.Injective intCode := by
+theorem intCode_injective : Function.Injective intCode := by
   intro a b h
   have hsub : ZFSet.ZFInt.into (a : ZFSet.ZFInt) = ZFSet.ZFInt.into (b : ZFSet.ZFInt) :=
     Subtype.ext h
   have eq := congrArg (fun x => ZFSet.ZFInt.equivInt (ZFSet.ZFInt.outof x)) hsub
   simpa only [ZFSet.ZFInt.outof_into, ZFSet.ZFInt.equivInt_intCast] using eq
 
-private def ratCode (q : Rat) : ZFSet.{0} := ZFSet.pair (intCode q.num) (intCode q.den)
+def ratCode (q : Rat) : ZFSet.{0} := ZFSet.pair (intCode q.num) (intCode q.den)
 
-private theorem ratCode_injective : Function.Injective ratCode := by
+theorem ratCode_injective : Function.Injective ratCode := by
   intro a b h
   obtain ⟨hn, hd⟩ := ZFSet.pair_inj.mp h
   apply Rat.ext (intCode_injective hn)
@@ -28,7 +28,7 @@ private theorem ratCode_injective : Function.Injective ratCode := by
 def encode (r : Real) : ZFSet.{0} :=
   ZFSet.range (fun q : {q : Rat // (q : Real) < r} => ratCode q.val)
 
-private theorem mem_encode (q : Rat) (r : Real) : ratCode q ∈ encode r ↔ (q : Real) < r := by
+theorem mem_encode (q : Rat) (r : Real) : ratCode q ∈ encode r ↔ (q : Real) < r := by
   constructor
   · intro h
     obtain ⟨a, ha⟩ := ZFSet.mem_range.mp h
