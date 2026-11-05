@@ -188,22 +188,27 @@ class UniversalCompiler:
             frame = self.expr(args[0], env, f'(fun _ => {s})', '0')
             action = self.expr(args[1], env, trace, '0')
             fn = 'weakFairness' if name == '$WF' else 'strongFairness'
-            return f'(boolean (TLA.{fn} (fun {s} {t} => truth {action}) (fun {s} => {frame}) ({b}) ({n})))'
+            return f'(boolean (TLA.{fn} (fun ({s} {t} : State) => truth {action}) (fun ({s} : State) => {frame}) ({b}) ({n})))'
         if name in ('$BoundedForall', '$BoundedExists', '$UnboundedForall', '$UnboundedExists',
                     '$BoundedChoose', '$UnboundedChoose', '$SubsetOf', '$SetOfAll', '$FcnConstructor'):
             extended, bindings = dict(env), []
             for group in node.find('boundSymbols'):
                 refs = group.findall('FormalParamNodeRef')
-                domains = [x for x in group if x.tag != 'FormalParamNodeRef']
+                domains = [x for x in group if x.tag not in ('FormalParamNodeRef', 'tuple')]
                 if group.tag == 'unbound':
                     domain = None
                 elif len(domains) == 1:
                     domain = self.expr(domains[0], extended, b, n)
                 else:
                     raise CompileError('tuple-pattern binder not implemented')
-                for ref in refs:
+                if group.find('tuple') is not None:
                     v = self.fresh(); bindings.append((v, domain))
-                    extended[ref.findtext('UID')] = ValueBinding(v)
+                    for i, ref in enumerate(refs):
+                        extended[ref.findtext('UID')] = ValueBinding(f'(apply {v} (integer {i + 1}))')
+                else:
+                    for ref in refs:
+                        v = self.fresh(); bindings.append((v, domain))
+                        extended[ref.findtext('UID')] = ValueBinding(v)
             formula = self.expr(args[0], extended, b, n)
             if name in ('$SubsetOf', '$BoundedChoose', '$UnboundedChoose'):
                 if len(bindings) != 1:
@@ -214,10 +219,15 @@ class UniversalCompiler:
                 guard = f'{v} ∈ {domain} ∧ ' if domain else ''
                 return f'(choose (fun {v} => {guard}truth {formula}))'
             if name == '$FcnConstructor':
-                if len(bindings) != 1:
-                    raise CompileError('multi-argument function constructor not implemented')
-                v, domain = bindings[0]
-                return f'(function {domain} (fun {v} => {formula}))'
+                if len(bindings) == 1:
+                    v, domain = bindings[0]
+                    return f'(function {domain} (fun {v} => {formula}))'
+                key = self.fresh()
+                domains = ', '.join(domain for _, domain in bindings)
+                body = formula
+                for i, (v, _) in reversed(list(enumerate(bindings))):
+                    body = f'(let {v} := apply {key} (integer {i + 1}); {body})'
+                return f'(function (cartesian [{domains}]) (fun {key} => {body}))'
             if name == '$SetOfAll':
                 value = formula
                 for v, domain in reversed(bindings):
@@ -232,6 +242,16 @@ class UniversalCompiler:
                 guard = f'{v} ∈ {domain} {connective} ' if domain else ''
                 value = f'({quantifier} {v} : Value, {guard}{value})'
             return f'(boolean {value})'
+        if name == '$Case':
+            clauses, fallback = [], 'undefined'
+            for pair in args:
+                guard, value = list(pair.find('operands'))
+                rhs = self.expr(value, env, b, n)
+                if guard.tag == 'StringNode' and guard.text == '$Other':
+                    fallback = rhs
+                else:
+                    clauses.append(f'({self.expr(guard, env, b, n)}, {rhs})')
+            return f'(caseValue [{", ".join(clauses)}] {fallback})'
         if name in ('$RcdConstructor', '$SetOfRcds'):
             fields = []
             for pair in args:
@@ -286,6 +306,7 @@ class UniversalCompiler:
         if name == 'UNION': return call('ZFSet.sUnion')
         if name in ('$FcnApply', '$RcdSelect'): return call('apply')
         if name == '$SetOfFcns': return call('ZFSet.funs')
+        if name == '$CartesianProd': return f'(cartesian [{", ".join(values)}])'
         if name == 'DOMAIN': return call('domain')
         sequence_ops = {'Seq': 'sequences', 'Len': 'length', 'Append': 'append', '\\o': 'concatenate', 'SubSeq': 'subsequence'}
         if standard and name in sequence_ops: return call(sequence_ops[name])

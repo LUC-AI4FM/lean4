@@ -15,7 +15,7 @@ from universal_compile import compile_file
 lake = os.environ.get('LAKE', 'lake')
 subprocess.run([lake, 'build'], check=True)
 fixtures = ['Counter.tla', 'fixtures/Collections.tla', 'fixtures/Records.tla',
-            'fixtures/Binders.tla', 'fixtures/Universal.tla', 'fixtures/Claims.tla', 'fixtures/Temporal.tla']
+            'fixtures/Binders.tla', 'fixtures/Universal.tla', 'fixtures/Claims.tla', 'fixtures/Temporal.tla', 'fixtures/ValueForms.tla']
 with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as directory:
     for fixture in fixtures:
         source = root.parent / 'tests' / fixture

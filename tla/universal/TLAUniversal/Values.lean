@@ -124,6 +124,19 @@ def concatenate (left right : Value) : Value :=
     (fun i => if toInt i ≤ toInt (length left) then apply left i
       else apply right (integer (toInt i - toInt (length left))))
 
+def prepend (value sequence : Value) : Value :=
+  function (interval (integer 1) (integer (toInt (length sequence) + 1)))
+    (fun i => if toInt i = 1 then value else apply sequence (integer (toInt i - 1)))
+
+def cartesian : List Value → Value
+  | [] => enumerate [tuple []]
+  | first :: rest => ZFSet.sUnion (image first (fun x => image (cartesian rest) (prepend x)))
+
+def caseValue (clauses : List (Value × Value)) (fallback : Value) : Value :=
+  if ∃ clause ∈ clauses, truth clause.1 then
+    choose (fun value => ∃ clause ∈ clauses, truth clause.1 ∧ value = clause.2)
+  else fallback
+
 def subsequence (sequence lo hi : Value) : Value :=
   function (interval (integer 1) (integer (max 0 (toInt hi - toInt lo + 1))))
     (fun i => apply sequence (integer (toInt lo + toInt i - 1)))
