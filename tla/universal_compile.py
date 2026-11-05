@@ -789,6 +789,13 @@ class UniversalCompiler:
             lines += [f'structure {certificate_name} (c : {constants_type}) : Prop where']
             for i in range(len(obligations)):
                 lines += [f'  obligation_{i} : ∀ (b : _root_.TLAUniversal.Behavior) (n : _root_.Nat), {assumptions_name} c b n → {claim_names[i]} c b n']
+        self.proof_exports = {
+            'namespace': namespace, 'constants': constants_type,
+            'assumptions': assumptions_name, 'certificate': certificate_name,
+            'claims': claim_names if obligations else [],
+            'proof_names': [declaration_name(f'TLACheckedProof{i}') for i in range(len(obligations))],
+            'certificate_proof': declaration_name('TLACheckedCertificate'),
+        }
         lines.extend(['end', f'end {namespace}', ''])
         return '\n'.join(lines)
 

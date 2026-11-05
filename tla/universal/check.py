@@ -101,6 +101,20 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
                 failures.append('Counter consumer import')
                 print(imported.stdout + imported.stderr, flush=True)
         print(('FAIL ' if result.returncode else 'PASS ') + fixture, flush=True)
+    # The proof CLI writes an artifact only after Lean accepts its proof terms.
+    proof_output = Path(directory) / 'CheckedLeaves.lean'
+    proved = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
+                             str(root.parent / 'tests/proofs/Leaves.tla'), '-o', str(proof_output)],
+                            capture_output=True, text=True, timeout=150)
+    if proved.returncode:
+        failures.append('source leaf proof reconstruction')
+        print(proved.stdout + proved.stderr, flush=True)
+    proof_output.write_text('preserve existing output')
+    rejected = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
+                               str(root.parent / 'tests/proofs/FalseLeaf.tla'), '-o', str(proof_output)],
+                              capture_output=True, text=True, timeout=150)
+    if rejected.returncode == 0 or proof_output.read_text() != 'preserve existing output':
+        raise RuntimeError('false source proof was accepted or replaced existing output')
     # SANY accepts proof hints without checking them. They must never become
     # trusted Lean proofs or make a source certificate trivially inhabited.
     target = Path(directory) / 'FalseClaim.lean'
