@@ -172,3 +172,12 @@ Continuation checkpoint (2026-11-05, scoped proof steps):
   temporal proof reconstruction, scoped ONLY/HIDE facts, remaining syntax and
   backend coverage, and proof-search limits still require work. No imported
   theorem may be assumed merely because TLAPS accepts its library declaration.
+
+Audit 42070636502 is now terminal: shards 2 and 3 hit the job time limit.
+All four checkpoint artifacts were retained, covering 349/379 inputs:
+112 checked, 74 translation-rejected, 71 Lean-rejected, 56 per-file timeouts,
+36 no-claims. Among 180/200 covered reference positives: 101 checked,
+36 Lean-rejected, 32 timeouts, 11 translation-rejected. No false acceptance
+was observed among covered inputs; 30 inputs remain unaccounted for in this
+run. The next audit uses eight shards and a 45-minute job limit while keeping
+the same per-file limit, to account for every input without dropping cases.

@@ -6,11 +6,11 @@ permissions:
 jobs:
   corpus:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/checkout@v5
@@ -38,7 +38,7 @@ jobs:
       - name: Check unchanged proof scripts
         working-directory: tla
         run: |
-          python3 proof_compatibility.py ../reference-tlapm --reference-manifest tests/proofs/reference-baseline.json -I ../reference-community/modules --shard ${{ matrix.shard }} --shards 4 --report ../proof-compatibility-report/${{ matrix.shard }}.json
+          python3 proof_compatibility.py ../reference-tlapm --reference-manifest tests/proofs/reference-baseline.json -I ../reference-community/modules --shard ${{ matrix.shard }} --shards 8 --report ../proof-compatibility-report/${{ matrix.shard }}.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
