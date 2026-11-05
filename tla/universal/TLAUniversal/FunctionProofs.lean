@@ -39,6 +39,15 @@ theorem apply_mem {D E f x : Value} (hf : ZFSet.IsFunc D E f) (hx : x ∈ D) :
     apply f x ∈ E :=
   (ZFSet.pair_mem_prod.mp (hf.1 (pair_apply_isFunc hf hx))).2
 
+theorem function_range_mono {domain source target f : Value}
+    (hf : ZFSet.IsFunc domain source f) (included : source ⊆ target) :
+    ZFSet.IsFunc domain target f := by
+  constructor
+  · intro p hp
+    obtain ⟨x, hx, y, hy, rfl⟩ := ZFSet.mem_prod.mp (hf.1 hp)
+    exact ZFSet.pair_mem_prod.mpr ⟨hx, included hy⟩
+  · exact hf.2
+
 theorem function_eta {D E f : Value} (hf : ZFSet.IsFunc D E f) :
     f = function D (fun x => apply f x) := by
   apply ZFSet.ext
