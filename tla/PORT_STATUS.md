@@ -41,3 +41,13 @@ universal untyped TLA+ semantics. Next: source records/updates and obligation
 handling; reference-tool differential checks; universal-value design. No delegated
 agents or remote jobs. Only task-owned .tools and .lake caches are retained for
 verification. The working checkout remains the active implementation directory.
+
+
+Record/update checkpoint: 20 tests and all native/source proof checks pass.
+TLC differential testing caught and fixed sequential EXCEPT @ semantics.
+Typed frontend b90197d CI passed. Record/EXCEPT changes now covered by both TLC
+and Lean proofs. Universal-value branch uses pinned Apache-2.0 ZFLean commit
+ae928234e7ed6b26241344ef4ba6d7cf98c0ed91 (Lean 4.33.0) in a separate Lake package;
+its initial proofs are pending public CI, not claimed verified. Builds are kept
+off the coordinator. Public dependency source reference is retained temporarily
+at /private/tmp/lean4-tla-zflean-reference for API inspection.

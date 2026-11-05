@@ -1,0 +1,15 @@
+name = "tla-universal"
+version = "0.1.0"
+defaultTargets = ["TLAUniversal"]
+
+[[require]]
+name = "tla"
+path = ".."
+
+[[require]]
+name = "ZFLean"
+git = "https://github.com/VTrelat/ZFLean.git"
+rev = "ae928234e7ed6b26241344ef4ba6d7cf98c0ed91"
+
+[[lean_lib]]
+name = "TLAUniversal"

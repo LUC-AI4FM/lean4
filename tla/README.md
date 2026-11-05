@@ -23,7 +23,7 @@ Use `-I directory` for additional source-module search paths.
 
 `check.py` builds the library, checks source parsing and compilation, verifies
 native and translated proofs, and confirms that a false proof fails. Tests cover
-invalid priming, module substitution, lexical binding, generic sets, collection
+invalid priming, module substitution, lexical binding, generic sets, TLC record/update comparisons, collection
 semantics, stuttering, fairness and output preservation after failed translation.
 CI downloads and verifies the same pinned reference tools before running tests.
 
@@ -80,6 +80,7 @@ Supported source constructs currently include:
 - Set enumeration, intervals, membership, union/intersection/difference, subset,
   powerset, UNION, single-binder comprehensions and bounded quantifiers/CHOOSE.
 - Function constructors, application, DOMAIN and function spaces.
+- Records, record sets, nested EXCEPT, and sequential @ update semantics.
 - Homogeneous tuples/sequences, Len, Append, Head, Tail, SubSeq and concatenation.
 - Priming, UNCHANGED, action frames, ENABLED, always/eventually and fairness.
 
@@ -88,8 +89,7 @@ Supported source constructs currently include:
 The generated data interpretation is currently **typed**. It is not yet a faithful
 universal model of all untyped TLA+ values. Heterogeneous collections, mixed
 function/record/sequence equality, unrestricted quantification and arbitrary
-recursive definitions require further semantic work. Source records and EXCEPT,
-multiple/tuple binders, operator-valued parameters/constants, temporal hiding,
+recursive definitions require further semantic work. Multiple/tuple binders, operator-valued parameters/constants, temporal hiding,
 general standard modules, and proof/assumption obligations also remain incomplete.
 Unsupported constructs are rejected, never replaced by axioms or placeholder
 proofs. Source ASSUME and THEOREM declarations are currently rejected so they

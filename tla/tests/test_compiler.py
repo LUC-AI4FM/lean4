@@ -67,3 +67,17 @@ Spec == Init /\ [][Next]_x
             path.write_text('---- MODULE FalseClaim ----\nA == TRUE\nTHEOREM FALSE\n====')
             with self.assertRaises(CompileError):
                 compile_file(path)
+
+    def test_records_and_nested_updates(self):
+        self.check(Path('tests/fixtures/Records.tla'), r"""
+example (c : Records.Constants) (b : TLA.Behavior Records.State) (n : Nat) :
+    Records.Good c b n := by
+  simp [Records.Good, TLA.Data.Seq.get, TLA.Data.Seq.update]
+example (c : Records.Constants) (b : TLA.Behavior Records.State) (n : Nat) :
+    Records.Included c b n := by
+  simp [Records.Included, TLA.Data.Set.enumerate]
+example (c : Records.Constants) (b : TLA.Behavior Records.State) (n : Nat) :
+    Records.UpdateGood c b n := by
+  simp [Records.UpdateGood, TLA.Data.Function.apply, TLA.Data.Function.update,
+        TLA.Data.Function.make, TLA.Data.Set.interval]
+""")

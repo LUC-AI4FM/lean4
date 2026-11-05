@@ -41,6 +41,8 @@ class Ty:
             raise CompileError('unconstrained value type: universal value semantics are not implemented yet')
         names = {'Set': 'TLA.Data.Set', 'Function': 'TLA.Data.Function', 'Seq': 'List'}
         name = names.get(r.name, r.name)
+        if r.name.startswith('Record:'):
+            name = ident('TLARecord_' + r.name[7:].replace(',', '_'))
         return '(' + ' '.join([name, *(a.lean() for a in r.args)]) + ')' if r.args else name
 
 INT, PROP, STRING = Ty('Int'), Ty('Prop'), Ty('String')
@@ -77,6 +79,37 @@ class Compiler:
         self.counter += 1
         return f'v{self.counter}'
 
+    def select(self, value, key):
+        root = value.ty.root()
+        if root.name and root.name.startswith('Record:'):
+            key.ty.unify(STRING)
+            try:
+                field = json.loads(key.code)
+                index = root.name[7:].split(',').index(field)
+            except (ValueError, TypeError):
+                raise CompileError('record selection requires a known field name')
+            return Term(f'({value.code}).{ident(field)}', root.args[index])
+        if root.name == 'Seq':
+            key.ty.unify(INT)
+            return Term(f'(TLA.Data.Seq.get {value.code} {key.code})', root.args[0])
+        result = Ty()
+        value.ty.unify(Ty('Function', key.ty, result))
+        return Term(f'(TLA.Data.Function.apply {value.code} {key.code})', result)
+
+    def update(self, value, keys, replacement):
+        if not keys:
+            value.ty.unify(replacement.ty)
+            return replacement
+        key, *rest = keys
+        selected = self.select(value, key)
+        changed = self.update(selected, rest, replacement)
+        root = value.ty.root()
+        if root.name.startswith('Record:'):
+            field = json.loads(key.code)
+            return Term(f'({{ {value.code} with {ident(field)} := {changed.code} }})', value.ty)
+        fn = 'Seq.update' if root.name == 'Seq' else 'Function.update'
+        return Term(f'(TLA.Data.{fn} {value.code} {key.code} {changed.code})', value.ty)
+
     def term(self, node, env=None, b='b', n='n'):
         result = self._term(node, env, b, n)
         self.types.append(result.ty)
@@ -91,6 +124,15 @@ class Compiler:
             return Term(f'({value} : Int)', INT)
         if node.tag == 'StringNode':
             return Term(json.dumps(node.findtext('StringValue', ''), ensure_ascii=False), STRING)
+        if node.tag == 'AtNode':
+            parts = [x for x in node if x.tag not in ('location', 'level')]
+            if len(parts) != 2:
+                raise CompileError('malformed EXCEPT @ expression')
+            current = env.get('@except')
+            value = current.term if current is not None else self.term(parts[0], env, b, n)
+            for selector in parts[1].find('operands'):
+                value = self.select(value, self.term(selector, env, b, n))
+            return value
         if node.tag == 'SubstInNode':
             extended = dict(env)
             for subst in node.findall('substs/Subst'):
@@ -209,6 +251,43 @@ class Compiler:
             if name == '$SetOfAll':
                 return Term(f'(TLA.Data.Set.image {domain.code} (fun {v} => {body.code}))', Ty('Set', body.ty))
             return Term(f'(TLA.Data.Function.make {domain.code} (fun {v} => {body.code}))', Ty('Function', element, body.ty))
+        if name in ('$RcdConstructor', '$SetOfRcds'):
+            fields = {}
+            for pair in args:
+                parts = list(pair.find('operands'))
+                if len(parts) != 2 or parts[0].tag != 'StringNode':
+                    raise CompileError('malformed record field')
+                label = parts[0].findtext('StringValue')
+                if label in fields:
+                    raise CompileError('duplicate record field')
+                fields[label] = self.term(parts[1], env, b, n)
+            labels = sorted(fields)
+            types = []
+            for label in labels:
+                ty = fields[label].ty
+                if name == '$SetOfRcds':
+                    element = Ty(); ty.unify(Ty('Set', element)); ty = element
+                types.append(ty)
+            record_type = Ty('Record:' + ','.join(labels), *types)
+            record_name = ident('TLARecord_' + '_'.join(labels))
+            if name == '$RcdConstructor':
+                body = ', '.join(f'{ident(label)} := {fields[label].code}' for label in labels)
+                placeholders = ' '.join('_' for _ in labels)
+                return Term(f'({{ {body} }} : {record_name} {placeholders})', record_type)
+            v = self.fresh()
+            body = ' ∧ '.join(f'({fields[label].code}) {v}.{ident(label)}' for label in labels) or 'True'
+            placeholders = ' '.join('_' for _ in labels)
+            return Term(f'(fun ({v} : {record_name} {placeholders}) => {body})', Ty('Set', record_type))
+        if name == '$Except':
+            value = self.term(args[0], env, b, n)
+            for pair in args[1:]:
+                parts = list(pair.find('operands'))
+                keys = [self.term(key, env, b, n) for key in parts[0].find('operands')]
+                updated_env = dict(env)
+                updated_env['@except'] = Bound(value)
+                replacement = self.term(parts[1], updated_env, b, n)
+                value = self.update(value, keys, replacement)
+            return value
         values = [self.term(arg, env, b, n) for arg in args]
         codes = [v.code for v in values]
         def binary(result, expected=None):
@@ -276,11 +355,15 @@ class Compiler:
             a, z = Ty(), Ty()
             values[0].ty.unify(Ty('Set', a)); values[1].ty.unify(Ty('Set', z))
             return Term(f'(TLA.Data.Function.space {codes[0]} {codes[1]})', Ty('Set', Ty('Function', a, z)))
-        if name == '$FcnApply':
-            a, z = values[1].ty, Ty()
-            values[0].ty.unify(Ty('Function', a, z))
-            return Term(f'(TLA.Data.Function.apply {codes[0]} {codes[1]})', z)
+        if name in ('$FcnApply', '$RcdSelect'):
+            return self.select(values[0], values[1])
         if name == 'DOMAIN':
+            root = values[0].ty.root()
+            if root.name == 'Seq':
+                return Term(f'(TLA.Data.Set.interval 1 (TLA.Data.Seq.len {codes[0]}))', Ty('Set', INT))
+            if root.name and root.name.startswith('Record:'):
+                fields = ', '.join(json.dumps(label) for label in root.name[7:].split(','))
+                return Term(f'(TLA.Data.Set.enumerate [{fields}])', Ty('Set', STRING))
             a, z = Ty(), Ty()
             values[0].ty.unify(Ty('Function', a, z))
             return Term(f'({codes[0]}).domain', Ty('Set', a))
@@ -323,8 +406,11 @@ class Compiler:
             value = self.term(call)
             rendered.append((definition, value))
         free = []
+        records = {}
         def collect(ty):
             root = ty.root()
+            if root.name and root.name.startswith('Record:'):
+                records[root.name] = root.name[7:].split(',')
             if root.name is None and root not in free:
                 free.append(root)
             for arg in root.args:
@@ -339,7 +425,14 @@ class Compiler:
         constants_type = f'(Constants {parameters})' if free else 'Constants'
         lines = ['/- Generated from the SANY semantic graph; inspect before proving source claims. -/',
                  'module', 'import TLA', '', f'namespace {ident(self.g.root.name)}',
-                 'noncomputable section', 'open Classical', f'structure Constants {binders} where']
+                 'noncomputable section', 'open Classical']
+        for labels in records.values():
+            name = ident('TLARecord_' + '_'.join(labels))
+            params = ' '.join(f'(A{i} : Type)' for i in range(len(labels)))
+            lines += [f'structure {name} {params} where']
+            lines += [f'  {ident(label)} : A{i}' for i, label in enumerate(labels)]
+            lines += ['  deriving Inhabited']
+        lines += [f'structure Constants {binders} where']
         lines += [f'  {ident(self.g.symbols[uid].name)} : {ty.lean()}' for uid, ty in self.consts.items()]
         lines += [f'structure State {binders} where']
         lines += [f'  {ident(self.g.symbols[uid].name)} : {ty.lean()}' for uid, ty in self.vars.items()]

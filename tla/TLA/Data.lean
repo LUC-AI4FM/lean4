@@ -70,6 +70,8 @@ def len (xs : List α) : Int := xs.length
 /-- TLA+ sequence indexing starts at one; out-of-domain values are unspecified. -/
 def get [Inhabited α] (xs : List α) (i : Int) : α :=
   if 1 ≤ i then xs[(i - 1).toNat]?.getD default else default
+def update (xs : List α) (i : Int) (value : α) : List α :=
+  if 1 ≤ i then xs.set (i - 1).toNat value else xs
 def subseq (xs : List α) (lo hi : Int) : List α :=
   (xs.drop (lo - 1).toNat).take (hi - lo + 1).toNat
 end Seq
