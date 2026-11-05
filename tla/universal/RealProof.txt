@@ -1,0 +1,12 @@
+
+example (c : RealNumbers.Constants) (b : Behavior) (n : Nat) :
+    truth (RealNumbers.Same c b n) := by
+  simp only [RealNumbers.Same, truth_boolean, RealNumbers.Sum, RealNumbers.Half,
+    realBinary_real, integer]
+  congr 1
+  norm_num
+
+example (c : RealNumbers.Constants) (b : Behavior) (n : Nat) :
+    truth (RealNumbers.Bound c b n) := by
+  simp only [RealNumbers.Bound, realLess, truth_boolean]
+  exact Or.inr ⟨integer_mem_real _, rfl⟩

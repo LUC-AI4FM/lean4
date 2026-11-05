@@ -121,7 +121,7 @@ def parse_file(source, *, jar=None, includes=(), timeout=30):
         verify(jar)
     except ValueError as error:
         raise SanyError(str(error)) from error
-    standard_names = ('Naturals', 'Integers', 'Sequences', 'FiniteSets')
+    standard_names = ('Naturals', 'Integers', 'Reals', 'Sequences', 'FiniteSets')
     for directory in [source.parent, *includes]:
         for name in standard_names:
             if (Path(directory) / (name + '.tla')).exists():

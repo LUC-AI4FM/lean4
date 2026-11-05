@@ -2,7 +2,7 @@
 module
 public import TLA.Basic
 public import ZFLean.Booleans
-public import ZFLean.Integers
+public import TLAUniversal.Numbers
 public import Mathlib.SetTheory.Cardinal.Finite
 
 @[expose] public noncomputable section
@@ -23,25 +23,39 @@ theorem truth_boolean (p : Prop) : truth (boolean p) ↔ p := by
   · simp [h]
   · simp [h, Ne.symm ZFSet.zftrue_ne_zffalse]
 
-def integer (n : Int) : Value := (ZFSet.ZFInt.into (n : ZFSet.ZFInt)).val
+abbrev real := Numeric.encode
+abbrev toReal := Numeric.decode
 
-def toInt (v : Value) : Int :=
-  if h : v ∈ ZFSet.Int then
-    ZFSet.ZFInt.equivInt (ZFSet.ZFInt.outof ⟨v, h⟩)
-  else 0
+def reals : Value := ZFSet.range real
 
-theorem integer_mem (n : Int) : integer n ∈ ZFSet.Int :=
-  (ZFSet.ZFInt.into (n : ZFSet.ZFInt)).property
+def integer (n : Int) : Value := real (n : Real)
+def integers : Value := ZFSet.range integer
+
+theorem integer_injective : Function.Injective integer := by
+  intro a b h
+  have eq := Numeric.encode_injective h
+  exact_mod_cast eq
+
+def toInt (v : Value) : Int := Classical.epsilon (fun n => integer n = v)
+
+theorem integer_mem (n : Int) : integer n ∈ integers :=
+  ZFSet.mem_range.mpr ⟨n, rfl⟩
+
+theorem real_mem (r : Real) : real r ∈ reals :=
+  ZFSet.mem_range.mpr ⟨r, rfl⟩
+
+theorem integer_mem_real (n : Int) : integer n ∈ reals := real_mem (n : Real)
 
 theorem toInt_integer (n : Int) : toInt (integer n) = n := by
-  unfold toInt
-  rw [dif_pos (integer_mem n)]
-  change ZFSet.ZFInt.equivInt (ZFSet.ZFInt.outof (ZFSet.ZFInt.into (n : ZFSet.ZFInt))) = n
-  rw [ZFSet.ZFInt.outof_into, ZFSet.ZFInt.equivInt_intCast]
+  apply integer_injective
+  exact Classical.epsilon_spec (p := fun x => integer x = integer n) ⟨n, rfl⟩
 
-def naturals : Value := ZFSet.Int.sep (fun n => 0 ≤ toInt n)
+theorem toReal_integer (n : Int) : toReal (integer n) = (n : Real) :=
+  Numeric.decode_encode (n : Real)
+
+def naturals : Value := integers.sep (fun n => 0 ≤ toInt n)
 def interval (lo hi : Value) : Value :=
-  ZFSet.Int.sep (fun n => toInt lo ≤ toInt n ∧ toInt n ≤ toInt hi)
+  integers.sep (fun n => toInt lo ≤ toInt n ∧ toInt n ≤ toInt hi)
 
 def enumerate (values : List Value) : Value := values.foldr Insert.insert ∅
 
@@ -111,13 +125,13 @@ theorem update_same (f x y : Value) (hx : x ∈ domain f) : apply (update f x y)
 def undefined : Value := choose (fun _ => False)
 
 def intUnary (op : Int → Int) (x : Value) : Value :=
-  if x ∈ ZFSet.Int then integer (op (toInt x)) else undefined
+  if x ∈ integers then integer (op (toInt x)) else undefined
 
 def intBinary (op : Int → Int → Int) (x y : Value) : Value :=
-  if x ∈ ZFSet.Int ∧ y ∈ ZFSet.Int then integer (op (toInt x) (toInt y)) else undefined
+  if x ∈ integers ∧ y ∈ integers then integer (op (toInt x) (toInt y)) else undefined
 
 def intCompare (op : Int → Int → Prop) (x y : Value) : Value :=
-  boolean (x ∈ ZFSet.Int ∧ y ∈ ZFSet.Int ∧ op (toInt x) (toInt y))
+  boolean (x ∈ integers ∧ y ∈ integers ∧ op (toInt x) (toInt y))
 
 def finite (set : Value) : Value := boolean (Finite set)
 
@@ -125,9 +139,39 @@ def cardinality (set : Value) : Value :=
   if Finite set then integer (Nat.card set) else undefined
 
 def intPower (base exponent : Value) : Value :=
-  if base ∈ ZFSet.Int ∧ exponent ∈ naturals then
+  if base ∈ integers ∧ exponent ∈ naturals then
     integer ((toInt base) ^ (toInt exponent).toNat)
   else undefined
+
+def realUnary (op : Real → Real) (x : Value) : Value :=
+  if x ∈ reals then real (op (toReal x)) else undefined
+
+def realBinary (op : Real → Real → Real) (x y : Value) : Value :=
+  if x ∈ reals ∧ y ∈ reals then real (op (toReal x) (toReal y)) else undefined
+
+def realDivide (x y : Value) : Value :=
+  if x ∈ reals ∧ y ∈ reals ∧ toReal y ≠ 0 then real (toReal x / toReal y) else undefined
+
+def realPower (base exponent : Value) : Value :=
+  if base ∈ reals ∧ exponent ∈ naturals then
+    real ((toReal base) ^ (toInt exponent).toNat)
+  else undefined
+
+/-- The set of all real encodings is not itself one of those encodings. -/
+def infinity : Value := reals
+
+theorem infinity_not_real : infinity ∉ reals := ZFSet.mem_irrefl reals
+
+def realLess (x y : Value) : Value := boolean
+  ((x ∈ reals ∧ y ∈ reals ∧ toReal x < toReal y) ∨ (x ∈ reals ∧ y = infinity))
+
+def realLessEqual (x y : Value) : Value := boolean
+  (truth (realLess x y) ∨ (x = y ∧ (x ∈ reals ∨ x = infinity)))
+
+theorem realBinary_real (op : Real → Real → Real) (a b : Real) :
+    realBinary op (real a) (real b) = real (op a b) := by
+  unfold realBinary
+  rw [if_pos ⟨real_mem a, real_mem b⟩, Numeric.decode_encode, Numeric.decode_encode]
 
 def tuple (values : List Value) : Value :=
   function (interval (integer 1) (integer values.length))
