@@ -153,4 +153,7 @@ theorem diagonal_ne (s f x : Value) (hx : x ∈ s) :
       ZFSet.mem_sep.mpr ⟨hx, hm⟩
     exact hm (eq.symm ▸ diagonal)
 
+theorem exists_container (x : Value) : ∃ s : Value, x ∈ s :=
+  ⟨enumerate [x], (mem_enumerate _ _).mpr (by simp)⟩
+
 end TLAUniversal

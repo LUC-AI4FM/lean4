@@ -346,7 +346,7 @@ def compile_proofs(source, **kwargs):
                   'realBinary_add_integer realBinary_mul_integer realNegate_integer '
                   'realSubtract_integer realLessEqual_integer realLess_integer '
                   'intBinary_integer numberInterval_integer integer_mem_interval '
-                  'mem_enumerate apply_function domain_function function_isFunc_iff '
+                  'mem_enumerate mem_image caseValue apply_function domain_function function_isFunc_iff '
                   'domain_update update_same update_other updatePath '
                   'domain_tuple apply_tuple_at tuple_eq_iff length_tuple '
                   'string_eq_iff string_mem domain_record').split()
@@ -357,6 +357,7 @@ def compile_proofs(source, **kwargs):
                  '_root_.TLAUniversal.remainder_upper _root_.Int.emod_lt_of_pos '
                  '_root_.TLAUniversal.exists_state_pair '
                  '_root_.TLAUniversal.separation_subset '
+                 '_root_.TLAUniversal.exists_container '
                  '_root_.TLAUniversal.diagonal_ne '
                  '_root_.TLAUniversal.exists_nat_of_nonneg')
     lines.append('attribute [local aesop safe forward] _root_.TLAUniversal.domain_isFunc '
