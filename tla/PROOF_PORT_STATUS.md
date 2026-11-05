@@ -366,3 +366,19 @@ Function/record reconstruction follow-up (2026-11-05):
   main CI. Local 25-test suite passed before the final rule-registration edit.
 - Full port remains incomplete. Next: inspect these runs, diagnose rectset and
   record simplification, then resume remaining frontend/temporal coverage.
+
+Record simplification and verified range checkpoint (2026-11-05):
+- Focused 42095721026 at f7e5653 passed FunctionRange, unchanged excapp1_test
+  and FalseFunctionRange rejection with parser preflight. rectset_test still
+  failed. Range widening is now restricted to known facts rather than inventing
+  intermediate ranges during backward search.
+- 54354f3 changes record equality simplification to require distinct field names,
+  with record_unique_of_nodup proving the older value-uniqueness condition.
+  This avoids recursively comparing nested values merely to establish key
+  uniqueness. Focused 42096007282 is pending.
+- 109b39f proves apply_record_lookup, normalizing known field access inside
+  arbitrary propositions through finite-list lookup. Focused 42096342241 tests
+  rectset, nested/reordered equality and false-record rejection (pending).
+- Local suite: 25 tests pass. These pending runs must be inspected before any
+  claim that nested or record-set proof compatibility is complete.
+- Full port remains incomplete; preserve the 152/200 complete-audit baseline.
