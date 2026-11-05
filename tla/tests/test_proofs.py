@@ -46,3 +46,9 @@ class ProofTests(unittest.TestCase):
         code = compile_proofs(Path('tests/proofs/ModuleUse.tla'))
         self.assertIn('theorem TLACheckedProof0', code)
         self.assertIn('def TLACheckedCertificate', code)
+
+    def test_case_references_use_scoped_condition_and_later_implication(self):
+        code = compile_proofs(Path('tests/proofs/CaseReferences.tla'))
+        self.assertIn('have used_', code)
+        self.assertIn(' → ', code)
+        self.assertNotIn('$Pfcase', code)

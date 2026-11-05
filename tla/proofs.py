@@ -238,9 +238,21 @@ class Renderer:
             if name == '$Pfcase':
                 lines.append(indent + f'by_cases {label} : {self.proposition(args[0], env)}')
                 lines.append(indent + '·')
-                lines += self.render(proof_node(step, implicit=True), dict(env), indent + '  ', goal)
+                case_env = dict(env)
+                later_env = dict(env)
+                definition = step.node.find('definition/TheoremDefRef/UID')
+                if definition is not None:
+                    # Inside CASE its name denotes the condition; outside it
+                    # denotes the assertion condition => enclosing goal.
+                    case_env[definition.text] = ValueBinding(self.compiler.expr(args[0], env))
+                    if goal is None:
+                        raise ProofError('CASE reference requires its enclosing goal')
+                    later_env[definition.text] = ValueBinding(
+                        '(_root_.TLAUniversal.boolean (' + self.proposition(args[0], env)
+                        + ' → ' + self.proposition(goal, env) + '))')
+                lines += self.render(proof_node(step, implicit=True), case_env, indent + '  ', goal)
                 lines.append(indent + '·')
-                return lines + self.steps(references[index + 1:], dict(env), indent + '  ', goal)
+                return lines + self.steps(references[index + 1:], later_env, indent + '  ', goal)
             if name == '$Have':
                 lines.append(indent + f'have {label} : {self.proposition(args[0], env)} := by')
                 lines += self.leaf(ET.Element('obvious'), indent + '  ')
