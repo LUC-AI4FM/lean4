@@ -46,6 +46,10 @@ Spec == Init /\\ [][Next]_x /\\ WF_x(Next)
         names = {n.name for n in graph.definitions()}
         self.assertTrue({'Domain', 'Mapped', 'Func', 'Record', 'Update', 'Bound', 'Chosen', 'Local', 'Spec'} <= names)
 
+    def test_control_string_payload(self):
+        graph = self.parse('---- MODULE Test ----\nText == "\\f\\t\\n"\n====')
+        self.assertEqual(graph.definitions()[0].body.findtext('StringValue'), '\f\t\n')
+
     def test_instance_substitution(self):
         graph = self.parse('---- MODULE Test ----\nEXTENDS Integers\nI == INSTANCE Other WITH c <- 2\nAnswer == I!Twice\n====',
             Other='---- MODULE Other ----\nEXTENDS Integers\nCONSTANT c\nTwice == c + c\n====')

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 import xml.etree.ElementTree as ET
-from compiler import CompileError, ident
+from compiler import CompileError, ident, lean_string
 from sany import parse_file, SanyError
 
 @dataclass
@@ -57,7 +57,7 @@ class UniversalCompiler:
                 raise CompileError('invalid numeral')
             return f'(integer {number})'
         if node.tag == 'StringNode':
-            return '(string ' + json.dumps(node.findtext('StringValue', ''), ensure_ascii=False) + ')'
+            return '(string ' + lean_string(node.findtext('StringValue', '')) + ')'
         if node.tag == 'LetInNode':
             return self.expr(node.find('body')[0], env, b, n)
         if node.tag == 'SubstInNode':
@@ -321,13 +321,19 @@ class UniversalCompiler:
             ty = ' → '.join(['Value'] * (constant.arity + 1))
             lines.append(f'  {ident(constant.name)} : {ty}')
         for definition in self.g.definitions():
-            if definition.arity:
-                continue
-            code = self.expr(self.app(definition))
+            parameters, environment = [], {}
+            for ref in definition.node.findall('params/leibnizparam/FormalParamNodeRef'):
+                parameter = self.g.resolve(ref)
+                name = 'parameter_' + parameter.uid
+                ty = ' → '.join(['Expression'] * (parameter.arity + 1))
+                parameters.append(f'({name} : {ty})')
+                environment[parameter.uid] = ExpressionBinding(name, parameter.arity)
+            code = self.expr(definition.body, environment) if parameters else self.expr(self.app(definition))
+            signature = (' '.join(parameters) + ' ') if parameters else ''
             context = 'c' if 'c.' in code else '_c'
             trace = 'b' if '(b)' in code else '_b'
             index = 'n' if '(n)' in code else '_n'
-            lines.extend([f'def {ident(definition.name)} ({context} : Constants) ({trace} : Behavior) ({index} : Nat) : Value :=', '  ' + code])
+            lines.extend([f'def {ident(definition.name)} {signature}({context} : Constants) ({trace} : Behavior) ({index} : Nat) : Value :=', '  ' + code])
         assumptions = [self.expr(s.body) for s in self.g.claims('AssumeNode')]
         obligations = [self.expr(s.body) for s in self.g.claims('TheoremNode')]
         if assumptions or obligations:

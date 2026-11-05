@@ -7,6 +7,11 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from sany import parse_file, SanyError
 
+def lean_string(value):
+    """Encode decoded source strings using Lean's supported escape sequences."""
+    return '"' + ''.join(('\\u%04x' % ord(c)) if ord(c) < 32 else
+                         json.dumps(c, ensure_ascii=False)[1:-1] for c in value) + '"'
+
 class CompileError(ValueError):
     pass
 
@@ -124,7 +129,7 @@ class Compiler:
                 raise CompileError('invalid integer literal')
             return Term(f'({value} : Int)', INT)
         if node.tag == 'StringNode':
-            return Term(json.dumps(node.findtext('StringValue', ''), ensure_ascii=False), STRING)
+            return Term(lean_string(node.findtext('StringValue', '')), STRING)
         if node.tag == 'AtNode':
             parts = [x for x in node if x.tag not in ('location', 'level')]
             if len(parts) != 2:

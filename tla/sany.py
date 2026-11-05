@@ -1,6 +1,7 @@
 # Copyright (c) 2026 Eric Spencer. Released under Apache 2.0 license.
 """Validated access to the official SANY semantic graph, including resolved UIDs."""
 from dataclasses import dataclass
+import base64
 import os
 from pathlib import Path
 import subprocess
@@ -70,6 +71,12 @@ class Graph:
             document = ET.fromstring(xml)
         except ET.ParseError as error:
             raise SanyError(f'invalid semantic XML: {error}') from error
+        for string in document.iter('StringValue'):
+            if string.get('encoding') == 'base64-utf8':
+                try:
+                    string.text = base64.b64decode(string.text or '', validate=True).decode('utf-8')
+                except (ValueError, UnicodeError) as error:
+                    raise SanyError('invalid encoded string payload') from error
         if document.tag != 'modules':
             raise SanyError('expected modules XML document')
         return cls(document)
@@ -125,6 +132,11 @@ def parse_file(source, *, jar=None, includes=(), timeout=30):
     command.append(str(source))
     try:
         result = subprocess.run(command, capture_output=True, text=True, timeout=timeout, cwd=source.parent)
+        if result.returncode and 'An invalid XML character' in result.stderr:
+            adapter = Path(__file__).parent / 'java' / 'SemanticExport.java'
+            fallback = ['java', '-Xmx512m', '-cp', str(jar), str(adapter), str(source),
+                        str(source.parent), *(str(Path(p).resolve()) for p in includes)]
+            result = subprocess.run(fallback, capture_output=True, text=True, timeout=timeout, cwd=source.parent)
     except (OSError, subprocess.TimeoutExpired) as error:
         raise SanyError(f'reference parser failed: {error}') from error
     # The pinned exporter can exit zero and emit XML after a level error.

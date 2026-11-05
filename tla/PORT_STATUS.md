@@ -75,3 +75,9 @@ Universal source renderer now includes temporal hiding and leads-to. Universal
 CI found only an over-expanding simp invocation in integer arithmetic's bridge
 lemma; replaced it with explicit guarded rewriting. Universal source tests still
 await a full passing run. All previous limitations remain until their gates pass.
+
+The universal lane passed at 1718e9a (GitHub run 41964157439), including
+mixed collections, records, temporal hiding, tuple binders, products and CASE.
+The next gate adds a source Counter invariant proof and parameterized native
+exports. Control-character strings now use a lossless SANY adapter when the
+official XML 1.0 serializer fails; source files remain unchanged.

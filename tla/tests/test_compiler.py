@@ -17,6 +17,14 @@ class CompilerTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, code + '\n' + result.stdout + result.stderr)
         return code
 
+    def test_control_strings(self):
+        self.check(Path('tests/fixtures/Strings.tla'), r"""
+example (c : Strings.Constants) (b : TLA.Behavior Strings.State) (n : Nat) :
+    Strings.Control c b n = "\x0c\t\n\r" := rfl
+example (c : Strings.Constants) (b : TLA.Behavior Strings.State) (n : Nat) :
+    Strings.Literal c b n = "\\f" := rfl
+""")
+
     def test_counter(self):
         self.check(Path('tests/Counter.tla'))
 

@@ -1,0 +1,22 @@
+
+namespace Counter
+/-- The unchanged source specification preserves a nonnegative integer value. -/
+theorem source_invariant (c : Constants) (b : Behavior)
+    (h : truth (Spec c b 0)) : ∀ n, truth (Inv c b n) := by
+  simp only [Spec, truth_boolean] at h
+  have values : ∀ n : Nat, ∃ k : Nat, b n "x" = integer (k : Int) := by
+    intro n
+    induction n with
+    | zero => exact ⟨0, h.1⟩
+    | succ n ih =>
+      obtain ⟨k, hk⟩ := ih
+      rcases h.2 n (Nat.zero_le n) with step | stutter
+      · refine ⟨k + 1, ?_⟩
+        rw [hk, intBinary_integer] at step
+        simpa only [Nat.cast_add, Nat.cast_one] using step
+      · exact ⟨k, stutter.trans hk⟩
+  intro n
+  obtain ⟨k, hk⟩ := values n
+  simp only [Inv, intCompare, truth_boolean, hk, toInt_integer]
+  exact ⟨integer_mem _, integer_mem _, Int.natCast_nonneg k⟩
+end Counter
