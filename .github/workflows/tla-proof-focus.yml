@@ -49,6 +49,14 @@ jobs:
                   source = (root / entry.lstrip('!')).resolve()
                   if not source.is_relative_to(root) or not source.is_file():
                       raise SystemExit('Invalid source path: ' + entry)
+                  if reject:
+                      from sany import parse_file
+                      try:
+                          parse_file(source, includes=[root / 'tests/corpus/tlaps'])
+                      except Exception as error:
+                          failures.append(entry)
+                          print('FAIL parser preflight ' + entry + ': ' + str(error), flush=True)
+                          continue
                   output.write_text('preserve existing output')
                   result = subprocess.run([sys.executable, 'prove.py', str(source),
                       '--timeout', '15' if reject else '60', '-I', 'tests/corpus/tlaps',
