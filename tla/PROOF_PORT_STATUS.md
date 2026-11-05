@@ -25,11 +25,20 @@ Current checkpoint (2026-11-05): full port remains incomplete.
   Boolean-range lemma; Boolean inference is registered only for emitted source
   using BOOLEAN to avoid broadening unrelated proof search. Nested sequential
   EXCEPT (74c7e98) and its false counterpart pass focused run42123449006.
-- Active hypothesis: integer range normalization similarly loses useful
-  function-value witnesses. 9c385d9 adds a checked range lemma and an unchanged
-  domain-check fixture, with focused run42124521872 pending. Inspect that run
-  before claiming support. New rules must preserve broadcast performance and
-  negative rejection; no unsupported theorem becomes an axiom.
+- Integer witness reconstruction (9c385d9) compiled, checked unchanged
+  smt_domain_check_test and typingexp_test, and rejected FalseIntegerFunction
+  in focused run42124521872. Broadcast exceeded 120 seconds in that run.
+  Generated broadcast proof text was byte-for-byte identical to 81cd539.
+  Full run42123450206 at the earlier 74c7e98 also timed out on broadcast;
+  therefore the new integer lemma alone does not explain the slowdown.
+- Active diagnostic: 03c81a8 moves the integer helper into generated integer
+  proofs (focused run42125591025); af185a9 disables unused-simp-argument linting
+  for generated proof code (focused run42125760804). Both are pending. Kernel
+  checking, negative cases, certificates and their consumer imports remain
+  required. Compare broadcast elapsed time and failure context before choosing
+  further changes; broad search and linter overhead are competing explanations.
+- The follow-up branch is not integrated into main. Require its full TLA suite
+  to pass before integration. Main d1cee06 remains verified and clean.
 - Next frontier: exact BY/ONLY/USE/HIDE fact visibility; nested ENABLED and
   composition; larger temporal/library proofs; SANY frontend differences.
   Frozen reference manifest and complete audit denominator remain unchanged.
