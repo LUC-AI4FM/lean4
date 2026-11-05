@@ -33,7 +33,12 @@ def main():
                 parser.exit(1, 'tla-proof: Lean rejected the generated proof:\n' + result.stdout + result.stderr)
         # Preserve existing output when translation or checking fails.
         args.output.write_text(code)
-    except (CompileError, SanyError, OSError, subprocess.TimeoutExpired) as error:
+    except subprocess.TimeoutExpired as error:
+        diagnostics = ''.join(
+            value.decode(errors='replace') if isinstance(value, bytes) else value or ''
+            for value in (error.stdout, error.stderr))
+        parser.exit(1, f'tla-proof: {error}\n{diagnostics}')
+    except (CompileError, SanyError, OSError) as error:
         parser.exit(1, f'tla-proof: {error}\n')
     print(f'Lean checked {args.source.name}; wrote {args.output}')
 

@@ -363,7 +363,9 @@ def compile_proofs(source, **kwargs):
     lines.append('attribute [local simp] _root_.TLA.weakFairness _root_.TLA.strongFairness '
                  '_root_.TLA.always _root_.TLA.eventually _root_.TLA.state '
                  '_root_.TLA.action _root_.TLA.enabled _root_.TLA.angle _root_.TLA.unchanged')
-    lines.append('attribute [local simp ↓] _root_.TLAUniversal.apply_updatePath_other '
+    lines.append('attribute [local simp ↓] _root_.TLAUniversal.mem_recordSpace_two '
+                 '_root_.TLAUniversal.record_two_eq_iff '
+                 '_root_.TLAUniversal.apply_updatePath_other '
                  '_root_.TLAUniversal.apply_updatePath_single '
                  '_root_.TLAUniversal.update_other _root_.TLAUniversal.update_same '
                  '_root_.TLAUniversal.domain_updatePath_cons '
