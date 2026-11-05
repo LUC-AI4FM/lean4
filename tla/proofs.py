@@ -356,10 +356,10 @@ def compile_proofs(source, **kwargs):
                   'domain_update domain_updatePath_cons update_same update_other updatePath '
                   'domain_tuple apply_tuple_at tuple_eq_iff length_tuple '
                   'prepend_tuple mem_cartesian_cons mem_cartesian_nil '
-                  'string_eq_iff string_mem domain_record apply_record_lookup record_eq_iff mem_recordSpace mem_recordSpace_two mem_interval_iff mem_union_enumerate').split()
+                  'string_eq_iff string_mem domain_record apply_record_lookup record_eq_iff record_two_eq_iff mem_recordSpace mem_recordSpace_two mem_interval_iff mem_union_enumerate').split()
     lines.append('attribute [local simp] ' + ' '.join(
         '_root_.TLAUniversal.' + name for name in normalized)
-        + ' _root_.ZFSet.zftrue_ne_zffalse _root_.ZFSet.pair_inj _root_.List.lookup_cons')
+        + ' _root_.ZFSet.zftrue_ne_zffalse _root_.ZFSet.pair_inj _root_.not_and_or _root_.List.lookup_cons')
     lines.append('attribute [local simp] _root_.TLA.weakFairness _root_.TLA.strongFairness '
                  '_root_.TLA.always _root_.TLA.eventually _root_.TLA.state '
                  '_root_.TLA.action _root_.TLA.enabled _root_.TLA.angle _root_.TLA.unchanged')

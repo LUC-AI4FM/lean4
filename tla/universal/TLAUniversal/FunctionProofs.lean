@@ -295,6 +295,18 @@ theorem record_eq_iff (left right : List (String × Value))
   rw [record_as_pairs left (record_unique_of_nodup left hl),
     record_as_pairs right (record_unique_of_nodup right hr), enumerate_eq_iff]
 
+theorem record_two_eq_iff (a b : String) (x y u v : Value) (different : a ≠ b) :
+    record [(a, x), (b, y)] = record [(a, u), (b, v)] ↔ x = u ∧ y = v := by
+  constructor
+  · intro h
+    have first := congrArg (fun f => apply f (string a)) h
+    have second := congrArg (fun f => apply f (string b)) h
+    have hba : (b == a) = false := beq_eq_false_iff_ne.mpr (Ne.symm different)
+    simp [apply_record_lookup, different, Ne.symm different, List.lookup_cons, hba] at first second
+    exact ⟨first, second⟩
+  · rintro ⟨rfl, rfl⟩
+    rfl
+
 theorem powerset_subset_contradiction (domain range witness : Value)
     (included : ZFSet.powerset domain ⊆ range)
     (subset : witness ⊆ domain) (excluded : witness ∉ range) : False :=
