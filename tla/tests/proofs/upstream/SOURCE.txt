@@ -18,3 +18,5 @@ Additional unchanged sources: test/unit/c_sets/setof_test.tla, zenon/regression/
 Additional unchanged source: test/unit/g_tuples/productset_test.tla.
 Additional unchanged source: test/unit/i_sequences/sequences_test.tla.
 Additional unchanged sources: test/unit/e_arith/range_test.tla and zenon/regression/features/test_record.tla.
+
+Additional unchanged sources: test/fast/language/DuplicateEXCEPT.tla and zenon/regression/misc/test3.tla.
