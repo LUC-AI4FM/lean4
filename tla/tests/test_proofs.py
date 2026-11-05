@@ -52,3 +52,10 @@ class ProofTests(unittest.TestCase):
         self.assertIn('have used_', code)
         self.assertIn(' → ', code)
         self.assertNotIn('$Pfcase', code)
+
+    def test_have_introduces_implication_premise(self):
+        code = compile_proofs(Path('tests/proofs/upstream/test_proof_steps.tla'))
+        self.assertIn('intro have_antecedent', code)
+        self.assertIn('suffices step_', code)
+        with self.assertRaisesRegex(ProofError, 'HAVE requires an implication'):
+            compile_proofs(Path('tests/proofs/FalseHave.tla'))

@@ -279,8 +279,21 @@ class Renderer:
                 lines.append(indent + '·')
                 return lines + self.steps(references[index + 1:], later_env, indent + '  ', goal)
             if name == '$Have':
-                lines.append(indent + f'have {label} : {self.proposition(args[0], env)} := by')
+                implication = self.goal_body(goal)
+                if implication is None or implication.tag != 'OpApplNode' or self.graph.operator(implication).name != '=>':
+                    raise ProofError('HAVE requires an implication goal')
+                consequent = implication.find('operands')[1]
+                lines.append(indent + 'first | apply (_root_.TLAUniversal.truth_boolean _).2 | skip')
+                lines.append(indent + f'suffices {label} : {self.proposition(args[0], env)} → '
+                             + self.proposition(consequent, env) + ' by')
+                lines.append(indent + '  intro have_antecedent')
+                lines.append(indent + f'  apply {label}')
                 lines += self.leaf(ET.Element('obvious'), indent + '  ')
+                lines.append(indent + 'intro have_' + step.uid)
+                definition = step.node.find('definition/TheoremDefRef/UID')
+                if definition is not None:
+                    env[definition.text] = ValueBinding(self.compiler.expr(args[0], env))
+                goal = consequent
                 continue
             if step.node.find('suffices') is not None:
                 if name == '$Suffices':

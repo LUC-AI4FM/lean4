@@ -13,3 +13,4 @@ Additional unchanged sources: test/unit/f_data/{string,stringdistinct}_test.tla 
 Additional unchanged source: test/unit/h_records/recorddot_test.tla.
 Additional unchanged source: test/unit/e_arith/nat_test.tla.
 Additional unchanged source: examples/cantor/Cantor1.tla.
+Additional unchanged source: lsp/test/test_proof_steps.tla.

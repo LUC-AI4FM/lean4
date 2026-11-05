@@ -1,0 +1,5 @@
+---- MODULE FalseHave ----
+THEOREM TRUE
+<1> HAVE FALSE
+<1> QED OBVIOUS
+====
