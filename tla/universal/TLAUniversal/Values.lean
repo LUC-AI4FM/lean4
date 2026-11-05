@@ -201,10 +201,6 @@ def intUnary (op : Int → Int) (x : Value) : Value :=
 def intBinary (op : Int → Int → Int) (x y : Value) : Value :=
   if x ∈ integers ∧ y ∈ integers then integer (op (toInt x) (toInt y)) else undefined
 
-theorem intBinary_integer (op : Int → Int → Int) (a b : Int) :
-    intBinary op (integer a) (integer b) = integer (op a b) := by
-  simp [intBinary, integer_mem, toInt_integer]
-
 theorem remainder_nonnegative (m n : Int) (h : 0 < n) : 0 ≤ m % n :=
   Int.emod_nonneg m (ne_of_gt h)
 
@@ -304,8 +300,16 @@ theorem realLessEqual_integer (a b : Int) :
 
 theorem realLess_integer (a b : Int) :
     truth (realLess (integer a) (integer b)) ↔ a < b := by
-  simp only [realLess, truth_boolean, realLessEqual_integer, integer_eq_iff]
-  omega
+  rw [realLess, truth_boolean, realLessEqual_integer]
+  constructor
+  · intro h
+    have unequal : a ≠ b := fun eq => h.2 (congrArg integer eq)
+    omega
+  · intro h
+    refine ⟨by omega, ?_⟩
+    intro eq
+    have := integer_injective eq
+    omega
 
 theorem numberInterval_integer (lo hi : Int) :
     numberInterval (integer lo) (integer hi) = interval (integer lo) (integer hi) := by
