@@ -156,3 +156,20 @@ and both infinities. Run 41972377311 checked these definitions and all fixtures
 except one proof normalization step for negative exponentiation, since corrected.
 Additional CHOOSE-defined zero-division and bounded-quantifier proof checks are
 in flight. General source correspondence remains an explicit trust boundary.
+
+Runs 41973033334, 41973843482 and 41974760552 passed the numeric/binder,
+nested-call and generated-namespace regression gates. The first complete audit
+of all 433 pinned tlaplus/Examples modules (41974274420) passed 374 and retained
+every failure in per-shard JSON artifacts. Failures exposed warning-only SANY
+handling, operator-valued builtin arguments, parameterized theorem metadata,
+custom standard-module names, name capture, missing support modules and code
+expansion limits. Run 41977084643 passed the fixes and their proof regressions.
+
+The larger corpus exposed two additional cases: concatenated top-level modules
+in BufferedRandomAccessFile.tla and repeated expansion of closed module-local
+standard-library definitions. The importer now resolves the bundled modules in
+a temporary directory without editing the input; shared closed definitions and
+dependency-ordered INSTANCE exports reduce generated code size. Local checks:
+41 Python/reference tests, all 61 standard exports, native/source proofs and
+false-proof rejection pass. Universal and full-corpus verification of these
+latest changes is running; full compatibility remains unclaimed.

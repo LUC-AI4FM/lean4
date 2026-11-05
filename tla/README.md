@@ -98,8 +98,10 @@ side effects.
 
 ## Remaining work
 
-The complete standard-module library audit and source proof-script translation
-remain incomplete. Level-specific `NEW` declarations and real arithmetic have
+All 61 exports of the ten pinned standard modules have reachable test fixtures.
+The full upstream example corpus is checked by the separate compatibility
+workflow; remaining failures are recorded rather than skipped. Source
+proof-script translation remains incomplete. Level-specific `NEW` declarations and real arithmetic have
 checked fixtures. SANY rejects higher-order recursive operator parameters. Unsupported constructs fail with a
 diagnostic. There are no added axioms or placeholder proofs.
 
