@@ -53,3 +53,35 @@ Verified checkpoints:
   not establish that all other files are reference-proved positive tests.
 - 089b4d3 local DEFINE and level-specific NEW reconstruction, and e41e8cd
   simple SUFFICES / NEW VARIABLE reconstruction await final CI results.
+
+Latest verified checkpoint: 3f595c9; complete main CI 42055963982 passed.
+All 13 unchanged upstream syntax/proof fixtures and the imported TLAPS
+foundation fixture now produce checked certificates and pass separate imports.
+The false leaf, intermediate-step, arithmetic and omitted-proof regressions
+still reject. 63d687d adds proved Boolean and nonuniversality lemmas, not axioms.
+
+First full mixed audit (c52cae0, run 42052441125): 379/379 accounted for;
+31 checked, 37 no claims, 171 Lean-rejected, 120 translation-rejected, 20
+ timed out. None of the 34 expected-false soundness inputs was accepted.
+Every per-file status is retained in tests/proofs/audit-baseline.json; full
+artifacts are in /private/tmp/tlaps-proof-audit-42052441125 and on GitHub.
+More than 90 Lean failures first hit the imported nonuniversality lemma, now
+fixed. The audit predates local DEFINE, NEW binders and arithmetic support.
+Second full audit is RUNNING: 42057016191 at 3f595c9, with pinned CommunityModules
+available to resolve Functions and other library dependencies. Download its
+four reports and compare before choosing the next implementation tranche.
+
+Next gates: establish reference-proved positives (the mixed audit is not that
+baseline); reconstruct theorem/CASE references with correct goal and temporal
+scope; generalize prior proved facts beyond the current behavior/time; bounded
+multi-WITNESS and tuple binders; scoped facts/ONLY/HIDE; arithmetic, set,
+function and temporal backend coverage. Do not count omitted/invalid/parser-only
+inputs as failed positive proofs or rejected negatives as checked backend tests.
+
+Reference baseline discovery: official tlaplus/tlapm release 1.6.0-pre offers
+Linux asset tlapm-1.6.0-pre-x86_64-linux-gnu.tar.gz, 51958583 bytes, SHA256
+3357e45d1142346fb27dbcdbaee05ed4dcb0378cc99e0eb14636c762158aee8d
+(observed 2026-11-05, rolling asset updated 13:22:58Z). Its --version reports
+source commit. Use a pinned/checksummed offloaded workflow for reference runs;
+do not run substantive prover workloads on the Mac. Baseline workflow has not
+yet been implemented. Native goal remains active; the full port is incomplete.
