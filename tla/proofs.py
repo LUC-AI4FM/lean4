@@ -49,6 +49,7 @@ class Renderer:
             '_root_.TLAUniversal.numberInterval_integer',
             '_root_.TLAUniversal.integer_mem_interval',
             '_root_.TLAUniversal.mem_enumerate',
+            '_root_.ZFSet.mem_sep',
         ]
         for reference in proof.findall('defs/*'):
             symbol = self.graph.resolve(reference)
