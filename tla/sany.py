@@ -29,7 +29,7 @@ class Symbol:
     def body(self):
         body = self.node.find('body')
         if body is None and self.node.tag in ('AssumeDef', 'TheoremDefNode'):
-            expressions = [n for n in self.node if n.tag in ('OpApplNode', 'AssumeProveNode', 'LetInNode')]
+            expressions = [n for n in self.node if n.tag in ('OpApplNode', 'AssumeProveNode', 'LetInNode', 'SubstInNode', 'APSubstInNode', 'LabelNode')]
             if len(expressions) == 1:
                 return expressions[0]
         if body is None or len(body) != 1:

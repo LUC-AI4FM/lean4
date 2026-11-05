@@ -160,7 +160,7 @@ class UniversalCompiler:
             return '(boolean ' + obligation(list(node.find('assumes')), env, b) + ')'
         if node.tag in ('LetInNode', 'LabelNode'):
             return self.expr(node.find('body')[0], env, b, n)
-        if node.tag == 'SubstInNode':
+        if node.tag in ('SubstInNode', 'APSubstInNode'):
             substituted = dict(env)
             for subst in node.findall('substs/Subst'):
                 parts = [x for x in subst if x.tag not in ('location', 'level')]
