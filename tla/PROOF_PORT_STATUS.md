@@ -310,3 +310,20 @@ Arithmetic and update-normalization checkpoint (2026-11-05):
   Focused 42091840982 is pending. Do not claim the wide-record failure fixed.
 - Full audit 42090517540 at bd5209f remains active. Local 25-test suite passed
   before the final simplifier registration changes. Full port remains incomplete.
+
+Wide-record proof checkpoint (2026-11-05):
+- 168d33c tries bounded complete semantic simplification before the restricted
+  normalization/search path. It only keeps the result when the proof closes;
+  otherwise tactic backtracking preserves the existing path.
+- Focused 42092855099 passed unchanged record_except_explosion_test,
+  Cantor8 and typingexp_test, plus false CASE/temporal rejection. Local tests:
+  25 pass. This resolves the selected wide-record failure in a focused run.
+- Earlier 42091840982 timed out in SANY for every selected source before Lean
+  ran. Its negative result is not evidence of backend rejection. 5c8ac96
+  requires successful parser preflight for negative focused tests; parser
+  failure now fails the check. Focused 42093328740 is pending.
+- Full audit 42090517540 remains active. Five retained shards cover 237
+  inputs: 100/124 encountered reference positives checked; 16 timeout,
+  six Lean-rejected and two translation-rejected. No encountered negative
+  accepted. Wait for all 379 inputs before replacing the complete baseline.
+- Full TLAPS compatibility remains incomplete.
