@@ -1,106 +1,105 @@
 # TLA+ in Lean 4
 
-Write specifications directly in Lean, or translate existing `.tla` modules to
-Lean definitions. Both paths use the temporal and data semantics in `TLA`.
-The full port is in progress; see [the acceptance record](PORT_STATUS.md).
+Import existing `.tla` specifications or write specifications directly in Lean.
+The source importer uses SANY for parsing, binding and level checking, then emits
+Lean definitions over a common set-theoretic value universe. Lean checks proofs
+about those definitions. The full port is still in progress; the
+[acceptance record](PORT_STATUS.md) tracks verification and remaining work.
 
-## Run
+## Import a specification
 
-Install Lean's `elan` toolchain manager, Java 11 or later, and Python 3.11 or
-later. From this directory:
+Install Lean's `elan`, Java 11 or later, and Python 3.11 or later. From `tla/`:
 
 ```sh
 python3 tools.py
-python3 check.py
-python3 translate.py tests/Counter.tla -o Counter.lean
+cd universal
+lake update
+lake exe cache get
+python3 ../translate.py ../tests/Counter.tla -o Counter.lean
 lake env lean Counter.lean
+python3 check.py
 ```
 
-`tools.py` downloads the official TLA+ 1.7.4 tools and verifies a pinned SHA-256.
-There are no third-party Python packages or Lean dependencies. The package pins
-Lean 4.33.0 and builds independently of the upstream compiler in this fork.
-Use `-I directory` for additional source-module search paths.
+Use `-I directory` to resolve additional source modules. Input files remain
+unchanged. Output is written after successful translation. Generated modules
+expose their constants and operators; an operator takes its parameters, constants,
+a behavior and a time index. Source operator parameters become Lean expressions,
+so priming retains their state dependence.
 
-`check.py` builds the library, checks source parsing and compilation, verifies
-native and translated proofs, and confirms that a false proof fails. Tests cover
-invalid priming, module substitution, lexical binding, generic sets, TLC record/update comparisons, collection
-semantics, stuttering, fairness and output preservation after failed translation.
-CI downloads and verifies the same pinned reference tools before running tests.
+`tools.py` verifies the official TLA+ 1.7.4 tool archive by SHA-256. The package
+pins Lean 4.33.0 and ZFLean, which pins Mathlib. The dependency cache avoids
+rebuilding Mathlib. No upstream Lean compiler build is required.
 
 ## Native specifications
 
+The universal API is the same API used by source imports:
+
 ```lean
 module
-import TLA
+import TLAUniversal
+open TLAUniversal
+noncomputable section
 
-def Init : TLA.Predicate Int := fun x => x = 0
-def Next : TLA.Action Int := fun x y => y = x + 1
-def Spec : TLA.Formula Int := TLA.spec Init Next
+def Init : Expression := liftPredicate (fun s => s "x" = integer 0)
+def Next : Expression := liftAction
+  (fun s t => t "x" = intBinary (· + ·) (s "x") (integer 1))
 ```
 
-`tests/Native.lean` proves the counter invariant and checks stuttering/fairness.
-`tests/Data.lean` proves collection and function-update properties. The native
-library provides:
+Values are ZFC sets. Integers, booleans, strings, mixed collections, functions,
+records and sequences share this universe. Functions use ordered-pair graphs;
+records and sequences use string and integer domains, respectively. Native APIs
+include set operations, choice, function updates and recursive fixing graphs.
 
-- State predicates, actions and infinite behaviors.
-- Always, eventually, leads-to, ENABLED, UNCHANGED, square/angle actions.
-- Weak/strong fairness, invariant induction, and strong-implies-weak fairness.
-- Extensional sets, comprehensions, images, powersets, union and choice.
-- Functions with explicit domains, extensionality, application and update.
-- Typed sequences with one-based indexing and subsequences.
+`TLA.Basic` provides predicates, actions, infinite behaviors, always/eventually,
+leads-to, ENABLED, stuttering frames, fairness, composition and temporal hiding.
+It includes invariant induction and fairness proofs. The separate typed `TLA`
+package provides an ergonomic API for typed native specifications without
+Mathlib. Run its checks from `tla/` with `python3 check.py`; select the narrower
+source backend explicitly with `translate.py --backend typed`.
 
-Semantics follow the action/behavior definitions in
-[Specifying Systems](https://lamport.azurewebsites.net/tla/book.html).
-Fairness uses enabled **non-stuttering** actions relative to the supplied frame.
-Set/function proofs use Lean's classical logic; this library adds no axioms or
-`sorry` declarations.
+## Checked proofs
 
-## Existing source
+`universal/CounterProof.txt` proves the unchanged counter source specification's
+invariant, including stuttering. Append it to the generated counter module to
+check the proof. `tests/Native.lean`, `tests/Data.lean` and `tests/Temporal.lean`
+exercise the typed native APIs. Both CI jobs reject deliberately false proofs.
 
-The CLI uses the official SANY parser and level checker, consumes resolved
-symbol identities, and emits inspectable Lean code. It rejects parser/level
-errors even when the reference exporter exits with status zero. Local files
-cannot shadow trusted standard modules. Output is written only after translation
-succeeds.
+Source `ASSUME` and `THEOREM` statements become explicit assumptions and claims.
+A generated `Certificate` requires Lean proofs of the claims. Structured
+`ASSUME NEW ... PROVE ...` obligations retain their quantifiers. Source proof
+hints, including `OBVIOUS` and TLAPS pragmas, do not supply trusted proofs.
 
-`tests/Counter.tla` and `tests/fixtures/Collections.tla` demonstrate unchanged
-source input. The latter covers sets, quantifiers, functions, operator parameters,
-LET, conditionals, action references and fairness. Local module `INSTANCE`
-substitutions are expanded using resolved bindings rather than textual replacement.
+## Source coverage
 
-Generated modules expose `Constants`, `State`, and definitions taking constants,
-a behavior and a time index. Value types are inferred; unconstrained types remain
-explicit generic Lean types. Append `tests/CounterProof.txt` to the translated
-counter to check its invariant. Translation alone does not prove a property.
+The importer supports resolved module substitutions, LET, operator parameters,
+integer arithmetic, conditionals, CASE, mixed sets and tuples, bounded/unbounded
+quantification and choice, tuple binders, Cartesian products, functions, records,
+nested EXCEPT, sequences, finite sets and cardinality. Temporal support includes
+priming, UNCHANGED, action frames, ENABLED, composition, always/eventually,
+leads-to, fairness and flexible quantification.
 
-Supported source constructs currently include:
+Recursive functions use choice of a fixed-point graph. Recursive operators use
+the fixing-graph semantics described by
+[Gonthier and Lamport](https://lamport.azurewebsites.net/pubs/recursive-ops.pdf).
+Mutually recursive value operators share one tagged fixing graph. Defining
+equations are not introduced as axioms; unfolding needs a proof.
 
-- Constants, variables, operator calls, LET and INSTANCE substitutions.
-- Integers, arithmetic, comparisons, propositional operators and IF/THEN/ELSE.
-- Set enumeration, intervals, membership, union/intersection/difference, subset,
-  powerset, UNION, comprehensions, multiple bounded quantifiers and bounded CHOOSE.
-- Function constructors, application, DOMAIN and function spaces.
-- Records, record sets, nested EXCEPT, and sequential @ update semantics.
-- Homogeneous tuples/sequences, Len, Append, Head, Tail, SubSeq and concatenation.
-- Priming, UNCHANGED, action frames, ENABLED, always/eventually and fairness.
+Tests include unchanged, pinned TLA+ project examples: DieHard, CoffeeCan,
+DiningPhilosophers and Bakery. Provenance and licenses are in `tests/corpus`.
+TLC differential tests also check record and sequential EXCEPT behavior.
 
-## Remaining compatibility boundaries
+## Remaining work
 
-The generated data interpretation is currently **typed**. It is not yet a faithful
-universal model of all untyped TLA+ values. Heterogeneous collections, mixed
-function/record/sequence equality, unrestricted quantification and arbitrary
-recursive definitions require further semantic work. Tuple binders and multi-argument function constructors, operator-valued parameters/constants, temporal hiding,
-general standard modules, and translation of proof scripts also remain incomplete.
-Unsupported constructs are rejected, never replaced by axioms or placeholder
-proofs. Source ASSUME and THEOREM declarations become explicit assumptions and proof
-obligations. A generated `Certificate` requires a Lean proof of each theorem;
-source proof hints such as OBVIOUS are not trusted as proofs.
+Higher-order recursive operators, real arithmetic, the complete
+standard-module library, some level-specific `NEW` declarations, and source
+proof-script translation remain incomplete. Unsupported constructs fail with a
+diagnostic. There are no added axioms or placeholder proofs.
 
-Some operations outside their specified mathematical domains have total Lean
-values; source claims about such operations are not covered by a correspondence
-theorem. The SANY-to-Lean compiler remains part of the trusted translation path.
-Lean checks generated statements and proofs, not a proved equivalence to source.
-This package is not yet a replacement for TLC or TLAPS.
+The concrete value representation chooses values for operations outside their
+specified domains. A proof about that representation is not automatically a
+source-language theorem: general source correspondence and definedness proofs
+remain open. The compiler is currently part of the trusted translation path.
+This port does not yet replace TLC or TLAPS.
 
-The upstream Lean compiler and kernel are unchanged. The port lives in `tla/`
-to allow upstream compiler updates without a kernel patch.
+The upstream Lean compiler and kernel are unchanged. The implementation lives
+in `tla/` and builds independently.

@@ -22,6 +22,7 @@ class OperatorBinding:
 class RecursiveBinding:
     graph: str
     arity: int
+    tag: int | None = None
 
 @dataclass
 class StateBinding:
@@ -44,6 +45,23 @@ class UniversalCompiler:
         self.consts = {s.uid for s in graph.constants()}
         self.active = []
         self.serial = 0
+        recursive = {uid: symbol for uid, symbol in graph.symbols.items()
+                     if symbol.node.tag == 'UserDefinedOpKind' and symbol.node.find('recursive') is not None}
+        def reachable(uid, seen=None):
+            seen = set() if seen is None else seen
+            if uid in seen:
+                return seen
+            seen.add(uid)
+            symbol = graph.symbols[uid]
+            if symbol.node.tag == 'UserDefinedOpKind':
+                for ref in symbol.body.iter('UserDefinedOpKindRef'):
+                    reachable(ref.findtext('UID'), seen)
+            return seen
+        reach = {uid: reachable(uid) for uid in recursive}
+        self.recursive_groups = {
+            uid: [recursive[other] for other in sorted(recursive, key=int)
+                  if other in reach[uid] and uid in reach[other]] for uid in recursive}
+
 
     def fresh(self):
         self.serial += 1
@@ -123,6 +141,8 @@ class UniversalCompiler:
                     raise CompileError('recursive operator arity mismatch')
                 actuals = [self.expr(a, env, b, n) for a in args]
                 key = actuals[0] if len(actuals) == 1 else f'(tuple [{", ".join(actuals)}])'
+                if binding.tag is not None:
+                    key = f'(tuple [(integer {binding.tag}), {key}])'
                 return f'(apply {binding.graph} {key})'
             if isinstance(binding, StateBinding):
                 if args:
@@ -375,21 +395,37 @@ class UniversalCompiler:
         raise CompileError(f'unsupported universal operator {name!r} from {origin}')
 
     def recursive(self, symbol, params, args, env, b, n):
-        if any(self.g.resolve(p).arity for p in params):
-            raise CompileError('recursive higher-order parameters need operator semantics')
+        members = self.recursive_groups.get(symbol.uid, [symbol])
+        mutual = len(members) > 1
         actuals = [self.expr(a, env, b, n) for a in args]
         key = actuals[0] if len(actuals) == 1 else f'(tuple [{", ".join(actuals)}])'
+        if mutual:
+            tag = next(i for i, member in enumerate(members) if member.uid == symbol.uid)
+            key = f'(tuple [(integer {tag}), {key}])'
         point, graph = self.fresh(), self.fresh()
-        extended = dict(env)
-        extended[symbol.uid] = RecursiveBinding(graph, len(params))
-        for i, parameter in enumerate(params):
-            value = point if len(params) == 1 else f'(apply {point} (integer {i + 1}))'
-            extended[parameter.findtext('UID')] = ValueBinding(value)
-        self.active.append(symbol.uid)
-        try:
-            body = self.expr(symbol.body, extended, b, n)
-        finally:
-            self.active.pop()
+        context = dict(env)
+        for i, member in enumerate(members):
+            context[member.uid] = RecursiveBinding(graph, member.arity, i if mutual else None)
+        point_args = f'(apply {point} (integer 2))' if mutual else point
+        bodies = []
+        for member in members:
+            member_params = member.node.findall('params/leibnizparam/FormalParamNodeRef')
+            if any(self.g.resolve(p).arity for p in member_params):
+                raise CompileError('recursive higher-order parameters need operator semantics')
+            extended = dict(context)
+            for i, parameter in enumerate(member_params):
+                value = point_args if len(member_params) == 1 else f'(apply {point_args} (integer {i + 1}))'
+                extended[parameter.findtext('UID')] = ValueBinding(value)
+            self.active.append(member.uid)
+            try:
+                bodies.append(self.expr(member.body, extended, b, n))
+            finally:
+                self.active.pop()
+        body = bodies[0]
+        if mutual:
+            body = 'undefined'
+            for i, member_body in reversed(list(enumerate(bodies))):
+                body = f'(if apply {point} (integer 1) = integer {i} then {member_body} else {body})'
         return f'(recursiveOperator (fun ({point} {graph} : Value) => {body}) {key})'
 
     def compile(self):

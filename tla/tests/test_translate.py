@@ -9,9 +9,20 @@ from translate import translate, TranslationError
 class TranslationTests(unittest.TestCase):
     def test_counter(self):
         result = translate(Path('tests/Counter.tla').read_text())
+        self.assertIn('import TLAUniversal', result)
         self.assertIn('namespace «Counter»', result)
         self.assertIn('def «Spec»', result)
         self.assertNotIn('sorry', result)
+
+    def test_typed_backend_is_explicit(self):
+        result = translate(Path('tests/Counter.tla').read_text(), backend='typed')
+        self.assertIn('import TLA\n', result)
+        self.assertNotIn('import TLAUniversal', result)
+
+    def test_mixed_source_uses_universal_values(self):
+        result = translate(Path('tests/fixtures/Universal.tla').read_text())
+        self.assertIn('Value', result)
+        self.assertIn('def «Mixed»', result)
 
     def test_reject_undeclared_and_invalid_levels(self):
         for expression in ['Missing', "x'' = 0", 'x = 0 garbage']:
