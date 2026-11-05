@@ -1,13 +1,13 @@
 {
-  "run": "https://github.com/LUC-AI4FM/lean4/actions/runs/42083872494",
-  "commit": "16baf5103f272aa144ce307dd19646d8e133e42c",
+  "run": "https://github.com/LUC-AI4FM/lean4/actions/runs/42090517540",
+  "commit": "bd5209f4abbfad2179aea915a226d95e9205eb6c",
   "reference_commit": "d1760ab9a1a3e7e76f81172166a955167cd163f2",
   "note": "All inputs accounted for. Rejection or timeout of a negative does not establish that its intended backend was exercised. Full port incomplete.",
   "counts": {
     "translation_rejected": 72,
-    "lean_rejected": 41,
-    "timeout": 86,
-    "checked": 144,
+    "lean_rejected": 52,
+    "checked": 164,
+    "timeout": 55,
     "no_claims": 36
   },
   "results": [
@@ -233,7 +233,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 5,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "examples/TPCommit/PTCommit.tla",
@@ -275,28 +275,28 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 2,
-      "status": "lean_rejected"
+      "status": "checked"
     },
     {
       "source": "examples/cantor/Cantor2.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 1,
-      "status": "lean_rejected"
+      "status": "checked"
     },
     {
       "source": "examples/cantor/Cantor3.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 1,
-      "status": "lean_rejected"
+      "status": "checked"
     },
     {
       "source": "examples/cantor/Cantor4.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 1,
-      "status": "lean_rejected"
+      "status": "checked"
     },
     {
       "source": "examples/cantor/Cantor5.tla",
@@ -324,14 +324,14 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 1,
-      "status": "lean_rejected"
+      "status": "checked"
     },
     {
       "source": "examples/cantor/Cantor9.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 1,
-      "status": "lean_rejected"
+      "status": "checked"
     },
     {
       "source": "examples/paxos/Consensus.tla",
@@ -359,7 +359,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 4,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "examples_draft/FOLTL.tla",
@@ -503,7 +503,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 2,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "lsp/test/test_obl_expand.tla",
@@ -543,7 +543,7 @@
       "expected_false": false,
       "reference_positive": false,
       "claims": 3,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/bugs/excappbad_test.tla",
@@ -746,7 +746,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 4,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/fast/enabled_cdot/ENABLED_INSTANCE_nullary_op_test.tla",
@@ -788,7 +788,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/fast/enabled_cdot/ExpandOnlyCdot_test.tla",
@@ -829,7 +829,7 @@
       "expected_false": false,
       "reference_positive": false,
       "claims": 4,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/fast/enabled_cdot/NestedCdot_test.tla",
@@ -843,7 +843,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/fast/enabled_cdot/NestedENABLED_test.tla",
@@ -885,7 +885,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 1,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/fast/language/EXCEPTMultipleBrackets_test.tla",
@@ -1168,7 +1168,7 @@
       "expected_false": false,
       "reference_positive": false,
       "claims": 3,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/regression_tests/record_except_explosion_test.tla",
@@ -1441,14 +1441,14 @@
       "expected_false": true,
       "reference_positive": false,
       "claims": 1,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/have_time_stest.tla",
       "expected_false": true,
       "reference_positive": false,
       "claims": 3,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue139_negated_boolean_eq_stest.tla",
@@ -1469,7 +1469,7 @@
       "expected_false": true,
       "reference_positive": false,
       "claims": 1,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue235_set_enum_names_stest.tla",
@@ -1488,7 +1488,7 @@
       "expected_false": true,
       "reference_positive": false,
       "claims": 1,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue300_negative_exponent_stest.tla",
@@ -1516,14 +1516,14 @@
       "expected_false": true,
       "reference_positive": false,
       "claims": 3,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue309_cdot_binder_stest.tla",
       "expected_false": true,
       "reference_positive": false,
       "claims": 1,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue309_enabled_binder_isa_stest.tla",
@@ -1558,7 +1558,7 @@
       "expected_false": true,
       "reference_positive": false,
       "claims": 1,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue310_bound_var_capture_stest.tla",
@@ -1579,7 +1579,7 @@
       "expected_false": true,
       "reference_positive": false,
       "claims": 3,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue310_hash_collision_zenon_stest.tla",
@@ -1628,7 +1628,7 @@
       "expected_false": true,
       "reference_positive": false,
       "claims": 3,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/pick_temporal_goal_stest.tla",
@@ -1859,7 +1859,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "checked"
     },
     {
       "source": "test/unit/b_logic/critical_test.tla",
@@ -2027,7 +2027,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "checked"
     },
     {
       "source": "test/unit/d_funcs/excapp2_test.tla",
@@ -2111,7 +2111,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "lean_rejected"
+      "status": "timeout"
     },
     {
       "source": "test/unit/e_arith/typingminus_test.tla",
@@ -2139,7 +2139,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "checked"
     },
     {
       "source": "test/unit/e_arith/typingtimes_test.tla",
@@ -2195,7 +2195,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "checked"
     },
     {
       "source": "test/unit/g_tuples/tupleapp_test.tla",
@@ -2237,21 +2237,21 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "lean_rejected"
+      "status": "checked"
     },
     {
       "source": "test/unit/h_records/recordeq_fieldorder_smt_test.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "checked"
     },
     {
       "source": "test/unit/h_records/recordeq_hyp_smt_test.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/unit/h_records/recordeq_if_smt_test.tla",
@@ -2272,42 +2272,42 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/unit/h_records/recordeq_single_smt_test.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "checked"
     },
     {
       "source": "test/unit/h_records/recordeq_smt_test.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "checked"
     },
     {
       "source": "test/unit/h_records/recordeq_three_smt_test.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "lean_rejected"
+      "status": "checked"
     },
     {
       "source": "test/unit/h_records/recordext_test.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "checked"
     },
     {
       "source": "test/unit/h_records/rectset_test.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/unit/i_sequences/sequences_test.tla",
@@ -2404,21 +2404,21 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 1,
-      "status": "lean_rejected"
+      "status": "checked"
     },
     {
       "source": "zenon/regression/examples/cantor/Cantor3.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 1,
-      "status": "lean_rejected"
+      "status": "checked"
     },
     {
       "source": "zenon/regression/examples/cantor/Cantor4.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 1,
-      "status": "lean_rejected"
+      "status": "checked"
     },
     {
       "source": "zenon/regression/examples/cantor/Cantor5.tla",
@@ -2557,7 +2557,7 @@
       "expected_false": false,
       "reference_positive": false,
       "claims": 1,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "zenon/regression/misc/Bug1.tla",
@@ -2598,7 +2598,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 1,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "zenon/regression/misc/test4.tla",
@@ -2619,7 +2619,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 1,
-      "status": "lean_rejected"
+      "status": "checked"
     },
     {
       "source": "zenon/regression/peterson/Peterson.tla",
