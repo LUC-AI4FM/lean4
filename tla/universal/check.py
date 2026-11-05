@@ -139,7 +139,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         proof_fixture = negative_source.stem
         proof_output.write_text('preserve existing output')
         rejected = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
-                                   str(negative_source), '-I', str(root.parent / 'tests/corpus/tlaps'),
+                                   str(negative_source), '--timeout', '15', '-I', str(root.parent / 'tests/corpus/tlaps'),
                                    '-o', str(proof_output)],
                                   capture_output=True, text=True, timeout=150)
         if rejected.returncode == 0 or proof_output.read_text() != 'preserve existing output':
