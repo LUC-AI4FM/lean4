@@ -290,7 +290,8 @@ def compile_proofs(source, **kwargs):
     names = exports['proof_names']
     for index, theorem in enumerate(theorems):
         proof = proof_node(theorem)
-        unfold = [exports['assumptions'], exports['claims'][index], '_root_.TLAUniversal.truth_boolean']
+        unfold = [exports['assumptions'], exports['claims'][index], '_root_.TLAUniversal.truth_boolean',
+                  *exports['instance_helpers']]
         lines += [f'theorem {names[index]} (c : {exports["constants"]}) '
                   f'(b : _root_.TLAUniversal.Behavior) (n : _root_.Nat) '
                   f'(source_assumptions : {exports["assumptions"]} c b n) : '

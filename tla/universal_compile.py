@@ -75,6 +75,8 @@ class UniversalCompiler:
         self.active = []
         self.emitted = {}
         self.instance_variants = {}
+        self.instance_bodies = {}
+        self.closed_symbols = set()
         self.serial = 0
         recursive = {uid: symbol for uid, symbol in graph.symbols.items()
                      if symbol.node.tag == 'UserDefinedOpKind' and symbol.node.find('recursive') is not None}
@@ -107,6 +109,26 @@ class UniversalCompiler:
         operands = ET.SubElement(node, 'operands')
         operands.extend(args)
         return node
+
+    def substitution_context(self, node, env):
+        substituted = dict(env)
+        # Only reuse closed instance variants: their original formal parameters
+        # are unchanged and every module substitution is identical.
+        substituted['@instance'] = (ET.tostring(node.find('substs'))
+                                    if '@instance' not in env else None)
+        state_substitutions = []
+        for subst in node.findall('substs/Subst'):
+            parts = [x for x in subst if x.tag not in ('location', 'level')]
+            if len(parts) != 2:
+                raise CompileError('malformed module substitution')
+            declaration = self.g.resolve(parts[0])
+            if declaration.node.findtext('kind') == '3':
+                key = '$instance:' + declaration.uid
+                substituted[declaration.uid] = StateBinding(key)
+                state_substitutions.append((key, parts[1]))
+            else:
+                substituted[declaration.uid] = SyntaxBinding(parts[1], env, tuple(self.active))
+        return substituted, state_substitutions
 
     def expr(self, node, env=None, b='b', n='n', *, operator_override=None):
         env = {} if env is None else env
@@ -173,30 +195,14 @@ class UniversalCompiler:
         if node.tag in ('LetInNode', 'LabelNode'):
             return self.expr(node.find('body')[0], env, b, n)
         if node.tag in ('SubstInNode', 'APSubstInNode'):
-            substituted = dict(env)
-            # Only reuse closed instance variants: their original formal parameters
-            # are unchanged and every module substitution is identical.
-            substituted['@instance'] = (ET.tostring(node.find('substs'))
-                                        if '@instance' not in env else None)
-            state_substitutions = []
-            for subst in node.findall('substs/Subst'):
-                parts = [x for x in subst if x.tag not in ('location', 'level')]
-                if len(parts) != 2:
-                    raise CompileError('malformed module substitution')
-                declaration = self.g.resolve(parts[0])
-                if declaration.node.findtext('kind') == '3':
-                    key = '$instance:' + declaration.uid
-                    substituted[declaration.uid] = StateBinding(key)
-                    state_substitutions.append((key, parts[1]))
-                else:
-                    substituted[declaration.uid] = SyntaxBinding(parts[1], env, tuple(self.active))
+            substituted, state_substitutions = self.substitution_context(node, env)
             if state_substitutions:
                 # Instantiate the free behavior before evaluating the source
                 # expression. ENABLED, composition, fairness and guarantees
                 # subsequently bind original state coordinates independently.
                 # Textual substitution inside those binders incorrectly aliases
                 # distinct original variables when their replacements coincide.
-                substituted['@instance'] = None
+                substituted['@state_instance'] = True
                 trace, time, field = self.fresh(), self.fresh(), self.fresh()
                 value = f'({b}) {time} {field}'
                 for key, actual in reversed(state_substitutions):
@@ -264,9 +270,15 @@ class UniversalCompiler:
         if symbol.uid in self.consts:
             values = [self.expr(a, env, b, n) for a in args]
             return f'(c.{ident(symbol.name)} {" ".join(values)})'
-        emitted_uid = self.instance_variants.get((symbol.uid, env.get('@instance')), symbol.uid)
-        if emitted_uid in self.emitted:
-            name, arities = self.emitted[emitted_uid]
+        if env.get('@state_instance'):
+            emitted = self.instance_bodies.get((symbol.uid, env.get('@instance')))
+            if emitted is None and symbol.uid in self.closed_symbols:
+                emitted = self.emitted.get(symbol.uid)
+        else:
+            emitted_uid = self.instance_variants.get((symbol.uid, env.get('@instance')), symbol.uid)
+            emitted = self.emitted.get(emitted_uid)
+        if emitted is not None:
+            name, arities = emitted
             if len(args) == len(arities) and not any(arities):
                 actuals = []
                 for argument in args:
@@ -706,6 +718,8 @@ class UniversalCompiler:
                 return False
             return all(closed(r.findtext('UID'), seen)
                        for r in symbol.body.iter('UserDefinedOpKindRef'))
+        self.closed_symbols = {uid for uid, symbol in self.g.symbols.items()
+                               if symbol.node.tag == 'UserDefinedOpKind' and closed(uid, set())}
         reachable = set()
         def collect(node):
             for ref in node.iter('UserDefinedOpKindRef'):
@@ -779,6 +793,21 @@ class UniversalCompiler:
                 ty = ' → '.join(['_root_.TLAUniversal.Expression'] * (parameter.arity + 1))
                 parameters.append(f'({name} : {ty})')
                 environment[parameter.uid] = ExpressionBinding(name, parameter.arity)
+            if definition.body.tag == 'SubstInNode' and definition.node.find('recursive') is None:
+                substituted, states = self.substitution_context(definition.body, environment)
+                if states:
+                    substituted['@state_instance'] = True
+                    inner = qualify(self.expr(definition.body.find('body')[0], substituted))
+                    helper = declaration_name('TLAInstanceBody' + definition.uid)
+                    signature = (' '.join(parameters) + ' ') if parameters else ''
+                    lines.extend([f'def {ident(helper)} {signature}(c : {constants_type}) '
+                                  '(b : _root_.TLAUniversal.Behavior) (n : _root_.Nat) : '
+                                  '_root_.TLAUniversal.Value :=', '  ' + inner])
+                    refs = definition.node.findall('params/leibnizparam/FormalParamNodeRef')
+                    entry = (f'_root_.{namespace}.{ident(helper)}', [self.g.resolve(r).arity for r in refs])
+                    for key, variant in self.instance_variants.items():
+                        if variant == definition.uid:
+                            self.instance_bodies[key] = entry
             if parameters and definition.node.find('recursive') is not None:
                 refs = definition.node.findall('params/leibnizparam/FormalParamNodeRef')
                 actuals = []
@@ -812,6 +841,7 @@ class UniversalCompiler:
                 lines += [f'  obligation_{i} : ∀ (b : _root_.TLAUniversal.Behavior) (n : _root_.Nat), {assumptions_name} c b n → {claim_names[i]} c b n']
         self.proof_exports = {
             'namespace': namespace, 'constants': constants_type,
+            'instance_helpers': sorted({entry[0] for entry in self.instance_bodies.values()}),
             'assumptions': assumptions_name, 'certificate': certificate_name,
             'claims': claim_names if obligations else [],
             'proof_names': [declaration_name(f'TLACheckedProof{i}') for i in range(len(obligations))],
