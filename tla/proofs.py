@@ -3,7 +3,7 @@
 import xml.etree.ElementTree as ET
 from compiler import CompileError
 from sany import parse_file
-from universal_compile import UniversalCompiler, OperatorBinding, ValueBinding, qualify
+from universal_compile import UniversalCompiler, OperatorBinding, ValueBinding, LevelBinding, ExpressionBinding, qualify
 
 
 class ProofError(CompileError):
@@ -61,14 +61,21 @@ class Renderer:
                 lines.append(indent + f'intro premise_{i}')
                 continue
             symbol = self.graph.resolve(assumption.find('OpDeclNodeRef'))
-            if symbol.level:
-                raise ProofError('level-specific NEW proof binders need reconstruction')
+            if symbol.node.findtext('kind') == '25':
+                raise ProofError('NEW VARIABLE proof binders need trace reconstruction')
             name = 'new_' + symbol.uid
             lines.append(indent + 'intro ' + name)
-            env[symbol.uid] = OperatorBinding(name, symbol.arity)
+            if symbol.level and symbol.arity:
+                env[symbol.uid] = ExpressionBinding(name, symbol.arity)
+            elif symbol.level:
+                env[symbol.uid] = LevelBinding(name, symbol.level)
+            else:
+                env[symbol.uid] = OperatorBinding(name, symbol.arity)
             bounds = [x for x in assumption if x.tag not in ('location', 'level', 'OpDeclNodeRef')]
             if bounds:
                 lines.append(indent + 'intro bound_' + symbol.uid)
+            if (symbol.level and symbol.arity) or symbol.level == 3:
+                lines.append(indent + 'intro locality_' + symbol.uid)
         return lines, env
 
     def render(self, proof, env, indent='  '):
@@ -88,6 +95,14 @@ class Renderer:
     def steps(self, references, env, indent):
         lines = []
         for index, reference in enumerate(references):
+            if reference.tag == 'DefStepNode':
+                # SANY resolves references to these definitions by UID. The
+                # expression compiler expands their bodies in the current
+                # binder environment, including parameters and substitutions.
+                for definition in reference:
+                    if definition.tag.endswith('Ref'):
+                        self.graph.resolve(definition)
+                continue
             if reference.tag == 'UseOrHideNode':
                 hiding = reference.find('hide') is not None
                 for definition in reference.findall('defs/*'):
