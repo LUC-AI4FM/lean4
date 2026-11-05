@@ -31,12 +31,17 @@ Current checkpoint (2026-11-05): full port remains incomplete.
   Generated broadcast proof text was byte-for-byte identical to 81cd539.
   Full run42123450206 at the earlier 74c7e98 also timed out on broadcast;
   therefore the new integer lemma alone does not explain the slowdown.
-- Active diagnostic: 03c81a8 moves the integer helper into generated integer
-  proofs (focused run42125591025); af185a9 disables unused-simp-argument linting
-  for generated proof code (focused run42125760804). Both are pending. Kernel
-  checking, negative cases, certificates and their consumer imports remain
-  required. Compare broadcast elapsed time and failure context before choosing
-  further changes; broad search and linter overhead are competing explanations.
+- Diagnostics 42125591025 (isolated integer helper) and 42125760804
+  (unused-simp-argument linter disabled) still exceeded 120 seconds on broadcast;
+  integer and nested-update positives continued to pass. Neither intervention
+  is sufficient to explain or fix the runtime. Lean's UnusedSimpArgs implementation
+  collects usage masks and warning messages; it does not rerun proof tactics.
+- Active diagnostic: 1fb7343 adds opt-in --trace / proof_trace, emitting claim
+  and leaf labels plus Lean goals. Focused run42126939875 is live. Inspect the
+  last reached goal before changing search. Kernel checking, negatives,
+  certificates and their consumer imports remain required. Candidate reset:
+  targeted logical reconstruction or a bounded checked first-order solver,
+  rather than enlarging the wall-clock limit again.
 - The follow-up branch is not integrated into main. Require its full TLA suite
   to pass before integration. Main d1cee06 remains verified and clean.
 - Next frontier: exact BY/ONLY/USE/HIDE fact visibility; nested ENABLED and
