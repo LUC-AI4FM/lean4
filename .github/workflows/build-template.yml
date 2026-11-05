@@ -195,8 +195,9 @@ jobs:
       - id: upload-lake-cache
         name: Upload Lake Cache
         # Caching on cancellation created some mysterious issues perhaps related to improper build
-        # shutdown. Also, since this needs access to secrets, it cannot be run on forks.
-        if: matrix.lake-cache && !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        # shutdown. Publishing also requires a configured cache service; repository
+        # forks can build and test without configuring that external service.
+        if: matrix.lake-cache && vars.LAKE_CACHE_ENDPOINT != '' && !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         run: |
           curl --version
           cd src
