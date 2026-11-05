@@ -153,6 +153,54 @@ theorem apply_record (fields : List (String × Value)) (key : String) (value : V
   · apply (mem_enumerate _ _).mpr
     exact List.mem_map.mpr ⟨(key, value), member, rfl⟩
 
+theorem record_as_pairs (fields : List (String × Value))
+    (unique : ∀ a ∈ fields, ∀ b ∈ fields, a.1 = b.1 → a.2 = b.2) :
+    record fields = enumerate (fields.map (fun f => ZFSet.pair (string f.1) f.2)) := by
+  have selected (field : String × Value) (member : field ∈ fields) :
+      choose (fun value => ∃ f ∈ fields, string field.1 = string f.1 ∧ value = f.2) = field.2 := by
+    obtain ⟨f, hf, hk, hv⟩ := choose_spec
+      (fun value => ∃ f ∈ fields, string field.1 = string f.1 ∧ value = f.2)
+      ⟨field.2, field, member, rfl, rfl⟩
+    exact hv.trans (unique f hf field member (string_injective hk).symm)
+  apply ZFSet.ext
+  intro p
+  unfold record function
+  rw [mem_image, mem_enumerate]
+  constructor
+  · rintro ⟨key, hk, rfl⟩
+    obtain ⟨field, hf, rfl⟩ := List.mem_map.mp ((mem_enumerate _ _).mp hk)
+    rw [selected field hf]
+    exact List.mem_map.mpr ⟨field, hf, rfl⟩
+  · intro hp
+    obtain ⟨field, hf, rfl⟩ := List.mem_map.mp hp
+    refine ⟨string field.1, (mem_enumerate _ _).mpr (List.mem_map.mpr ⟨field, hf, rfl⟩), ?_⟩
+    rw [selected field hf]
+
+theorem enumerate_eq_iff (left right : List Value) :
+    enumerate left = enumerate right ↔
+      (∀ x ∈ left, x ∈ right) ∧ (∀ x ∈ right, x ∈ left) := by
+  constructor
+  · intro h
+    constructor
+    · intro x hx
+      exact (mem_enumerate _ _).mp (h ▸ (mem_enumerate _ _).mpr hx)
+    · intro x hx
+      exact (mem_enumerate _ _).mp (h.symm ▸ (mem_enumerate _ _).mpr hx)
+  · rintro ⟨forward, backward⟩
+    apply ZFSet.ext
+    intro x
+    simpa only [mem_enumerate] using Iff.intro (forward x) (backward x)
+
+theorem record_eq_iff (left right : List (String × Value))
+    (hl : ∀ a ∈ left, ∀ b ∈ left, a.1 = b.1 → a.2 = b.2)
+    (hr : ∀ a ∈ right, ∀ b ∈ right, a.1 = b.1 → a.2 = b.2) :
+    record left = record right ↔
+      (∀ p ∈ left.map (fun f => ZFSet.pair (string f.1) f.2),
+        p ∈ right.map (fun f => ZFSet.pair (string f.1) f.2)) ∧
+      (∀ p ∈ right.map (fun f => ZFSet.pair (string f.1) f.2),
+        p ∈ left.map (fun f => ZFSet.pair (string f.1) f.2)) := by
+  rw [record_as_pairs left hl, record_as_pairs right hr, enumerate_eq_iff]
+
 theorem separation_subset (s : Value) (p : Value → Prop) : s.sep p ⊆ s := by
   intro x hx
   exact (ZFSet.mem_sep.mp hx).1
