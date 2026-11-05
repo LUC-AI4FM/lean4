@@ -1,8 +1,9 @@
 # Copyright (c) 2026 Eric Spencer. Released under Apache 2.0 license.
 """Reconstruct source proof scripts as Lean terms; no source fact is an axiom."""
-from compiler import CompileError, ident
+import xml.etree.ElementTree as ET
+from compiler import CompileError
 from sany import parse_file
-from universal_compile import UniversalCompiler
+from universal_compile import UniversalCompiler, OperatorBinding, ValueBinding, qualify
 
 
 class ProofError(CompileError):
@@ -19,6 +20,127 @@ def proof_node(theorem):
     return nodes[0]
 
 
+class Renderer:
+    def __init__(self, compiler, unfold):
+        self.compiler = compiler
+        self.graph = compiler.g
+        self.unfold = unfold
+
+    def proposition(self, node, env):
+        return '_root_.TLAUniversal.truth ' + qualify(self.compiler.expr(node, env))
+
+    def leaf(self, proof, indent):
+        unfold = list(self.unfold)
+        for reference in proof.findall('defs/*'):
+            symbol = self.graph.resolve(reference)
+            if symbol.uid in self.compiler.emitted:
+                unfold.append(self.compiler.emitted[symbol.uid][0])
+        return [indent + 'simp_all only [' + ', '.join(dict.fromkeys(unfold)) + ']',
+                indent + 'all_goals aesop']
+
+    def open_statement(self, node, env, indent):
+        env = dict(env)
+        if node.tag != 'AssumeProveNode':
+            return [], env
+        lines = [indent + 'apply (_root_.TLAUniversal.truth_boolean _).2']
+        for i, assumption in enumerate(node.find('assumes')):
+            if assumption.tag != 'NewSymbNode':
+                lines.append(indent + f'intro premise_{i}')
+                continue
+            symbol = self.graph.resolve(assumption.find('OpDeclNodeRef'))
+            if symbol.level:
+                raise ProofError('level-specific NEW proof binders need reconstruction')
+            name = 'new_' + symbol.uid
+            lines.append(indent + 'intro ' + name)
+            env[symbol.uid] = OperatorBinding(name, symbol.arity)
+            bounds = [x for x in assumption if x.tag not in ('location', 'level', 'OpDeclNodeRef')]
+            if bounds:
+                lines.append(indent + 'intro bound_' + symbol.uid)
+        return lines, env
+
+    def render(self, proof, env, indent='  '):
+        if proof.tag in ('obvious', 'by'):
+            return self.leaf(proof, indent)
+        if proof.tag != 'steps':
+            raise ProofError('unsupported proof node: ' + proof.tag)
+        refs = [x for x in proof if x.tag not in ('location', 'level')]
+        return self.steps(refs, dict(env), indent)
+
+    def steps(self, references, env, indent):
+        lines = []
+        for index, reference in enumerate(references):
+            if reference.tag != 'TheoremNodeRef':
+                raise ProofError('unsupported proof step: ' + reference.tag)
+            step = self.graph.resolve(reference)
+            body = step.body
+            name = self.graph.operator(body).name if body.tag == 'OpApplNode' else None
+            args = list(body.find('operands')) if body.tag == 'OpApplNode' else []
+            label = 'step_' + step.uid
+            if name == '$Qed':
+                if index != len(references) - 1:
+                    raise ProofError('QED must terminate its proof scope')
+                return lines + self.render(proof_node(step), env, indent)
+            if name == '$Take':
+                lines.append(indent + 'first | apply (_root_.TLAUniversal.truth_boolean _).2 | skip')
+                for group in body.find('boundSymbols'):
+                    if group.find('tuple') is not None:
+                        raise ProofError('tuple TAKE reconstruction is not implemented')
+                    for ref in group.findall('FormalParamNodeRef'):
+                        uid = ref.findtext('UID')
+                        variable = 'taken_' + uid
+                        lines.append(indent + 'intro ' + variable)
+                        env[uid] = ValueBinding(variable)
+                        if group.tag != 'unbound':
+                            lines.append(indent + 'intro bound_' + uid)
+                continue
+            if name == '$Witness':
+                lines.append(indent + 'first | apply (_root_.TLAUniversal.truth_boolean _).2 | skip')
+                for argument in args:
+                    value = qualify(self.compiler.expr(argument, env))
+                    lines.append(indent + f'refine ⟨{value}, ?_⟩')
+                continue
+            if name == '$Pick':
+                existential = self.compiler.expr(body, env, operator_override='$UnboundedExists')
+                proposition = '_root_.TLAUniversal.truth ' + qualify(existential)
+                lines.append(indent + f'have {label} : {proposition} := by')
+                lines += self.render(proof_node(step), env, indent + '  ')
+                fields = []
+                for group in body.find('boundSymbols'):
+                    if group.find('tuple') is not None:
+                        raise ProofError('tuple PICK reconstruction is not implemented')
+                    for ref in group.findall('FormalParamNodeRef'):
+                        uid = ref.findtext('UID')
+                        variable = 'picked_' + uid
+                        fields.append(variable)
+                        env[uid] = ValueBinding(variable)
+                        if group.tag != 'unbound':
+                            fields.append('bound_' + uid)
+                fields.append('picked_fact_' + step.uid)
+                lines.append(indent + 'obtain ⟨' + ', '.join(fields) + '⟩ := '
+                             f'(_root_.TLAUniversal.truth_boolean _).1 {label}')
+                continue
+            if name == '$Pfcase':
+                lines.append(indent + f'by_cases {label} : {self.proposition(args[0], env)}')
+                lines.append(indent + '·')
+                lines += self.render(proof_node(step), dict(env), indent + '  ')
+                lines.append(indent + '·')
+                return lines + self.steps(references[index + 1:], dict(env), indent + '  ')
+            if name == '$Have':
+                lines.append(indent + f'have {label} : {self.proposition(args[0], env)} := by')
+                lines += self.leaf(ET.Element('obvious'), indent + '  ')
+                continue
+            if step.node.find('suffices') is not None:
+                lines.append(indent + f'suffices {label} : {self.proposition(body, env)} by')
+                lines += self.render(proof_node(step), dict(env), indent + '  ')
+                opened, env = self.open_statement(body, env, indent)
+                lines += opened
+                continue
+            lines.append(indent + f'have {label} : {self.proposition(body, env)} := by')
+            opened, child_env = self.open_statement(body, env, indent + '  ')
+            lines += opened + self.render(proof_node(step), child_env, indent + '  ')
+        raise ProofError('hierarchical proof has no final QED')
+
+
 def compile_proofs(source, **kwargs):
     graph = parse_file(source, **kwargs)
     compiler = UniversalCompiler(graph)
@@ -32,13 +154,7 @@ def compile_proofs(source, **kwargs):
     names = exports['proof_names']
     for index, theorem in enumerate(theorems):
         proof = proof_node(theorem)
-        if proof.tag == 'steps':
-            raise ProofError(f'{theorem.location}: hierarchical proof reconstruction is not implemented yet')
         unfold = [exports['assumptions'], exports['claims'][index], '_root_.TLAUniversal.truth_boolean']
-        for reference in proof.findall('defs/*'):
-            symbol = graph.resolve(reference)
-            if symbol.uid in compiler.emitted:
-                unfold.append(compiler.emitted[symbol.uid][0])
         lines += [f'theorem {names[index]} (c : {exports["constants"]}) '
                   f'(b : _root_.TLAUniversal.Behavior) (n : _root_.Nat) '
                   f'(source_assumptions : {exports["assumptions"]} c b n) : '
@@ -48,7 +164,9 @@ def compile_proofs(source, **kwargs):
         for previous in range(index):
             lines.append(f'  have prior_{previous} := {names[previous]} c b n source_assumptions')
             unfold.append(exports['claims'][previous])
-        lines += ['  simp_all only [' + ', '.join(unfold) + ']', '  all_goals aesop']
+        renderer = Renderer(compiler, unfold)
+        opened, environment = renderer.open_statement(theorem.body, {}, '  ')
+        lines += opened + renderer.render(proof, environment)
     lines += [f'def {exports["certificate_proof"]} (c : {exports["constants"]}) : '
               f'{exports["certificate"]} c :=',
               '  ⟨' + ', '.join(name + ' c' for name in names) + '⟩',

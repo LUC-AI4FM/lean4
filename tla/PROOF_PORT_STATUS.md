@@ -26,3 +26,11 @@ never evidence of a Lean proof. Source assertions must not become axioms.
 Initial implementation: explicit leaf proofs generate Lean theorem declarations
 and a certificate. Structured proofs are rejected pending implementation.
 Verification is pending; the full proof port remains incomplete.
+
+Leaf checkpoint: 4bef4fb, CI run 42048996808 passed. Five leaf theorem
+statements produce a checked certificate; false leaves fail without replacing
+existing output. Local suite: 46 tests plus prior native/source proof checks.
+Hierarchical reconstruction now emits explicit Lean assertions and binder steps;
+its kernel verification is pending. The reference source snapshot is pinned at
+d1760ab9a1a3e7e76f81172166a955167cd163f2 in
+/private/tmp/tlapm-proof-reference (task-owned, retained for corpus setup).

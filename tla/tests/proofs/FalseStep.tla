@@ -1,0 +1,5 @@
+---- MODULE FalseStep ----
+THEOREM TRUE
+<1>1. FALSE OBVIOUS
+<1>2. QED OBVIOUS
+====

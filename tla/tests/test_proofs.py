@@ -21,3 +21,13 @@ class ProofTests(unittest.TestCase):
         self.assertIn('theorem TLACheckedProof0', code)
         self.assertNotIn('sorry', code)
         self.assertNotIn('axiom ', code)
+
+    def test_hierarchical_proof_preserves_assertions_and_binders(self):
+        code = compile_proofs(Path('tests/proofs/ProofShapes.tla'))
+        for instruction in ('intro taken_', 'refine ⟨', 'suffices step_', 'obtain ⟨picked_', 'by_cases step_'):
+            self.assertIn(instruction, code)
+
+    def test_false_intermediate_step_is_not_dropped(self):
+        code = compile_proofs(Path('tests/proofs/FalseStep.tla'))
+        self.assertIn('have step_', code)
+        self.assertIn('ZFSet.zffalse', code)

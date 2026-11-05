@@ -102,19 +102,25 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
                 print(imported.stdout + imported.stderr, flush=True)
         print(('FAIL ' if result.returncode else 'PASS ') + fixture, flush=True)
     # The proof CLI writes an artifact only after Lean accepts its proof terms.
-    proof_output = Path(directory) / 'CheckedLeaves.lean'
-    proved = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
-                             str(root.parent / 'tests/proofs/Leaves.tla'), '-o', str(proof_output)],
-                            capture_output=True, text=True, timeout=150)
-    if proved.returncode:
-        failures.append('source leaf proof reconstruction')
-        print(proved.stdout + proved.stderr, flush=True)
-    proof_output.write_text('preserve existing output')
-    rejected = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
-                               str(root.parent / 'tests/proofs/FalseLeaf.tla'), '-o', str(proof_output)],
-                              capture_output=True, text=True, timeout=150)
-    if rejected.returncode == 0 or proof_output.read_text() != 'preserve existing output':
-        raise RuntimeError('false source proof was accepted or replaced existing output')
+    proof_output = Path(directory) / 'CheckedProofs.lean'
+    for proof_fixture in ('Leaves', 'ProofShapes'):
+        proved = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
+                                 str(root.parent / 'tests/proofs' / (proof_fixture + '.tla')),
+                                 '-o', str(proof_output)],
+                                capture_output=True, text=True, timeout=150)
+        if proved.returncode:
+            failures.append('source proof reconstruction: ' + proof_fixture)
+            print(proved.stdout + proved.stderr, flush=True)
+        else:
+            print('PASS source proof reconstruction: ' + proof_fixture, flush=True)
+    for proof_fixture in ('FalseLeaf', 'FalseStep', 'Omitted'):
+        proof_output.write_text('preserve existing output')
+        rejected = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
+                                   str(root.parent / 'tests/proofs' / (proof_fixture + '.tla')),
+                                   '-o', str(proof_output)],
+                                  capture_output=True, text=True, timeout=150)
+        if rejected.returncode == 0 or proof_output.read_text() != 'preserve existing output':
+            raise RuntimeError('invalid source proof accepted or replaced output: ' + proof_fixture)
     # SANY accepts proof hints without checking them. They must never become
     # trusted Lean proofs or make a source certificate trivially inhabited.
     target = Path(directory) / 'FalseClaim.lean'
