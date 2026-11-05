@@ -262,3 +262,20 @@ Finite record equality checkpoint (2026-11-05):
   rejected, two translation-rejected. All 30 encountered negatives rejected
   or timed out. Do not substitute these partial counts for the full audit.
 - Full port remains incomplete; continue remaining backend and frontend scope.
+
+Complete audit checkpoint (2026-11-05):
+- Run 42083872494 at 16baf51 accounts for all 379 inputs: 144 checked,
+  86 timed out, 72 translation-rejected, 41 Lean-rejected, 36 without claims.
+  Of the 200 reference-positive candidates: 132 checked, 50 timed out,
+  14 Lean-rejected, four translation-rejected. All 34 negatives rejected
+  or timed out; none accepted. tests/proofs/lean-baseline.json retains outcomes.
+- Relative to the preceding complete audit, critical_bounded_test, excapp1_test
+  and typingremainder_test regressed from checked to timeout. Retain and retest
+  them; do not count aggregate gains as proof of no regression.
+- Main CI 42083676762 at 16baf51 passed all its gates.
+- beeec9a fixes descendant-process cleanup after prover timeouts; 25 local
+  tests pass, including a spawned-child cleanup regression. Focused CI
+  42089145550 is pending. f5bd06f adds a kernel proof of universal-set
+  contradiction and unchanged Cantor3/Cantor10 fixtures (42089288668 pending).
+- Full compatibility remains incomplete. The new full audit predates recent
+  Boolean, Cantor, record equality and process cleanup repairs.
