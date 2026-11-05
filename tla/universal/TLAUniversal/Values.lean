@@ -33,6 +33,15 @@ theorem truth_boolean (p : Prop) : truth (boolean p) ↔ p := by
   · simp [h]
   · simp [h, Ne.symm ZFSet.zftrue_ne_zffalse]
 
+theorem truth_true : truth ZFSet.zftrue := rfl
+
+theorem not_truth_false : ¬ truth ZFSet.zffalse :=
+  Ne.symm ZFSet.zftrue_ne_zffalse
+
+/-- A set cannot contain every value, since it cannot contain itself. -/
+theorem not_universal (x : Value) : ∃ y : Value, y ∉ x :=
+  ⟨x, ZFSet.mem_irrefl x⟩
+
 abbrev real := Numeric.encode
 abbrev toReal := Numeric.decode
 

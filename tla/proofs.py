@@ -33,6 +33,8 @@ class Renderer:
 
     def leaf(self, proof, indent):
         unfold = list(self.unfold) + [
+            '_root_.TLAUniversal.truth_true',
+            '_root_.TLAUniversal.not_truth_false',
             '_root_.TLAUniversal.realBinary_add_integer',
             '_root_.TLAUniversal.realBinary_mul_integer',
             '_root_.TLAUniversal.realNegate_integer',
@@ -213,7 +215,8 @@ def compile_proofs(source, **kwargs):
         lines += [f'theorem {names[index]} (c : {exports["constants"]}) '
                   f'(b : _root_.TLAUniversal.Behavior) (n : _root_.Nat) '
                   f'(source_assumptions : {exports["assumptions"]} c b n) : '
-                  f'{exports["claims"][index]} c b n := by', '  classical']
+                  f'{exports["claims"][index]} c b n := by', '  classical',
+                  '  have set_not_universal := _root_.TLAUniversal.not_universal']
         # Only already checked theorems enter the context. A BY reference is
         # never converted to an assumed proposition merely because SANY resolved it.
         for previous in range(index):
