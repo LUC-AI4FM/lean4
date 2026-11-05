@@ -246,3 +246,19 @@ Record-domain and diagonal checkpoint (2026-11-05):
 - Outstanding work includes full record extensionality, larger temporal proofs,
   exact fact visibility and remaining source/frontend compatibility. Keep the
   goal active; focused passing examples do not establish completion.
+
+Finite record equality checkpoint (2026-11-05):
+- 898dde5 proves record_as_pairs for records with unique field values per key,
+  enumerate_eq_iff, and record_eq_iff. The backend compares concrete records
+  through their finite pair sets, preserving field-order independence.
+- Focused run 42087824037 passed unchanged recordeq_three_smt_test,
+  recordeq_difffields_smt_test, the 30-field record test and false-leaf rejection.
+- 49ba97d adds reordered-field equality and fieldwise equivalence tests, plus
+  a false swapped-value equality. Focused run 42088157809 passed the positives
+  and rejected the negative. These fixtures are also included in main CI.
+- Local frontend suite: 23 tests passed. Main CI and the final shard of full
+  audit 42083872494 remain pending. Seven completed shards cover 331 inputs:
+  119/173 encountered reference positives checked, 39 timed out, 13 Lean-
+  rejected, two translation-rejected. All 30 encountered negatives rejected
+  or timed out. Do not substitute these partial counts for the full audit.
+- Full port remains incomplete; continue remaining backend and frontend scope.
