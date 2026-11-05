@@ -375,6 +375,14 @@ theorem realPower_integer_nat (base : Int) (exponent : Nat) :
     realPower (integer base) (integer exponent) = integer (base ^ exponent) := by
   simp [integer, realPower_real, Real.rpow_natCast]
 
+theorem realPower_integer_nonnegative (base exponent : Int) (h : 0 ≤ exponent) :
+    realPower (integer base) (integer exponent) = integer (base ^ exponent.toNat) := by
+  have cast : (exponent.toNat : Int) = exponent := Int.toNat_of_nonneg h
+  calc
+    realPower (integer base) (integer exponent) =
+        realPower (integer base) (integer (exponent.toNat : Int)) := by rw [cast]
+    _ = integer (base ^ exponent.toNat) := realPower_integer_nat base exponent.toNat
+
 theorem realPower_integer_mem (base exponent : Int) (h : 0 ≤ exponent) :
     realPower (integer base) (integer exponent) ∈ integers := by
   have cast : (exponent.toNat : Int) = exponent := Int.toNat_of_nonneg h

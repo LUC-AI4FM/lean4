@@ -349,7 +349,7 @@ def compile_proofs(source, **kwargs):
     normalized = ('truth_boolean truth_true not_truth_false false_ne_true integer_eq_iff '
                   'mem_naturals mem_integers integer_mem_naturals integer_mem '
                   'realBinary_add_integer realBinary_mul_integer realNegate_integer '
-                  'realSubtract_integer realLessEqual_integer realLess_integer '
+                  'realSubtract_integer realLessEqual_integer realLess_integer realPower_integer_nonnegative '
                   'intBinary_integer numberInterval_integer integer_mem_interval '
                   'mem_enumerate mem_image caseValue apply_function domain_function function_isFunc_iff '
                   'domain_update domain_updatePath_cons update_same update_other updatePath '
