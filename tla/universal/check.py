@@ -12,6 +12,11 @@ os.chdir(root)
 sys.path.insert(0, str(root.parent))
 from universal_compile import compile_file
 
+proof_shards = int(os.environ.get('TLA_PROOF_SHARDS', '1'))
+proof_shard = int(os.environ.get('TLA_PROOF_SHARD', '0'))
+if not 0 <= proof_shard < proof_shards:
+    raise ValueError('invalid proof shard configuration')
+
 lake = os.environ.get('LAKE', 'lake')
 subprocess.run([lake, 'build'], check=True)
 fixtures = ['Counter.tla'] + [
@@ -106,7 +111,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
     proof_sources = [root.parent / 'tests/proofs' / (name + '.tla') for name in
                      ('Fairness', 'FunctionRange', 'RecordEquality', 'imported/ImportedLaw', 'TemporalInduction', 'StateGeneralization', 'NaturalInduction', 'CaseReferences', 'Leaves', 'ProofShapes', 'DefinitionScope', 'Arithmetic', 'LocalDefinition', 'LevelBinders', 'Foundation', 'BoundedWitness', 'TupleBinders', 'SymbolicArithmetic', 'InstanceBinding', 'ModuleUse')]
     proof_sources += sorted((root.parent / 'tests/proofs/upstream').glob('*.tla'))
-    for proof_source in proof_sources:
+    for proof_source in proof_sources[proof_shard::proof_shards]:
         proof_fixture = proof_source.stem
         proved = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
                                  str(proof_source), '--timeout', '45', '-I', str(root.parent / 'tests/corpus/tlaps'),
@@ -136,7 +141,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
             print('PASS source proof reconstruction: ' + proof_fixture, flush=True)
     negative_sources = [root.parent / 'tests/proofs' / (name + '.tla') for name in ('FalseFairness', 'FalseFunctionRange', 'FalseRecordEquality', 'imported/FalseImportedLaw', 'FalseTemporalInduction', 'FalseStateGeneralization', 'FalseInduction', 'FalseHave', 'FalseCaseReferences', 'FalseChoice', 'FalseLeaf', 'FalseStep', 'FalseArithmetic', 'FalseSymbolicArithmetic', 'FalseWitness', 'FalseModuleUse', 'Omitted')]
     negative_sources += sorted((root.parent / 'tests/proofs/negative').glob('*.tla'))
-    for negative_source in negative_sources:
+    for negative_source in negative_sources[proof_shard::proof_shards]:
         proof_fixture = negative_source.stem
         proof_output.write_text('preserve existing output')
         rejected = subprocess.run([sys.executable, str(root.parent / 'prove.py'),

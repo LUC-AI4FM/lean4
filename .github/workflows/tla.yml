@@ -24,6 +24,13 @@ jobs:
           python3 tools.py
           python3 check.py
   universal:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    env:
+      TLA_PROOF_SHARDS: 4
+      TLA_PROOF_SHARD: ${{ matrix.shard }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
