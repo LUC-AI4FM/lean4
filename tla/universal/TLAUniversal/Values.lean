@@ -57,6 +57,12 @@ theorem integer_injective : Function.Injective integer := by
   have eq := Numeric.encode_injective h
   exact_mod_cast eq
 
+theorem integer_eq_iff (a b : Int) : integer a = integer b ↔ a = b :=
+  integer_injective.eq_iff
+
+theorem mem_integers (value : Value) : value ∈ integers ↔ ∃ n : Int, integer n = value :=
+  ZFSet.mem_range
+
 def toInt (v : Value) : Int := Classical.epsilon (fun n => integer n = v)
 
 theorem integer_mem (n : Int) : integer n ∈ integers :=
@@ -195,6 +201,17 @@ def intUnary (op : Int → Int) (x : Value) : Value :=
 def intBinary (op : Int → Int → Int) (x y : Value) : Value :=
   if x ∈ integers ∧ y ∈ integers then integer (op (toInt x) (toInt y)) else undefined
 
+theorem intBinary_integer (op : Int → Int → Int) (a b : Int) :
+    intBinary op (integer a) (integer b) = integer (op a b) := by
+  simp [intBinary, integer_mem, toInt_integer]
+
+theorem remainder_nonnegative (m n : Int) (h : 0 < n) : 0 ≤ m % n :=
+  Int.emod_nonneg m (ne_of_gt h)
+
+theorem remainder_upper (m n : Int) (h : 0 < n) : m % n ≤ n - 1 := by
+  have := Int.emod_lt_of_pos m h
+  omega
+
 def intCompare (op : Int → Int → Prop) (x y : Value) : Value :=
   boolean (x ∈ integers ∧ y ∈ integers ∧ op (toInt x) (toInt y))
 
@@ -285,6 +302,11 @@ theorem realLessEqual_integer (a b : Int) :
   simp only [realLessEqual, truth_boolean, integer_mem_real, and_self, if_true, toReal_integer]
   norm_cast
 
+theorem realLess_integer (a b : Int) :
+    truth (realLess (integer a) (integer b)) ↔ a < b := by
+  simp only [realLess, truth_boolean, realLessEqual_integer, integer_eq_iff]
+  omega
+
 theorem numberInterval_integer (lo hi : Int) :
     numberInterval (integer lo) (integer hi) = interval (integer lo) (integer hi) := by
   apply ZFSet.ext
@@ -312,6 +334,10 @@ theorem realBinary_mul_integer (a b : Int) :
 
 theorem realSubtract_real (a b : Real) : realSubtract (real a) (real b) = real (a - b) := by
   simp [realSubtract, real_mem, real_ne_infinity, real_ne_minusInfinity, realBinary_real]
+
+theorem realSubtract_integer (a b : Int) :
+    realSubtract (integer a) (integer b) = integer (a - b) := by
+  simp [integer, realSubtract_real, Int.cast_sub]
 
 theorem realNegate_integer (a : Int) : realNegate (integer a) = integer (-a) := by
   simp [realNegate, integer, realSubtract_real]

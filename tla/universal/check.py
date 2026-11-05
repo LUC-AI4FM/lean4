@@ -104,7 +104,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
     # The proof CLI writes an artifact only after Lean accepts its proof terms.
     proof_output = Path(directory) / 'CheckedProofs.lean'
     proof_sources = [root.parent / 'tests/proofs' / (name + '.tla') for name in
-                     ('Leaves', 'ProofShapes', 'DefinitionScope', 'Arithmetic', 'LocalDefinition', 'LevelBinders', 'Foundation', 'BoundedWitness', 'TupleBinders')]
+                     ('Leaves', 'ProofShapes', 'DefinitionScope', 'Arithmetic', 'LocalDefinition', 'LevelBinders', 'Foundation', 'BoundedWitness', 'TupleBinders', 'SymbolicArithmetic')]
     proof_sources += sorted((root.parent / 'tests/proofs/upstream').glob('*.tla'))
     for proof_source in proof_sources:
         proof_fixture = proof_source.stem
@@ -133,7 +133,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
                 failures.append('proof certificate consumer: ' + proof_fixture)
                 print(imported.stdout + imported.stderr, flush=True)
             print('PASS source proof reconstruction: ' + proof_fixture, flush=True)
-    for proof_fixture in ('FalseLeaf', 'FalseStep', 'FalseArithmetic', 'FalseWitness', 'Omitted'):
+    for proof_fixture in ('FalseLeaf', 'FalseStep', 'FalseArithmetic', 'FalseSymbolicArithmetic', 'FalseWitness', 'Omitted'):
         proof_output.write_text('preserve existing output')
         rejected = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
                                    str(root.parent / 'tests/proofs' / (proof_fixture + '.tla')),

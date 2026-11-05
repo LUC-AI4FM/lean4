@@ -52,7 +52,7 @@ class Renderer:
             if symbol.uid in self.compiler.emitted:
                 unfold.append(self.compiler.emitted[symbol.uid][0])
         return [indent + 'simp_all only [' + ', '.join(dict.fromkeys(unfold)) + ']',
-                indent + 'all_goals first | omega | (solve | norm_num) | aesop']
+                indent + 'all_goals first | omega | (solve | norm_num) | aesop (add safe (by omega))']
 
     def open_statement(self, node, env, indent):
         env = dict(env)
@@ -271,6 +271,19 @@ def compile_proofs(source, **kwargs):
         return code
     code = code.replace('public import TLAUniversal', 'public import TLAUniversal\nimport Aesop\nimport Mathlib.Tactic.NormNum', 1)
     lines = [f'namespace {exports["namespace"]}', '@[expose] public noncomputable section']
+    # Re-run semantic normalization inside proof search after quantified
+    # domain witnesses are introduced, not only before the search begins.
+    normalized = ('truth_boolean truth_true not_truth_false integer_eq_iff '
+                  'mem_naturals mem_integers integer_mem_naturals integer_mem '
+                  'realBinary_add_integer realBinary_mul_integer realNegate_integer '
+                  'realSubtract_integer realLessEqual_integer realLess_integer '
+                  'intBinary_integer numberInterval_integer integer_mem_interval '
+                  'mem_enumerate').split()
+    lines.append('attribute [local simp] ' + ' '.join(
+        '_root_.TLAUniversal.' + name for name in normalized)
+        + ' _root_.ZFSet.zftrue_ne_zffalse')
+    lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.remainder_nonnegative '
+                 '_root_.TLAUniversal.remainder_upper')
     names = exports['proof_names']
     for index, theorem in enumerate(theorems):
         proof = proof_node(theorem)
