@@ -392,6 +392,7 @@ def compile_proofs(source, **kwargs):
     lines.append('attribute [local aesop unsafe 50% apply] _root_.TLAUniversal.function_ext '
                  '_root_.TLAUniversal.apply_record '
                  '_root_.TLAUniversal.record_isFunc_of_domain '
+                 '_root_.TLAUniversal.function_range_of_values '
                  '_root_.TLAUniversal.record_eta')
     names = exports['proof_names']
     for index, theorem in enumerate(theorems):

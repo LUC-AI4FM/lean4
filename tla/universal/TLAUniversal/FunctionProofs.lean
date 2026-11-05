@@ -63,6 +63,11 @@ theorem function_eta {D E f : Value} (hf : ZFSet.IsFunc D E f) :
     obtain ⟨x, hx, rfl⟩ := (mem_image _ _ _).mp hp
     exact pair_apply_isFunc hf hx
 
+theorem function_range_of_values {D E F f : Value} (hf : ZFSet.IsFunc D E f)
+    (values : ∀ x ∈ D, apply f x ∈ F) : ZFSet.IsFunc D F f := by
+  rw [function_eta hf]
+  exact function_isFunc D F (fun x => apply f x) values
+
 theorem function_ext {D E F f g : Value} (hf : ZFSet.IsFunc D E f)
     (hg : ZFSet.IsFunc D F g) (eq : ∀ x ∈ D, apply f x = apply g x) : f = g := by
   rw [function_eta hf, function_eta hg]
