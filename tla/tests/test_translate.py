@@ -14,6 +14,11 @@ class TranslationTests(unittest.TestCase):
         self.assertIn('def «Spec»', result)
         self.assertNotIn('sorry', result)
 
+    def test_standard_library_source_definitions(self):
+        result = translate(Path('tests/fixtures/StandardLibrary.tla').read_text())
+        self.assertIn('def «Selected»', result)
+        self.assertIn('def «Joined»', result)
+
     def test_typed_backend_is_explicit(self):
         result = translate(Path('tests/Counter.tla').read_text(), backend='typed')
         self.assertIn('import TLA\n', result)

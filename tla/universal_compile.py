@@ -211,6 +211,11 @@ class UniversalCompiler:
         standard = origin in ('Naturals', 'Integers', 'Reals', 'Sequences', 'FiniteSets')
         if standard:
             name = name.rsplit('!', 1)[-1]
+        if standard:
+            standard = name in {
+                'Nat', 'Int', 'Real', 'Infinity', '+', '-', '*', '/', '\\div', '%', '^', '-.',
+                '<', '>', '\\leq', '\\geq', '..', 'Seq', 'Len', 'Append', '\\o',
+                'SubSeq', 'Head', 'Tail', 'IsFiniteSet', 'Cardinality'}
         if symbol.node.tag != 'BuiltInKind' and not standard:
             if symbol.node.tag in ('AssumeDef', 'TheoremDefNode'):
                 return self.expr(symbol.body, env, b, n)
