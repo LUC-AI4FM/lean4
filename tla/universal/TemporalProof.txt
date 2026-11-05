@@ -1,0 +1,21 @@
+
+example (c : Temporal.Constants) (b : Behavior) : truth (Temporal.Hidden c b 0) := by
+  simp only [Temporal.Hidden, truth_boolean]
+  apply TLA.existsFlexible_intro (h := fun n => b n "x")
+  simp [truth_boolean]
+
+example (c : Temporal.Constants) (b : Behavior) : truth (Temporal.Nested c b 0) := by
+  simp only [Temporal.Nested, truth_boolean]
+  apply TLA.existsFlexible_intro (h := fun n => b n "x")
+  simp only [truth_boolean]
+  apply TLA.existsFlexible_intro (h := fun n => b n "x")
+  simp [truth_boolean]
+
+example (c : Temporal.Constants) (b : Behavior) (n : Nat) :
+    truth (Temporal.Universal c b n) := by
+  simp [Temporal.Universal, truth_boolean, TLA.forallFlexible, TLA.existsFlexible]
+
+example (c : Temporal.Constants) (b : Behavior) (n : Nat) :
+    truth (Temporal.Guarantee c b n) := by
+  simpa [Temporal.Guarantee, truth_boolean, truth] using
+    (TLA.guarantees_true (fun _ _ => True) b n)

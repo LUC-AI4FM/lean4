@@ -27,6 +27,8 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
             code += "\nexample (c : ToolDefinitions.Constants) (b : Behavior) (n : Nat) : ToolDefinitions.Printed c b n = integer 42 := rfl\nexample (c : ToolDefinitions.Constants) (b : Behavior) (n : Nat) : ToolDefinitions.Evaluated c b n = integer 42 := rfl\n"
         if source.name == 'Counter.tla':
             code += (root / 'CounterProof.txt').read_text()
+        if source.name == 'Temporal.tla':
+            code += (root / 'TemporalProof.txt').read_text()
         if source.name == 'ValueLaws.tla':
             code += (root / 'ValueProof.txt').read_text()
         if source.name == 'ProofInstance.tla':

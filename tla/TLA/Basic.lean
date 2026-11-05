@@ -87,6 +87,52 @@ theorem stutteringEquivalent_head (b c : Behavior σ) (h : stutteringEquivalent 
   rw [hj] at right
   exact left.symm.trans right
 
+theorem stutteringEquivalent_symm (b c : Behavior σ)
+    (h : stutteringEquivalent b c) : stutteringEquivalent c b := by
+  obtain ⟨common, hb, hc⟩ := h
+  exact ⟨common, hc, hb⟩
+
+/-- State invariants are unchanged by finite repetition of states. -/
+theorem always_state_expands (p : Predicate σ) (b c : Behavior σ)
+    (h : expands b c) : always (state p) b 0 ↔ always (state p) c 0 := by
+  obtain ⟨index, _, _, onto, eq⟩ := h
+  constructor
+  · intro hb m _
+    change p (c m)
+    rw [eq m]
+    exact hb (index m) (Nat.zero_le _)
+  · intro hc n _
+    obtain ⟨m, hm⟩ := onto n
+    have value := hc m (Nat.zero_le _)
+    change p (c m) at value
+    rwa [eq m, hm] at value
+
+/-- Eventual state properties are unchanged by finite repetition of states. -/
+theorem eventually_state_expands (p : Predicate σ) (b c : Behavior σ)
+    (h : expands b c) : eventually (state p) b 0 ↔ eventually (state p) c 0 := by
+  obtain ⟨index, _, _, onto, eq⟩ := h
+  constructor
+  · rintro ⟨n, _, hn⟩
+    obtain ⟨m, hm⟩ := onto n
+    refine ⟨m, Nat.zero_le _, ?_⟩
+    change p (c m)
+    rw [eq m, hm]
+    exact hn
+  · rintro ⟨m, _, hm⟩
+    refine ⟨index m, Nat.zero_le _, ?_⟩
+    change p (c m) at hm
+    rwa [eq m] at hm
+
+theorem always_state_stuttering (p : Predicate σ) (b c : Behavior σ)
+    (h : stutteringEquivalent b c) : always (state p) b 0 ↔ always (state p) c 0 := by
+  obtain ⟨common, hb, hc⟩ := h
+  exact (always_state_expands p b common hb).trans (always_state_expands p c common hc).symm
+
+theorem eventually_state_stuttering (p : Predicate σ) (b c : Behavior σ)
+    (h : stutteringEquivalent b c) : eventually (state p) b 0 ↔ eventually (state p) c 0 := by
+  obtain ⟨common, hb, hc⟩ := h
+  exact (eventually_state_expands p b common hb).trans (eventually_state_expands p c common hc).symm
+
 /-- Flexible quantification closes existential hiding under finite stuttering. -/
 def existsFlexible (p : (Nat → α) → Formula σ) : Formula σ := fun b n =>
   ∃ c, stutteringEquivalent (fun k => b (n + k)) c ∧ ∃ history, p history c 0
