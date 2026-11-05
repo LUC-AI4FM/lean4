@@ -1,5 +1,31 @@
 # TLA+ port acceptance record
 
+## Verified delivery — 2026-11-05
+
+Both interfaces are implemented: unchanged `.tla` source imports and Lean-native
+specifications over the same semantics. The specification-port acceptance gates
+below are covered by the following published checks:
+
+- [Primary verification, 082c87a](https://github.com/LUC-AI4FM/lean4/actions/runs/41981536798):
+  43 Python/reference tests, all 61 standard-module exports, native and imported
+  proofs, separate-module consumers, and rejection of false proof certificates.
+- [Full upstream corpus, 038dd0d](https://github.com/LUC-AI4FM/lean4/actions/runs/41981249939):
+  433 distinct unchanged modules from the pinned tlaplus/Examples revision;
+  all 433 passed source translation and Lean elaboration, with no skipped inputs.
+  The translator is unchanged between this revision and 082c87a.
+- The source/native counter equivalence and invariant proofs pass, as do
+  higher-order recursion base cases and the general well-founded correctness
+  theorem. No axioms or placeholder proofs were added to the implementation.
+
+The source frontend remains the pinned official SANY implementation. The
+translator is part of the trusted translation path. Source proof scripts supply
+claims and assumptions; generated certificates require Lean proofs rather than
+trusting TLAPS tactics. Tool-specific runtime side effects are not executed.
+These boundaries are described in the README; corpus acceptance does not assert
+that every imported specification or source theorem is correct.
+
+## Implementation record
+
 Objective: existing `.tla` modules and Lean-native specifications share faithful
 semantics, with checked proofs, reference compatibility tests and published code.
 The integer/action milestone is not completion.
@@ -17,7 +43,7 @@ Acceptance gates (all required):
 - Lean-native APIs for the same semantics and end-to-end proof examples.
 - Reference-tool differential tests, negative/soundness tests, clean CI and push.
 
-Current frontier: official SANY semantic XML frontend versus expanding handwritten
+Initial frontier: official SANY semantic XML frontend versus expanding handwritten
 syntax. SANY has native grammar/level/module resolution, so test that interface
 first. Exporter limitations must produce explicit diagnostics, never placeholders.
 
@@ -25,7 +51,7 @@ Verification: bounded library/proof checks on the coordinator; sustained builds
 and larger corpus work require an authorized LUC host or public GitHub CI.
 No new paid resources. No delegated agents or persistent remote workloads.
 
-Next: pin reference tools; import and validate the SANY graph; replace textual
+Initial next step: pin reference tools; import and validate the SANY graph; replace textual
 operator handling with resolved bindings; expand semantic coverage with tests.
 
 Checkpoint after baseline:

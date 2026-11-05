@@ -3,8 +3,8 @@
 Import existing `.tla` specifications or write specifications directly in Lean.
 The source importer uses SANY for parsing, binding and level checking, then emits
 Lean definitions over a common set-theoretic value universe. Lean checks proofs
-about those definitions. The full port is still in progress; the
-[acceptance record](PORT_STATUS.md) tracks verification and remaining work.
+about those definitions. The [verification record](PORT_STATUS.md) tracks the
+implementation, reference corpus and checked proofs.
 
 ## Import a specification
 
@@ -66,7 +66,11 @@ check the proof. Generated definitions are public and exposed, so a separate
 proof file can also begin with `module`, `import Counter`, and
 `open TLAUniversal`, then contain that proof. Both backends test this separate
 import path. `tests/Native.lean`, `tests/Data.lean` and `tests/Temporal.lean`
-exercise the typed native APIs. Both CI jobs reject deliberately false proofs.
+exercise the typed native APIs. `universal/NativeCounterProof.txt` proves that
+the imported counter and a Lean-native specification describe exactly the same
+behaviors, then reuses the source safety proof. Append it after
+`CounterProof.txt`; CI checks both the combined file and a separate consumer
+import. Both CI jobs reject deliberately false proofs.
 
 Source `ASSUME` and `THEOREM` statements become explicit assumptions and claims.
 A generated `Certificate` requires Lean proofs of the claims. Structured
@@ -99,13 +103,18 @@ behavior. Tool-specific modules use their published mathematical definitions;
 importing `Print`, `TLCSet`, or random operators does not execute TLC runtime
 side effects.
 
-## Remaining work
+## Verification and proof boundary
 
 All 61 exports of the ten pinned standard modules have reachable test fixtures.
-The full upstream example corpus is checked by the separate compatibility
-workflow; remaining failures are recorded rather than skipped. Source
-proof-script translation remains incomplete. Level-specific `NEW` declarations and real arithmetic have
-checked fixtures. Operator-valued recursive parameters use class-level fixing graphs, including recursive calls that change an operator or capture arguments in a local operator. Unsupported constructs fail with a
+The separate compatibility workflow checks all 433 modules in the pinned
+upstream example corpus, retaining a result for every input. It checks source
+acceptance and Lean elaboration; it does not prove every example specification
+correct. Source proof scripts are parsed, but their tactics are not translated
+into Lean proofs: the generated certificates must be proved in Lean. Level-specific `NEW` declarations and real arithmetic have
+checked fixtures. Operator-valued recursive parameters use class-level fixing graphs, including
+recursive calls that change an operator or capture arguments in a local
+operator. `higherRecursiveOperator_wellFounded` proves agreement with defining
+equations on well-founded dependency domains. Unsupported constructs fail with a
 diagnostic. There are no added axioms or placeholder proofs.
 
 The concrete value representation chooses values for operations outside their
