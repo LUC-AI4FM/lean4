@@ -361,7 +361,9 @@ def compile_proofs(source, **kwargs):
         + ' _root_.ZFSet.zftrue_ne_zffalse')
     lines.append('attribute [local simp ↓] _root_.TLAUniversal.apply_updatePath_other '
                  '_root_.TLAUniversal.apply_updatePath_single '
-                 '_root_.TLAUniversal.update_other _root_.TLAUniversal.update_same')
+                 '_root_.TLAUniversal.update_other _root_.TLAUniversal.update_same '
+                 '_root_.TLAUniversal.domain_updatePath_cons '
+                 '_root_.TLAUniversal.domain_update _root_.TLAUniversal.domain_record')
     lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.remainder_nonnegative '
                  '_root_.TLAUniversal.remainder_upper _root_.Int.emod_lt_of_pos '
                  '_root_.TLAUniversal.realPower_integer_mem '
