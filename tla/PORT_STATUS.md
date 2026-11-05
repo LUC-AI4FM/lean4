@@ -103,3 +103,10 @@ proof certificates check, mutual recursion imports, and the common rational-cut
 numeric encoding has checked injectivity and decoding proofs. Integration of
 that encoding into real/integer arithmetic is in the next CI gate. The source
 CLI now defaults to universal values; the typed backend is an explicit option.
+
+The builtin operator audit added `-+->` using finite-prefix extendability and the
+one-state-longer condition from Specifying Systems §16.2.4. Native guarantees
+proofs pass locally. Source labels/subexpressions, LAMBDA, forwarded operator
+arguments and STRING universes are now covered by fixtures. The pinned SANY
+frontend rejects operator-valued recursive parameters; they are not silently
+accepted by the importer.

@@ -98,4 +98,20 @@ theorem existsFlexible_intro (p : (Nat → α) → Formula σ) (b : Behavior σ)
     (h : Nat → α) (hp : p h b 0) : existsFlexible p b 0 := by
   refine ⟨b, ?_, h, hp⟩
   simpa using stutteringEquivalent_refl b
+/-- A finite prefix satisfies a property when it has a satisfying infinite extension. -/
+def prefixSat (p : Formula σ) (b : Behavior σ) (n length : Nat) : Prop :=
+  ∃ c : Behavior σ, (∀ i < length, c i = b (n + i)) ∧ p c 0
+
+/-- TLA+'s guarantees operator, including the one-state-longer prefix condition. -/
+def guarantees (p q : Formula σ) : Formula σ := fun b n =>
+  (p b n → q b n) ∧ ∀ length, prefixSat p b n length → prefixSat q b n (length + 1)
+
+theorem guarantees_implies (p q : Formula σ) (b : Behavior σ) (n : Nat)
+    (h : guarantees p q b n) : p b n → q b n := h.1
+
+theorem guarantees_true (p : Formula σ) (b : Behavior σ) (n : Nat) :
+    guarantees p (fun _ _ => True) b n := by
+  refine ⟨fun _ => trivial, ?_⟩
+  intro length _
+  exact ⟨fun i => b (n + i), by intros; rfl, trivial⟩
 end TLA

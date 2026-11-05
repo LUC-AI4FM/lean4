@@ -255,6 +255,11 @@ class UniversalCompiler:
                 fn = 'existsFlexible' if name == '$TemporalExists' else 'forallFlexible'
                 return f'(boolean (TLA.{fn} (fun ({history} : Nat → Value) ({sampled} : Behavior) {time} => truth {inner}) ({trace}) ({index})))'
             return quantify(refs, env, b, n)
+        if name == '-+->':
+            trace, time = self.fresh(), self.fresh()
+            left = self.expr(args[0], env, trace, time)
+            right = self.expr(args[1], env, trace, time)
+            return f'(boolean (TLA.guarantees (fun ({trace} : Behavior) ({time} : Nat) => truth {left}) (fun ({trace} : Behavior) ({time} : Nat) => truth {right}) ({b}) ({n})))'
         if name == '~>':
             start, end = self.fresh(), self.fresh()
             left = self.expr(args[0], env, b, start)

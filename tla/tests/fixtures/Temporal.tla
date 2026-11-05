@@ -7,4 +7,5 @@ Progress == (x = 0) ~> (x = 1)
 Hidden == \EE y : [](y = x)
 Nested == \EE y : \EE z : [](y = x /\ z = y)
 Universal == \AA y : [](y = y)
+Guarantee == ([](x = x)) -+-> TRUE
 ====
