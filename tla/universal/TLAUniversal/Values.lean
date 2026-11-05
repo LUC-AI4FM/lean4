@@ -211,7 +211,7 @@ theorem apply_tuple (values : List Value) (index : Nat) (h : index < values.leng
   unfold tuple
   rw [apply_function]
   · simp [toInt_integer, h]
-  · apply integer_mem_interval.mpr
+  · apply (integer_mem_interval _ _ _).mpr
     omega
 
 def length (sequence : Value) : Value :=
