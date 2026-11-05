@@ -2,6 +2,7 @@
 """Validated access to the official SANY semantic graph, including resolved UIDs."""
 from dataclasses import dataclass
 import base64
+import copy
 import os
 import re
 import tempfile
@@ -115,6 +116,24 @@ class Graph:
 
     def claims(self, kind):
         return [self.resolve(ref) for ref in self.root.node.findall(kind + 'Ref')]
+
+    def proof_claims(self):
+        """Module USE facts also require proofs, even without a THEOREM."""
+        claims = self.claims('TheoremNode')
+        for index, directive in enumerate(self.root.node.findall('UseOrHideNode')):
+            if directive.find('hide') is not None:
+                continue
+            for fact_index, fact in enumerate(directive.findall('facts/*')):
+                theorem = ET.Element('TheoremNode')
+                for tag in ('location', 'level'):
+                    if directive.find(tag) is not None:
+                        theorem.append(copy.deepcopy(directive.find(tag)))
+                ET.SubElement(theorem, 'body').append(copy.deepcopy(fact))
+                proof = ET.SubElement(theorem, 'by')
+                if directive.find('defs') is not None:
+                    proof.append(copy.deepcopy(directive.find('defs')))
+                claims.append(Symbol(f'module_use_{index}_{fact_index}', theorem))
+        return claims
 
     def constants(self):
         return [self.resolve(ref) for ref in self.root.node.findall('OpDeclNodeRef')

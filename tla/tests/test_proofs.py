@@ -41,3 +41,8 @@ class ProofTests(unittest.TestCase):
         self.assertIn('have witness_bound_', code)
         self.assertIn('refine Exists.intro (_root_.TLAUniversal.integer 1)', code)
         self.assertIn('refine Exists.intro (_root_.TLAUniversal.boolean', code)
+
+    def test_module_use_fact_is_a_checked_obligation(self):
+        code = compile_proofs(Path('tests/proofs/ModuleUse.tla'))
+        self.assertIn('theorem TLACheckedProof0', code)
+        self.assertIn('def TLACheckedCertificate', code)

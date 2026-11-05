@@ -265,7 +265,7 @@ def compile_proofs(source, **kwargs):
     compiler = UniversalCompiler(graph)
     code = compiler.compile()
     exports = compiler.proof_exports
-    theorems = graph.claims('TheoremNode')
+    theorems = graph.proof_claims()
     if not theorems:
         return code
     code = code.replace('public import TLAUniversal', 'public import TLAUniversal\nimport Aesop\nimport Mathlib.Tactic.NormNum', 1)

@@ -799,7 +799,7 @@ class UniversalCompiler:
             refs = definition.node.findall('params/leibnizparam/FormalParamNodeRef')
             self.emitted[definition.uid] = (f'_root_.{namespace}.{ident(declaration_names[definition.uid])}', [self.g.resolve(r).arity for r in refs])
         assumptions = [qualify(self.expr(s.body)) for s in self.g.claims('AssumeNode')]
-        obligations = [qualify(self.expr(s.body)) for s in self.g.claims('TheoremNode')]
+        obligations = [qualify(self.expr(s.body)) for s in self.g.proof_claims()]
         if assumptions or obligations:
             condition = ' ∧ '.join(f'_root_.TLAUniversal.truth {a}' for a in assumptions) or '_root_.True'
             lines += [f'def {assumptions_name} (c : {constants_type}) (b : _root_.TLAUniversal.Behavior) (n : _root_.Nat) : Prop := {condition}']

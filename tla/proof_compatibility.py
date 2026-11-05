@@ -41,7 +41,7 @@ def main():
                 item['reference_positive'] = manifest[item['source']]['positive']
             try:
                 graph = parse_file(source, includes=includes)
-                item['claims'] = len(graph.claims('TheoremNode'))
+                item['claims'] = len(graph.proof_claims())
                 if not item['claims']:
                     item['status'] = 'no_claims'
                 else:
