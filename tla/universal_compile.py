@@ -563,8 +563,8 @@ class UniversalCompiler:
         namespace = self.g.root.name
         if namespace in {'TLA', 'TLAUniversal', 'Nat', 'Int', 'Real', 'String', 'List', 'Classical', 'ZFSet'}:
             namespace = 'Source_' + namespace
-        lines = ['module', 'import TLAUniversal', '', 'open TLAUniversal Classical',
-                 'set_option autoImplicit false', f'namespace {ident(namespace)}', 'noncomputable section', f'structure {constants_type} where']
+        lines = ['module', 'public import TLAUniversal', '', 'open TLAUniversal Classical',
+                 'set_option autoImplicit false', f'namespace {ident(namespace)}', '@[expose] public noncomputable section', f'structure {constants_type} where']
         for constant in self.g.constants():
             ty = ' → '.join(['_root_.TLAUniversal.Value'] * (constant.arity + 1))
             lines.append(f'  {ident(constant.name)} : {ty}')

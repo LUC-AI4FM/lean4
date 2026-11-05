@@ -25,6 +25,14 @@ with tempfile.TemporaryDirectory(prefix='check-', dir='.') as directory:
     generated = Path(directory) / 'Counter.lean'
     generated.write_text(source + '\n' + proof)
     run(lake, 'env', 'lean', str(generated))
+    # Compile and import in another file: same-file proofs cannot detect
+    # accidentally private generated declarations under Lean's module system.
+    run(lake, 'env', 'lean', '--root=' + directory, '-o', str(generated.with_suffix('.olean')), str(generated))
+    consumer = Path(directory) / 'Consumer.lean'
+    consumer.write_text('module\nimport Counter\n' + proof)
+    import_env = dict(os.environ)
+    import_env['LEAN_PATH'] = str(Path(directory).resolve()) + os.pathsep + import_env.get('LEAN_PATH', '')
+    subprocess.run([lake, 'env', 'lean', str(consumer)], env=import_env, check=True)
     # A false invariant must fail in Lean, even when parsing succeeds.
     generated.write_text(source + '\nexample : Counter.Init ⟨⟩ (fun _ => ⟨1⟩) 0 := by rfl\n')
     negative = subprocess.run([lake, 'env', 'lean', str(generated)], capture_output=True, text=True)

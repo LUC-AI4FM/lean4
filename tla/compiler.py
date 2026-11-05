@@ -473,8 +473,8 @@ class Compiler:
         state_type = f'(State {parameters})' if free else 'State'
         constants_type = f'(Constants {parameters})' if free else 'Constants'
         lines = ['/- Generated from the SANY semantic graph; inspect before proving source claims. -/',
-                 'module', 'import TLA', '', f'namespace {ident(self.g.root.name)}',
-                 'noncomputable section', 'open Classical']
+                 'module', 'public import TLA', '', f'namespace {ident(self.g.root.name)}',
+                 '@[expose] public noncomputable section', 'open Classical']
         for labels in records.values():
             name = ident('TLARecord_' + '_'.join(labels))
             params = ' '.join(f'(A{i} : Type)' for i in range(len(labels)))

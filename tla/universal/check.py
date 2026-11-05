@@ -53,6 +53,16 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         if result.returncode:
             failures.append(fixture)
             print(result.stdout + result.stderr, flush=True)
+        if source.name == 'Counter.tla' and result.returncode == 0:
+            subprocess.run([lake, 'env', 'lean', '--root=' + directory, '-o', str(target.with_suffix('.olean')), str(target)], check=True, capture_output=True, text=True, timeout=120)
+            consumer = Path(directory) / 'Consumer.lean'
+            consumer.write_text('module\nimport Counter\nopen TLAUniversal\n' + (root / 'CounterProof.txt').read_text())
+            import_env = dict(os.environ)
+            import_env['LEAN_PATH'] = str(Path(directory).resolve()) + os.pathsep + import_env.get('LEAN_PATH', '')
+            imported = subprocess.run([lake, 'env', 'lean', str(consumer)], env=import_env, capture_output=True, text=True, timeout=120)
+            if imported.returncode:
+                failures.append('Counter consumer import')
+                print(imported.stdout + imported.stderr, flush=True)
         print(('FAIL ' if result.returncode else 'PASS ') + fixture, flush=True)
     # SANY accepts proof hints without checking them. They must never become
     # trusted Lean proofs or make a source certificate trivially inhabited.
