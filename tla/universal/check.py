@@ -103,9 +103,13 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         print(('FAIL ' if result.returncode else 'PASS ') + fixture, flush=True)
     # The proof CLI writes an artifact only after Lean accepts its proof terms.
     proof_output = Path(directory) / 'CheckedProofs.lean'
-    for proof_fixture in ('Leaves', 'ProofShapes', 'DefinitionScope', 'Arithmetic', 'LocalDefinition', 'LevelBinders'):
+    proof_sources = [root.parent / 'tests/proofs' / (name + '.tla') for name in
+                     ('Leaves', 'ProofShapes', 'DefinitionScope', 'Arithmetic', 'LocalDefinition', 'LevelBinders')]
+    proof_sources += sorted((root.parent / 'tests/proofs/upstream').glob('*.tla'))
+    for proof_source in proof_sources:
+        proof_fixture = proof_source.stem
         proved = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
-                                 str(root.parent / 'tests/proofs' / (proof_fixture + '.tla')),
+                                 str(proof_source),
                                  '-o', str(proof_output)],
                                 capture_output=True, text=True, timeout=150)
         if proved.returncode:
@@ -116,7 +120,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
                             '-o', str(proof_output.with_suffix('.olean')), str(proof_output)],
                            check=True, capture_output=True, text=True, timeout=120)
             consumer = Path(directory) / 'ProofConsumer.lean'
-            namespace = 'TLAImported.' + proof_fixture
+            namespace = 'TLAImported.«' + proof_fixture + '»'
             consumer.write_text('module\nimport CheckedProofs\n'
                                 + f'example (c : {namespace}.Constants) : '
                                 + f'{namespace}.Certificate c := '

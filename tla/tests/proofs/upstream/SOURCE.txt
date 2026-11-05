@@ -1,0 +1,5 @@
+Unchanged files from tlaplus/tlapm
+Commit: d1760ab9a1a3e7e76f81172166a955167cd163f2
+Directory: test/sany/equivalence
+These are upstream syntax fixtures with valid proof statements, not evidence
+of a complete reference-proved corpus. Lean reconstructs and checks each proof.
