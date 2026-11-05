@@ -165,15 +165,15 @@ theorem record_as_pairs (fields : List (String × Value))
   apply ZFSet.ext
   intro p
   unfold record function
-  rw [mem_image, mem_enumerate]
+  simp only [mem_image, mem_enumerate]
   constructor
   · rintro ⟨key, hk, rfl⟩
-    obtain ⟨field, hf, rfl⟩ := List.mem_map.mp ((mem_enumerate _ _).mp hk)
+    obtain ⟨field, hf, rfl⟩ := List.mem_map.mp hk
     rw [selected field hf]
     exact List.mem_map.mpr ⟨field, hf, rfl⟩
   · intro hp
     obtain ⟨field, hf, rfl⟩ := List.mem_map.mp hp
-    refine ⟨string field.1, (mem_enumerate _ _).mpr (List.mem_map.mpr ⟨field, hf, rfl⟩), ?_⟩
+    refine ⟨string field.1, List.mem_map.mpr ⟨field, hf, rfl⟩, ?_⟩
     rw [selected field hf]
 
 theorem enumerate_eq_iff (left right : List Value) :
