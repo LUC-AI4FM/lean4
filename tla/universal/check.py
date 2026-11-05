@@ -103,7 +103,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         print(('FAIL ' if result.returncode else 'PASS ') + fixture, flush=True)
     # The proof CLI writes an artifact only after Lean accepts its proof terms.
     proof_output = Path(directory) / 'CheckedProofs.lean'
-    for proof_fixture in ('Leaves', 'ProofShapes'):
+    for proof_fixture in ('Leaves', 'ProofShapes', 'DefinitionScope'):
         proved = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
                                  str(root.parent / 'tests/proofs' / (proof_fixture + '.tla')),
                                  '-o', str(proof_output)],
@@ -112,6 +112,22 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
             failures.append('source proof reconstruction: ' + proof_fixture)
             print(proved.stdout + proved.stderr, flush=True)
         else:
+            subprocess.run([lake, 'env', 'lean', '--root=' + directory,
+                            '-o', str(proof_output.with_suffix('.olean')), str(proof_output)],
+                           check=True, capture_output=True, text=True, timeout=120)
+            consumer = Path(directory) / 'ProofConsumer.lean'
+            namespace = 'TLAImported.' + proof_fixture
+            consumer.write_text('module\nimport CheckedProofs\n'
+                                + f'example (c : {namespace}.Constants) : '
+                                + f'{namespace}.Certificate c := '
+                                + f'{namespace}.TLACheckedCertificate c\n')
+            import_env = dict(os.environ)
+            import_env['LEAN_PATH'] = str(Path(directory).resolve()) + os.pathsep + import_env.get('LEAN_PATH', '')
+            imported = subprocess.run([lake, 'env', 'lean', str(consumer)], env=import_env,
+                                      capture_output=True, text=True, timeout=120)
+            if imported.returncode:
+                failures.append('proof certificate consumer: ' + proof_fixture)
+                print(imported.stdout + imported.stderr, flush=True)
             print('PASS source proof reconstruction: ' + proof_fixture, flush=True)
     for proof_fixture in ('FalseLeaf', 'FalseStep', 'Omitted'):
         proof_output.write_text('preserve existing output')

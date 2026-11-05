@@ -34,3 +34,10 @@ Hierarchical reconstruction now emits explicit Lean assertions and binder steps;
 its kernel verification is pending. The reference source snapshot is pinned at
 d1760ab9a1a3e7e76f81172166a955167cd163f2 in
 /private/tmp/tlapm-proof-reference (task-owned, retained for corpus setup).
+
+Hierarchical checkpoint: 73fc076, CI 42050998308 passed, including
+TAKE/WITNESS/PICK/HAVE/CASE/SUFFICES and false intermediate-step rejection.
+Scoped USE/HIDE DEF and standalone certificate imports are under verification.
+USE facts are reconstructed as obligations. HIDE fact visibility, ONLY fact
+selection, local definitions/instances, full backend reasoning and the full
+reference corpus remain open; current success does not establish a full port.

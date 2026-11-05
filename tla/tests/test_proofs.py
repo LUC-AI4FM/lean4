@@ -31,3 +31,7 @@ class ProofTests(unittest.TestCase):
         code = compile_proofs(Path('tests/proofs/FalseStep.tla'))
         self.assertIn('have step_', code)
         self.assertIn('ZFSet.zffalse', code)
+
+    def test_scoped_definitions(self):
+        code = compile_proofs(Path('tests/proofs/DefinitionScope.tla'))
+        self.assertIn('«DefinitionScope».«A»]', code)

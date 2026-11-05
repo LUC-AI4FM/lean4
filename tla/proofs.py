@@ -10,8 +10,10 @@ class ProofError(CompileError):
     pass
 
 
-def proof_node(theorem):
+def proof_node(theorem, *, implicit=False):
     nodes = [node for node in theorem.node if node.tag in ('obvious', 'by', 'omitted', 'steps')]
+    if not nodes and implicit:
+        return ET.Element('obvious')
     if len(nodes) != 1:
         raise ProofError(f'{theorem.location}:{theorem.node.findtext("location/line/begin")}: '
                          'theorem has no explicit proof')
@@ -64,11 +66,36 @@ class Renderer:
         if proof.tag != 'steps':
             raise ProofError('unsupported proof node: ' + proof.tag)
         refs = [x for x in proof if x.tag not in ('location', 'level')]
-        return self.steps(refs, dict(env), indent)
+        # Definition visibility is local to this proof, including nested proofs.
+        saved = self.unfold
+        self.unfold = list(saved)
+        try:
+            return self.steps(refs, dict(env), indent)
+        finally:
+            self.unfold = saved
 
     def steps(self, references, env, indent):
         lines = []
         for index, reference in enumerate(references):
+            if reference.tag == 'UseOrHideNode':
+                hiding = reference.find('hide') is not None
+                for definition in reference.findall('defs/*'):
+                    symbol = self.graph.resolve(definition)
+                    if symbol.uid in self.compiler.emitted:
+                        emitted = self.compiler.emitted[symbol.uid][0]
+                        if hiding:
+                            self.unfold = [x for x in self.unfold if x != emitted]
+                        elif emitted not in self.unfold:
+                            self.unfold.append(emitted)
+                # USE facts are obligations, not assumptions. Reconstruct each
+                # before making it available to subsequent source steps.
+                for fact_index, fact in enumerate(reference.findall('facts/*')):
+                    if hiding:
+                        raise ProofError('HIDE facts requires scoped fact visibility')
+                    lines.append(indent + f'have used_{index}_{fact_index} : '
+                                 + self.proposition(fact, env) + ' := by')
+                    lines += self.leaf(ET.Element('obvious'), indent + '  ')
+                continue
             if reference.tag != 'TheoremNodeRef':
                 raise ProofError('unsupported proof step: ' + reference.tag)
             step = self.graph.resolve(reference)
@@ -79,7 +106,7 @@ class Renderer:
             if name == '$Qed':
                 if index != len(references) - 1:
                     raise ProofError('QED must terminate its proof scope')
-                return lines + self.render(proof_node(step), env, indent)
+                return lines + self.render(proof_node(step, implicit=True), env, indent)
             if name == '$Take':
                 lines.append(indent + 'first | apply (_root_.TLAUniversal.truth_boolean _).2 | skip')
                 for group in body.find('boundSymbols'):
@@ -103,7 +130,7 @@ class Renderer:
                 existential = self.compiler.expr(body, env, operator_override='$UnboundedExists')
                 proposition = '_root_.TLAUniversal.truth ' + qualify(existential)
                 lines.append(indent + f'have {label} : {proposition} := by')
-                lines += self.render(proof_node(step), env, indent + '  ')
+                lines += self.render(proof_node(step, implicit=True), env, indent + '  ')
                 fields = []
                 for group in body.find('boundSymbols'):
                     if group.find('tuple') is not None:
@@ -122,7 +149,7 @@ class Renderer:
             if name == '$Pfcase':
                 lines.append(indent + f'by_cases {label} : {self.proposition(args[0], env)}')
                 lines.append(indent + '·')
-                lines += self.render(proof_node(step), dict(env), indent + '  ')
+                lines += self.render(proof_node(step, implicit=True), dict(env), indent + '  ')
                 lines.append(indent + '·')
                 return lines + self.steps(references[index + 1:], dict(env), indent + '  ')
             if name == '$Have':
@@ -131,13 +158,13 @@ class Renderer:
                 continue
             if step.node.find('suffices') is not None:
                 lines.append(indent + f'suffices {label} : {self.proposition(body, env)} by')
-                lines += self.render(proof_node(step), dict(env), indent + '  ')
+                lines += self.render(proof_node(step, implicit=True), dict(env), indent + '  ')
                 opened, env = self.open_statement(body, env, indent)
                 lines += opened
                 continue
             lines.append(indent + f'have {label} : {self.proposition(body, env)} := by')
             opened, child_env = self.open_statement(body, env, indent + '  ')
-            lines += opened + self.render(proof_node(step), child_env, indent + '  ')
+            lines += opened + self.render(proof_node(step, implicit=True), child_env, indent + '  ')
         raise ProofError('hierarchical proof has no final QED')
 
 

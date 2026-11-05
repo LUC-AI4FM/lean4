@@ -1,0 +1,9 @@
+---- MODULE DefinitionScope ----
+A == TRUE
+THEOREM A
+<1> USE DEF A
+<1> QED OBVIOUS
+THEOREM A
+<1> HIDE DEF A
+<1> QED BY DEF A
+====
