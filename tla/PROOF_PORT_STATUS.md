@@ -382,3 +382,22 @@ Record simplification and verified range checkpoint (2026-11-05):
 - Local suite: 25 tests pass. These pending runs must be inspected before any
   claim that nested or record-set proof compatibility is complete.
 - Full port remains incomplete; preserve the 152/200 complete-audit baseline.
+
+Contextual simplification checkpoint (2026-11-05):
+- Distinct-key and lookup lemmas compiled, but focused 42096007282 and
+  42096342241 still failed nested/assumed record equality through simplifier
+  recursion; rectset also remained unresolved. Reordered-record positives
+  and false-record rejection passed.
+- 2f34e80 adds a bounded Aesop path with useSimpAll=false. Focused 42097321880
+  passed unchanged recordeq_hyp_smt_test, recordeq_nested_smt_test and Cantor4,
+  and rejected FalseRecordEquality after parser preflight. rectset timed out.
+- 82e9e28 explicitly normalizes ZFSet ordered-pair equality. Focused
+  42097456963 confirmed the same passing cases; rectset still timed out.
+  Local suite: 25 pass. These runs do not establish complete record-set support.
+- Likely next search issue: every earlier root theorem is installed as prior_i,
+  including general extensionality, which can cause broad rewrite/application
+  search. Exact BY/ONLY/USE/HIDE visibility remains unimplemented and requires
+  source-semantics validation before changing which facts are available.
+- Small liveness examples also need fairness normalization/inference; current
+  source/native semantics define weak/strong fairness but proof automation has
+  no dedicated rules for them. Full port remains incomplete.
