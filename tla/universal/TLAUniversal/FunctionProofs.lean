@@ -314,6 +314,10 @@ theorem record_two_eq_iff (a b : String) (x y u v : Value) (different : a ≠ b)
   · rintro ⟨rfl, rfl⟩
     rfl
 
+theorem record_two_ne_iff (a b : String) (x y u v : Value) (different : a ≠ b) :
+    record [(a, x), (b, y)] ≠ record [(a, u), (b, v)] ↔ x ≠ u ∨ y ≠ v := by
+  rw [ne_eq, record_two_eq_iff a b x y u v different, not_and_or]
+
 theorem powerset_subset_contradiction (domain range witness : Value)
     (included : ZFSet.powerset domain ⊆ range)
     (subset : witness ⊆ domain) (excluded : witness ∉ range) : False :=
