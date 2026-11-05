@@ -15,7 +15,7 @@ from universal_compile import compile_file
 lake = os.environ.get('LAKE', 'lake')
 subprocess.run([lake, 'build'], check=True)
 fixtures = ['Counter.tla', 'fixtures/Collections.tla', 'fixtures/Records.tla',
-            'fixtures/Binders.tla', 'fixtures/Universal.tla', 'fixtures/Claims.tla', 'fixtures/Temporal.tla', 'fixtures/ValueForms.tla', 'fixtures/Strings.tla', 'fixtures/Finite.tla', 'fixtures/Recursive.tla', 'fixtures/StructuredClaims.tla', 'fixtures/Mutual.tla', 'fixtures/RealNumbers.tla', 'fixtures/StandardLibrary.tla']
+            'fixtures/Binders.tla', 'fixtures/Universal.tla', 'fixtures/Claims.tla', 'fixtures/Temporal.tla', 'fixtures/ValueForms.tla', 'fixtures/Strings.tla', 'fixtures/Finite.tla', 'fixtures/Recursive.tla', 'fixtures/StructuredClaims.tla', 'fixtures/Mutual.tla', 'fixtures/RealNumbers.tla', 'fixtures/StandardLibrary.tla', 'fixtures/Labels.tla', 'fixtures/HigherOrder.tla']
 fixtures += [str(p.relative_to(root.parent / 'tests')) for p in sorted((root.parent / 'tests' / 'corpus').glob('*.tla'))]
 with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as directory:
     for fixture in fixtures:
@@ -24,6 +24,10 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         code = compile_file(source, includes=[root.parent / 'tests' / 'corpus' / 'tlaps'])
         if source.name == 'Counter.tla':
             code += (root / 'CounterProof.txt').read_text()
+        if source.name == 'HigherOrder.tla':
+            code += "\nexample (c : HigherOrder.Constants) (b : Behavior) (n : Nat) : HigherOrder.Answer c b n = integer 3 := by simp only [HigherOrder.Answer, intBinary_integer]; rfl\nexample (c : HigherOrder.Constants) (b : Behavior) (n : Nat) : HigherOrder.ConstantCall c b n = c.F (integer 2) := rfl\n"
+        if source.name == 'Labels.tla':
+            code += "\nexample (c : Labels.Constants) (b : Behavior) (n : Nat) : truth (Labels.B c b n) := by simp [Labels.B, truth_boolean]\n"
         if source.name == 'Recursive.tla':
             code += (root / 'RecursiveProof.txt').read_text()
         if source.name == 'RealNumbers.tla':

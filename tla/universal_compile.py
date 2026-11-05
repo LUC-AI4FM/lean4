@@ -128,7 +128,7 @@ class UniversalCompiler:
                     body = f'({variable} ∈ {domain} → {body})'
                 return f'(∀ ({variable} : {ty}), {body})'
             return '(boolean ' + obligation(list(node.find('assumes')), env) + ')'
-        if node.tag == 'LetInNode':
+        if node.tag in ('LetInNode', 'LabelNode'):
             return self.expr(node.find('body')[0], env, b, n)
         if node.tag == 'SubstInNode':
             substituted = dict(env)
@@ -176,14 +176,7 @@ class UniversalCompiler:
                 actuals = [f'(fun b n => {self.expr(a, env)})' for a in args]
                 return f'({binding.name} {" ".join(actuals)} ({b}) ({n}))'
             if binding.node.tag == 'OpArgNode':
-                target = self.g.resolve(binding.node.find('argument')[0])
-                # Actual operands retain their caller environment when substituted.
-                params = target.node.findall('params/leibnizparam/FormalParamNodeRef')
-                if target.node.tag == 'UserDefinedOpKind' and len(params) == len(args):
-                    extended = dict(binding.env)
-                    extended.update({p.findtext('UID'): SyntaxBinding(a, env) for p, a in zip(params, args)})
-                    return self.expr(target.body, extended, b, n)
-                raise CompileError('unsupported operator argument target')
+                return self.operator_argument(binding.node, args, env, binding.env, b, n)
             if args:
                 raise CompileError('nonoperator syntax argument applied')
             return self.expr(binding.node, binding.env, b, n)
@@ -235,6 +228,8 @@ class UniversalCompiler:
                 return self.expr(symbol.body, extended, b, n)
             finally:
                 self.active.pop()
+        if name == '$Nop' and len(args) == 1:
+            return self.expr(args[0], env, b, n)
         if name == '$RecursiveFcnSpec':
             copy = ET.fromstring(ET.tostring(node))
             unbound = copy.find('boundSymbols/unbound')
@@ -438,10 +433,40 @@ class UniversalCompiler:
         if standard and name == 'Tail': return f'(subsequence {values[0]} (integer 2) (length {values[0]}))'
         raise CompileError(f'unsupported universal operator {name!r} from {origin}')
 
-    def recursive(self, symbol, params, args, env, b, n):
+    def operator_argument(self, argument, args, caller, context, b, n):
+        target = self.g.resolve(argument.find('argument')[0])
+        binding = context.get(target.uid)
+        if isinstance(binding, SyntaxBinding) and binding.node.tag == 'OpArgNode':
+            return self.operator_argument(binding.node, args, caller, binding.env, b, n)
+        if isinstance(binding, ExpressionBinding):
+            if len(args) != binding.arity:
+                raise CompileError('operator argument arity mismatch')
+            actuals = []
+            for arg in args:
+                trace, time = self.fresh(), self.fresh()
+                actuals.append(f'(fun ({trace} : Behavior) ({time} : Nat) => {self.expr(arg, caller, trace, time)})')
+            return '(' + ' '.join([binding.name, *actuals, f'({b})', f'({n})']) + ')'
+        if isinstance(binding, OperatorBinding) or target.uid in self.consts:
+            expected = binding.arity if isinstance(binding, OperatorBinding) else target.arity
+            if len(args) != expected:
+                raise CompileError('constant operator argument arity mismatch')
+            name = binding.name if isinstance(binding, OperatorBinding) else f'c.{ident(target.name)}'
+            return '(' + ' '.join([name, *(self.expr(arg, caller, b, n) for arg in args)]) + ')'
+        if target.node.tag == 'UserDefinedOpKind':
+            params = target.node.findall('params/leibnizparam/FormalParamNodeRef')
+            if len(params) != len(args):
+                raise CompileError('defined operator argument arity mismatch')
+            if target.node.find('recursive') is not None:
+                return self.recursive(target, params, args, context, b, n, argument_env=caller)
+            extended = dict(context)
+            extended.update({p.findtext('UID'): SyntaxBinding(a, caller) for p, a in zip(params, args)})
+            return self.expr(target.body, extended, b, n)
+        raise CompileError(f'unsupported operator argument target: {target.name}')
+
+    def recursive(self, symbol, params, args, env, b, n, *, argument_env=None):
         members = self.recursive_groups.get(symbol.uid, [symbol])
         mutual = len(members) > 1
-        actuals = [self.expr(a, env, b, n) for a in args]
+        actuals = [self.expr(a, env if argument_env is None else argument_env, b, n) for a in args]
         key = actuals[0] if len(actuals) == 1 else f'(tuple [{", ".join(actuals)}])'
         if mutual:
             tag = next(i for i, member in enumerate(members) if member.uid == symbol.uid)
