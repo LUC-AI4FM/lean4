@@ -1,0 +1,2284 @@
+{
+  "reference_commit": "d1760ab9a1a3e7e76f81172166a955167cd163f2",
+  "prover_version": "efe4f2d",
+  "prover_sha256": "3357e45d1142346fb27dbcdbaee05ed4dcb0378cc99e0eb14636c762158aee8d",
+  "run": "https://github.com/LUC-AI4FM/lean4/actions/runs/42057966135",
+  "positive_count": 200,
+  "known_false_accepted_by_reference": 13,
+  "results": [
+    {
+      "source": "doc/fm2012/Peterson.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "doc/presentations/2010-ifm/Euclid.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "doc/presentations/2010-ifm/Euclid2.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "doc/presentations/2010-ifm/tutoriel-Peterson/Peterson.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "doc/presentations/2011-augsburg/Euclid.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "doc/presentations/2011-augsburg/Euclid2.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "doc/tutorial-CEA14/Basics.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "doc/tutorial-CEA14/exercise_Euclid.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "doc/vstte12/Peterson.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "doc/vstte12/RawPeterson.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "doc/web/content/Documentation/Publications/Peterson.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "doc/web/doc/IFM2010/Peterson.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "examples/Allocator.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/AtomicBakery.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "examples/AtomicBakeryWithoutSMT.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/Bakery.tla",
+      "reference_status": "reference_timeout",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "examples/BubbleSort.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "examples/ByzPaxos/BPConProof.tla",
+      "reference_status": "reference_timeout",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "examples/ByzPaxos/Consensus.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/ByzPaxos/PConProof.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "examples/ByzPaxos/VoteProof.tla",
+      "reference_status": "reference_timeout",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "examples/Channel/BoundedBuffer.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/Channel/PCalBoundedChannel.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/Dekker/Dekker.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "examples/EWD840.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/Euclid.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/GraphTheorem.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/Peterson.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/SimpleEventually.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/SimpleEventuallyInt.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/SimpleMutex.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/SumAndMax.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/TPCommit/PTCommit.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/TPCommit/PTwoPhase.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/TPCommit/TCommit.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/TPCommit/TwoPhase.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/cantor/Cantor1.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/cantor/Cantor10.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/cantor/Cantor2.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/cantor/Cantor3.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/cantor/Cantor4.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/cantor/Cantor5.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/cantor/Cantor6.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/cantor/Cantor7.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/cantor/Cantor8.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/cantor/Cantor9.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/paxos/Consensus.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "examples/paxos/Paxos.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples/two_phase/Alternate.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "examples/two_phase/TwoPhase.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples_draft/FOLTL.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples_draft/OneBitMutex.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "examples_draft/SimpleExampleWF.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "library/Bags.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "library/BagsTheorems.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "library/BagsTheorems_proofs.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "library/FiniteSetTheorems.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "library/FiniteSetTheorems_proofs.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "library/FiniteSets.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "library/NaturalsInduction.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "library/NaturalsInduction_proofs.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "library/RealTime.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "library/SequenceTheorems.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "library/SequenceTheorems_proofs.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "library/TLAPS.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "library/WellFoundedInduction.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "library/WellFoundedInduction_proofs.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "lsp/test/Euclid/Euclid.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "lsp/test/Euclid/GCD.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "lsp/test/test_decompose.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "lsp/test/test_decompose_naive_bcast.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "lsp/test/test_obl_expand.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "lsp/test/test_proof_steps.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "lsp/test/test_use.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/bugs/constantfcn_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/bugs/def_nondef_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/bugs/everythingisafcn_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/bugs/excappbad_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/bugs/hidedef_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/bugs/hidedefpred_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/bugs/instance_mutate.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/bugs/instance_mutate_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/bugs/noteqfalse_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/bugs/quant_level_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/bugs/sndord_bis_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/bugs/sndord_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/bugs/strict_clean_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/bugs/strict_empty_target_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/bugs/strict_missing_proof_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/bugs/strict_omitted_proof_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/basic/cvc3_false_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/basic/instantiate_backend_pragmas.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/basic/isa_false_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/basic/isa_true_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/basic/nonexistent_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/basic/smt_arith_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/basic/smt_false_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/basic/smt_rlimit_bad_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/basic/smt_rlimit_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/basic/tab_character_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/basic/true_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/basic/z3_arith_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/basic/z3_false_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/basic/zen_false_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/basic/zen_true_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/enabled_cdot/Cdot_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/enabled_cdot/ENABLED_INSTANCE_nullary_op_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/enabled_cdot/ENABLED_INSTANCE_nullary_op_two_vars_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/enabled_cdot/ENABLED_INSTANCE_op_with_args_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/enabled_cdot/ENABLEDaxioms_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/enabled_cdot/Enabled_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/enabled_cdot/ExpandENABLED_LET_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/enabled_cdot/ExpandOnlyCdot_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/enabled_cdot/ExpandOnlyENABLED_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/enabled_cdot/Fairness_INSTANCE_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/enabled_cdot/InstantiateTLAPS.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/enabled_cdot/Level_of_parametric_INSTANCE_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/enabled_cdot/Level_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/enabled_cdot/NestedCdot_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/enabled_cdot/NestedENABLED_from_AutoUSE_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/enabled_cdot/NestedENABLED_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/fingerprint/FingerprintVariablesParameters_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/CHOOSEsyntax.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/ConstantQuantifierBoundeds.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/ConstantQuantifierUnboundeds.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/DuplicateEXCEPT.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/language/EXCEPTMultipleBrackets_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/language/EXTENDS_in_submodule_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/ExistsNotBothBoundedAndUnbounded.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/ForallNotBothBoundedAndUnbounded.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/FunctionConstructorBoundeds.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/FunctionConstructorOnlyBoundeds.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/FunctionDefinitionBoundeds.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/FunctionDefinitionOnlyBoundeds_1.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/FunctionDefinitionOnlyBoundeds_2.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/INSTANCE_inside_LET_fingerprint_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/INSTANCE_inside_LET_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/INSTANCE_shift_due_to_omitted_modunits_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/Operators_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/language/SetConstructorsTupleDeclarations.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/SubrefLL_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/Subref_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/WFTRUE_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/language/nary_fcnapp_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/language/parse_function_comma_args.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/language/unary_fcnapp_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/regression/MiniProducerConsumer_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/regression/consensus/Folds.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/regression/consensus/Functions.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/regression/consensus/PaxosProof.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/regression/consensus/PaxosTuple.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/regression/consensus/Voting.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/regression/consensus/consensus_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/regression/cooper_instantiation_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/regression/higher_order_statement_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/regression/parameterized_instantiation_aux.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/regression/parameterized_instantiation_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/regression/setEuclid_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/fast/regression/smt_domain_check_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/fast/regression/z3_fingerprint_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/medium/regression/select_bug_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/medium/regression/snapshot/GFXSpec.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/medium/regression/snapshot/GFX_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/medium/regression/snapshot/SnapShot_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/medium/regression/snapshot/SnapSpec.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/regression_tests/fingerprint_13_12_07_test-disabled.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/regression_tests/function_except_tuple_soundness_gh201_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/regression_tests/nat_comparison_soundness_gh200_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/regression_tests/record_except_explosion_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/resources/module/m_save/TLC.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/00_ConstantRefTest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/01_VariableRefTest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/02_OperatorRefTest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/03_AssumeRefTest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/04_TheoremRefTest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/05_ConstantOperatorTest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/06_OperatorParameterRefTest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/07_ExpressionTest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/08_ObviousProofTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/09_BasicByProofTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/10_BasicStepProofTest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/11_BasicAssumeProveTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/12_BasicCaseStepProofTest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/13_BasicProofStepReferenceTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/14_BasicPTLProofTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/15_SufficesProofTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/16_NewBoundedAssumeTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/17_ActionOperatorTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/18_PrimeOperatorTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/19_HierarchicalProofTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/20_MixedByProofTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/21_ExtendsBase.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/21_ExtendsTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/22_UseDefStepTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/23_SufficesAssumeProveTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/24_StepAssumeBoundedNewTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/25_ExtendsConstantBase.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/25_ExtendsConstantStepTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/26_InstanceWithBase.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/26_InstanceWithTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/equivalence/27_LabelDefinitionTest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/28_LabelParameterTest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/29_LabelInQuantifierTest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/sany/equivalence/30_HideDefStepTest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/sany/known_failures/LabeledSubexpression.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/soundness_tests/case_time_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/fresh_operator_args_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/have_time_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue139_negated_boolean_eq_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue188_isfiniteset_level_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue235_set_enum_membership_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue235_set_enum_names_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue235_set_enum_tuple_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue235_set_enum_two_elements_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue300_negative_exponent_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue304_case_first_arm_smt_stest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue304_case_swap_smt_stest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue304_case_symbolic_guards_smt_stest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue309_cdot_binder_stest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue309_enabled_binder_isa_stest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue309_enabled_binder_smt_stest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue309_enabled_binder_zenon_stest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue309_eventually_binder_stest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue310_bound_var_capture_arity_stest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue310_bound_var_capture_stest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue310_hash_collision_ptl_stest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue310_hash_collision_smt_stest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue310_hash_collision_zenon_stest.tla",
+      "reference_status": "reference_proved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue320_instantiated_actplus_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue51_len_domain_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue51_recursive_function_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue69_instantiated_fairness_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue69_instantiated_strong_fairness_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/issue71_quantifier_bound_level_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/pick_temporal_goal_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/prime_dist_bound_var_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/recordeq_swap_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/use_time_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/soundness_tests/variable_capture_stest.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": true,
+      "positive": false
+    },
+    {
+      "source": "test/unit/a_lang/binary_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/bounded_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/constant_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/ditto_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/extends_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/hidedef_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/letchain_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/letconstant_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/letfunction_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/letsndord_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/nothing_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/unit/a_lang/nusedef_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/nusefact_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/nusesndord_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/predarg_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/unit/a_lang/prime_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/secondord_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/sndordthm_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/unit/a_lang/tempop_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/unary_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/usedef_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/usefact_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/userops_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/usethm_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/unit/a_lang/variable_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/a_lang/witness_bounded_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/unit/a_lang/witness_test.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "test/unit/b_logic/critical_bounded_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/b_logic/critical_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/b_logic/existential_bounded_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/b_logic/existential_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/b_logic/notfalse_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/b_logic/predicate_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/b_logic/props_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/b_logic/true_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/b_logic/universal_bounded_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/b_logic/universal_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/c_sets/cap_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/c_sets/cup_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/c_sets/empty_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/c_sets/pair_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/c_sets/power_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/c_sets/setext_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/c_sets/setminus_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/c_sets/setof_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/c_sets/setst_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/c_sets/singleton_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/c_sets/subset_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/c_sets/union_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/d_funcs/arrow_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/d_funcs/domain_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/d_funcs/excapp1_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/d_funcs/excapp2_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/d_funcs/excapp3_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/d_funcs/excapp4_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/d_funcs/excdom_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/d_funcs/fcnapp_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/d_funcs/funext_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/e_arith/intlit0_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/e_arith/intlit1_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/e_arith/intlitminus1_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/e_arith/nat_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/e_arith/range_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/e_arith/typingexp_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/e_arith/typingminus_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/e_arith/typingplus_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/e_arith/typingquotient_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/e_arith/typingremainder_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/e_arith/typingtimes_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/e_arith/typinguminus_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/f_data/boolcar_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/f_data/booldistinct_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/f_data/boolean_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/f_data/string_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/f_data/stringdistinct_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/g_tuples/productset_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/g_tuples/tupleapp_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/g_tuples/tupledom_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/g_tuples/tupleext_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/h_records/recorddom_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/h_records/recorddot_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/h_records/recordeq_difffields_smt_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/h_records/recordeq_fieldorder_smt_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/h_records/recordeq_hyp_smt_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/h_records/recordeq_if_smt_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/h_records/recordeq_neq_smt_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/h_records/recordeq_nested_smt_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/h_records/recordeq_single_smt_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/h_records/recordeq_smt_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/h_records/recordeq_three_smt_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/h_records/recordext_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/h_records/rectset_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "test/unit/i_sequences/sequences_test.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/backend/testarith.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/backend/testball.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/backend/testbchoose.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/backend/testbex.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/backend/testbool.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/backend/testnat.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/backend/testsubset.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/examples/Allocator.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/examples/AtomicBakeryG.tla",
+      "reference_status": "reference_timeout",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/examples/AtomicBakeryGInitialized.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/examples/SimpleMutex.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/examples/cantor/Cantor1.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/examples/cantor/Cantor2.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/examples/cantor/Cantor3.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/examples/cantor/Cantor4.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/examples/cantor/Cantor5.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/examples/cantor/Cantor6.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/examples/cantor/Cantor7.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/examples/cantor/Cantor8.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/examples/cantor/Cantor9.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/examples/consensus/Consensus.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/examples/consensus/PaxosProof.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/examples/consensus/PaxosTuple.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/examples/consensus/Sets.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/examples/consensus/Voting.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/examples/data/GraphTheorem.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/examples/data/SequencesTheorems.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/examples/data/Sets.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/examples/two-phase/Alternate.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/examples/two-phase/TLAProofRules.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/examples/two-phase/TwoPhase.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/features/test_case.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/features/test_choose_in.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/features/test_record.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/misc/Bug08_11_20.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/misc/Bug08_11_20a.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/misc/Bug1.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/misc/Contra.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/misc/Forall.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/misc/test1.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/misc/test2.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/misc/test3.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/misc/test4.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/misc/test5.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/peterson/MutexQ.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    },
+    {
+      "source": "zenon/regression/peterson/Peterson.tla",
+      "reference_status": "reference_unproved",
+      "expected_false": false,
+      "positive": false
+    },
+    {
+      "source": "zenon/regression/sets/singleton.tla",
+      "reference_status": "reference_proved",
+      "expected_false": false,
+      "positive": true
+    }
+  ]
+}

@@ -18,6 +18,7 @@ def main():
     parser.add_argument('--shard', type=int, default=0)
     parser.add_argument('--shards', type=int, default=1)
     parser.add_argument('--report', type=Path, required=True)
+    parser.add_argument('--reference-manifest', type=Path)
     args = parser.parse_args()
     if not 0 <= args.shard < args.shards:
         parser.error('invalid shard')
@@ -27,12 +28,17 @@ def main():
     if not sources:
         parser.error('empty reference corpus')
     includes = [reference / 'library', *[p.resolve() for p in args.include], root / 'tests/corpus/tlaps']
+    manifest = {x['source']: x for x in json.loads(args.reference_manifest.read_text())['results']} if args.reference_manifest else {}
     results = []
     with tempfile.TemporaryDirectory(prefix='proof-audit-', dir=root / 'universal') as directory:
         target = Path(directory) / 'Proof.lean'
         for source in sources:
             item = {'source': str(source.relative_to(reference)),
                     'expected_false': source.name.endswith('_stest.tla')}
+            if manifest:
+                if item['source'] not in manifest:
+                    raise ValueError('source absent from reference manifest: ' + item['source'])
+                item['reference_positive'] = manifest[item['source']]['positive']
             try:
                 graph = parse_file(source, includes=includes)
                 item['claims'] = len(graph.claims('TheoremNode'))
@@ -57,6 +63,9 @@ def main():
             args.report.write_text(json.dumps({'selected': len(sources), 'results': results}, indent=2))
     # Rejection of a negative is not evidence that its intended backend test ran.
     # Unknown and unsupported cases remain explicit, never promoted to passes.
+    if manifest:
+        return int(any(x['status'] == 'UNSOUND_ACCEPTANCE'
+                       or (x['reference_positive'] and x['status'] != 'checked') for x in results))
     return int(any(x['status'] not in ('checked', 'no_claims')
                    and not (x['expected_false'] and x['status'] != 'UNSOUND_ACCEPTANCE')
                    for x in results))
