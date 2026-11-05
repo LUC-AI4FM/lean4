@@ -347,3 +347,22 @@ Full audit and broader reconstruction checkpoint (2026-11-05):
   This is a separate experiment, not a reclassification of audit timeouts.
 - Local 25-test suite passed before the workflow-only timeout changes.
   Full port remains incomplete; backend, frontend and visibility work remains.
+
+Function/record reconstruction follow-up (2026-11-05):
+- fbcc625 referenced ZFSet.is_func_extend_range, which is absent from this
+  backend (the inspected external ZFLean source was not an imported API).
+  769e0a3 replaces it with locally proved function_range_mono. Runs at older
+  revisions, including 42094215586, cannot establish timing behavior because
+  generated proofs reference the missing constant.
+- 1ff6a0e proves record_eta from function extensionality and checked lookups.
+  fb6fe0f adds enumerate_nil. Their backend builds passed, but focused
+  42094940308 still failed broadcast, rectset and nested/assumed record proofs.
+  FalseLeaf rejected after parser preflight. No claim that these cases work yet.
+- Broad backward range widening caused excessive search; f7e5653 switches to
+  forward inference requiring known function typing and containment facts.
+  Focused 42095721026 checks range positives/negatives, ordinary EXCEPT and
+  rectset. 42095109080 at the preceding revision is also still pending.
+- 9d23413 adds explicit FunctionRange and FalseFunctionRange regressions to
+  main CI. Local 25-test suite passed before the final rule-registration edit.
+- Full port remains incomplete. Next: inspect these runs, diagnose rectset and
+  record simplification, then resume remaining frontend/temporal coverage.
