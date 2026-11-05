@@ -301,7 +301,8 @@ def compile_proofs(source, **kwargs):
                  '_root_.TLAUniversal.exists_state_pair')
     lines.append('attribute [local aesop safe forward] _root_.TLAUniversal.domain_isFunc '
                  '_root_.TLAUniversal.apply_mem')
-    lines.append('attribute [local aesop unsafe 50% apply] _root_.TLAUniversal.function_ext')
+    lines.append('attribute [local aesop unsafe 50% apply] _root_.TLAUniversal.function_ext '
+                 '_root_.TLAUniversal.apply_record')
     names = exports['proof_names']
     for index, theorem in enumerate(theorems):
         proof = proof_node(theorem)
