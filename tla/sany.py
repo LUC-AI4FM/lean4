@@ -142,6 +142,6 @@ def parse_file(source, *, jar=None, includes=(), timeout=30):
     # The pinned exporter can exit zero and emit XML after a level error.
     failed = any(marker in result.stderr for marker in ('Semantic errors:', '*** Errors:', '*** Abort messages:'))
     if result.returncode or failed or not result.stdout.lstrip().startswith('<?xml'):
-        diagnostics = (result.stderr + result.stdout).strip()
+        diagnostics = (result.stderr + ('' if result.stdout.lstrip().startswith('<?xml') else result.stdout)).strip()
         raise SanyError(f'SANY rejected {source.name}:\n{diagnostics}')
     return Graph.from_xml(result.stdout)

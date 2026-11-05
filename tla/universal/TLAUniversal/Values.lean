@@ -26,6 +26,8 @@ theorem truth_boolean (p : Prop) : truth (boolean p) ↔ p := by
 abbrev real := Numeric.encode
 abbrev toReal := Numeric.decode
 
+theorem toReal_real (r : Real) : toReal (real r) = r := Numeric.decode_encode r
+
 def reals : Value := ZFSet.range real
 
 def integer (n : Int) : Value := real (n : Real)
@@ -178,7 +180,7 @@ def realLessEqual (x y : Value) : Value := boolean
 theorem realBinary_real (op : Real → Real → Real) (a b : Real) :
     realBinary op (real a) (real b) = real (op a b) := by
   unfold realBinary
-  rw [if_pos ⟨real_mem a, real_mem b⟩, Numeric.decode_encode, Numeric.decode_encode]
+  rw [if_pos ⟨real_mem a, real_mem b⟩, toReal_real, toReal_real]
 
 def tuple (values : List Value) : Value :=
   function (interval (integer 1) (integer values.length))
