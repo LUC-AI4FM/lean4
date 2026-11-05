@@ -18,6 +18,8 @@ concurrency:
 
 jobs:
   update-stage0:
+    # Publishing requires the upstream Namespace runner and STAGE0_SSH_KEY.
+    if: github.repository == 'leanprover/lean4'
     runs-on: nscloud-ubuntu-22.04-amd64-8x16
     defaults:
       run:
