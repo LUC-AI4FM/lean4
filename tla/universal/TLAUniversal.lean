@@ -4,3 +4,4 @@ public import TLAUniversal.Values
 public import TLAUniversal.Numbers
 public import TLAUniversal.HigherRecursion
 public import TLAUniversal.FunctionProofs
+public import TLAUniversal.ProofAutomation

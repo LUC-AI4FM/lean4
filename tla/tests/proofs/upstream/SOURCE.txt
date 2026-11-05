@@ -7,3 +7,4 @@ of a complete reference-proved corpus. Lean reconstructs and checks each proof.
 Additional unchanged source: test/unit/e_arith/typingremainder_test.tla
 Additional unchanged sources: test/unit/d_funcs/{fcnapp,domain,excdom,excapp1,excapp3,excapp4,funext,arrow}_test.tla
 Additional unchanged sources: test/unit/e_arith/{intlit0,intlit1,intlitminus1}_test.tla (declared module names differ from filenames).
+Additional unchanged sources: zenon/regression/backend/testbchoose.tla and zenon/regression/features/test_choose_in.tla.

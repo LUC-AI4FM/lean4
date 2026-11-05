@@ -109,7 +109,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
     for proof_source in proof_sources:
         proof_fixture = proof_source.stem
         proved = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
-                                 str(proof_source), '-I', str(root.parent / 'tests/corpus/tlaps'),
+                                 str(proof_source), '--timeout', '45', '-I', str(root.parent / 'tests/corpus/tlaps'),
                                  '-o', str(proof_output)],
                                 capture_output=True, text=True, timeout=150)
         if proved.returncode:
@@ -134,7 +134,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
                 failures.append('proof certificate consumer: ' + proof_fixture)
                 print(imported.stdout + imported.stderr, flush=True)
             print('PASS source proof reconstruction: ' + proof_fixture, flush=True)
-    negative_sources = [root.parent / 'tests/proofs' / (name + '.tla') for name in ('FalseLeaf', 'FalseStep', 'FalseArithmetic', 'FalseSymbolicArithmetic', 'FalseWitness', 'FalseModuleUse', 'Omitted')]
+    negative_sources = [root.parent / 'tests/proofs' / (name + '.tla') for name in ('FalseChoice', 'FalseLeaf', 'FalseStep', 'FalseArithmetic', 'FalseSymbolicArithmetic', 'FalseWitness', 'FalseModuleUse', 'Omitted')]
     negative_sources += sorted((root.parent / 'tests/proofs/negative').glob('*.tla'))
     for negative_source in negative_sources:
         proof_fixture = negative_source.stem

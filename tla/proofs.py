@@ -52,7 +52,7 @@ class Renderer:
             if symbol.uid in self.compiler.emitted:
                 unfold.append(self.compiler.emitted[symbol.uid][0])
         return [indent + 'simp_all only [' + ', '.join(dict.fromkeys(unfold)) + ']',
-                indent + 'all_goals first | omega | (solve | norm_num) | aesop (add safe (by omega))']
+                indent + 'all_goals first | omega | (solve | norm_num) | aesop (add safe (by omega), norm (by tla_choice))']
 
     def open_statement(self, node, env, indent):
         env = dict(env)
@@ -285,7 +285,8 @@ def compile_proofs(source, **kwargs):
     lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.remainder_nonnegative '
                  '_root_.TLAUniversal.remainder_upper _root_.Int.emod_lt_of_pos '
                  '_root_.TLAUniversal.exists_state_pair')
-    lines.append('attribute [local aesop safe forward] _root_.TLAUniversal.domain_isFunc')
+    lines.append('attribute [local aesop safe forward] _root_.TLAUniversal.domain_isFunc '
+                 '_root_.TLAUniversal.apply_mem')
     lines.append('attribute [local aesop unsafe 50% apply] _root_.TLAUniversal.function_ext')
     names = exports['proof_names']
     for index, theorem in enumerate(theorems):
