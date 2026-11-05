@@ -191,3 +191,25 @@ No false acceptance occurred. Outcomes and provenance are committed in
 tests/proofs/lean-baseline.json. Later induction, generalized state facts,
 simplifier, diagonal-set, Cartesian-product, and record-type changes are not
 covered by this baseline and still require full Lean validation.
+
+Continuation checkpoint (2026-11-05, reconstruction feedback):
+- Focused CI 42081705655 at 9413571 passed natural and temporal induction,
+  quantified CASE references, nested function updates, function extensionality,
+  Cartesian products, and rejection of missing-base/temporal-scope regressions.
+- Focused CI 42082565047 at 58a1356 additionally passed the unchanged Cantor1
+  proof. Its only selected failure was the 30-field record: Aesop reached its
+  default rule-application depth of 30. 16baf51 raises that depth to 128 while
+  preserving existing time limits. Focused run 42083675025 is pending.
+- Focused CI 42083147758 at 98beb36 passed an imported proofless true theorem
+  and rejected an imported proofless false theorem. Imported declarations are
+  independently reconstructed before being exposed as prior facts. Root
+  missing proofs and explicit OMITTED proofs remain errors.
+- Natural-induction search initially caused unrelated function-proof timeouts.
+  34b1b44 gates it on the actual quantifier over TLA naturals; focused CI
+  confirmed function proofs recovered. Temporal induction is likewise gated
+  on a future-time quantifier and requires both base and successor proofs.
+- Full eight-shard audit 42083872494 is running at 16baf51. Revalidate it and
+  require all 379 inputs before comparing against tests/proofs/lean-baseline.json.
+- Current local checks: all 23 frontend/proof-generation tests pass. A separate
+  translation sweep covered all 60 then-existing positive fixtures. These are
+  not substitutes for the Lean and full-corpus gates. Full port is incomplete.
