@@ -1,0 +1,27 @@
+
+namespace NativeCounterUniversal
+open TLAImported
+
+def Init : TLA.Predicate State := fun state => state "x" = integer 0
+def Next : TLA.Action State := fun state next =>
+  next "x" = realBinary (· + ·) (state "x") (integer 1)
+def Inv : TLA.Predicate State := fun state => truth (realLessEqual (integer 0) (state "x"))
+def Spec : TLA.Formula State := fun behavior time =>
+  Init (behavior time) ∧
+    TLA.always (TLA.action (TLA.square Next (fun state => state "x"))) behavior time
+
+/-- Source import and native specification describe exactly the same behaviors. -/
+theorem source_equivalence (c : Counter.Constants) (b : Behavior) (n : Nat) :
+    truth (Counter.Spec c b n) ↔ Spec b n := by
+  simp only [Counter.Spec, Counter.Init, Counter.Next, truth_boolean,
+    Spec, Init, Next, TLA.always, TLA.action, TLA.square, TLA.unchanged]
+
+example (c : Counter.Constants) (b : Behavior) (n : Nat) :
+    Counter.Init c b n = liftPredicate Init b n := rfl
+
+/-- A source proof can be reused by the equivalent Lean-native specification. -/
+theorem safety (b : Behavior) (h : Spec b 0) : ∀ n, Inv (b n) := by
+  have source := (source_equivalence {} b 0).mpr h
+  intro n
+  exact Counter.source_invariant {} b source n
+end NativeCounterUniversal
