@@ -574,6 +574,35 @@ class UniversalCompiler:
 
     def compile(self):
         definitions = self.g.definitions(include_imported=True)
+        public_uids = {d.uid for d in definitions}
+        # Closed module-local definitions are safe to share across instances.
+        # Exclude LET-bound operators and anything depending on a declaration:
+        # those require the lexical/substitution environment at their call site.
+        module_globals = {ref.findtext('UID') for module in self.g.symbols.values()
+                          if module.node.tag == 'ModuleNode'
+                          for ref in module.node.findall('UserDefinedOpKindRef')}
+        def closed(uid, seen):
+            if uid in seen:
+                return True
+            seen.add(uid)
+            symbol = self.g.symbols[uid]
+            if any(symbol.body.iter('OpDeclNodeRef')):
+                return False
+            return all(closed(r.findtext('UID'), seen)
+                       for r in symbol.body.iter('UserDefinedOpKindRef'))
+        reachable = set()
+        def collect(node):
+            for ref in node.iter('UserDefinedOpKindRef'):
+                uid = ref.findtext('UID')
+                if uid not in reachable:
+                    reachable.add(uid)
+                    collect(self.g.symbols[uid].body)
+        for definition in definitions:
+            collect(definition.body)
+        helpers = [self.g.symbols[uid] for uid in sorted(module_globals & reachable, key=int)
+                   if uid not in public_uids and closed(uid, set())
+                   and not self.operator_info(self.g.symbols[uid])[2]]
+        definitions = helpers + definitions
         originals = {}
         for symbol in self.g.symbols.values():
             if symbol.node.tag == 'UserDefinedOpKind':
@@ -616,6 +645,7 @@ class UniversalCompiler:
                 base += '_'
             occupied.add(base)
             return base
+        declaration_names = {d.uid: (d.name if d.uid in public_uids else declaration_name('TLAInternal' + d.uid)) for d in definitions}
         constants_type = declaration_name('Constants')
         assumptions_name = declaration_name('TLAProofAssumptions')
         certificate_name = declaration_name('Certificate')
@@ -642,9 +672,9 @@ class UniversalCompiler:
             signature = (' '.join(parameters) + ' ') if parameters else ''
             code = qualify(code)
             context, trace, index = 'c', 'b', 'n'
-            lines.extend([f'def {ident(definition.name)} {signature}({context} : {constants_type}) ({trace} : _root_.TLAUniversal.Behavior) ({index} : _root_.Nat) : _root_.TLAUniversal.Value :=', '  ' + code])
+            lines.extend([f'def {ident(declaration_names[definition.uid])} {signature}({context} : {constants_type}) ({trace} : _root_.TLAUniversal.Behavior) ({index} : _root_.Nat) : _root_.TLAUniversal.Value :=', '  ' + code])
             refs = definition.node.findall('params/leibnizparam/FormalParamNodeRef')
-            self.emitted[definition.uid] = (f'_root_.{namespace}.{ident(definition.name)}', [self.g.resolve(r).arity for r in refs])
+            self.emitted[definition.uid] = (f'_root_.{namespace}.{ident(declaration_names[definition.uid])}', [self.g.resolve(r).arity for r in refs])
         assumptions = [qualify(self.expr(s.body)) for s in self.g.claims('AssumeNode')]
         obligations = [qualify(self.expr(s.body)) for s in self.g.claims('TheoremNode')]
         if assumptions or obligations:

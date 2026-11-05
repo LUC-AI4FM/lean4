@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
-from sany import Graph, SanyError, parse_file
+from sany import Graph, SanyError, parse_file, source_modules
 
 JAR = Path(os.environ.get('TLA2TOOLS', '.tools/tla2tools-1.7.4.jar'))
 
@@ -78,3 +78,23 @@ class ProofGraphTests(unittest.TestCase):
         self.assertEqual(len(graph.claims('TheoremNode')), 1)
         theorem = graph.claims('TheoremNode')[0]
         self.assertEqual(graph.resolve(theorem.node.find('definition')[0]).name, 'Claim')
+
+    def test_concatenated_modules_are_resolved_without_editing_source(self):
+        source = Path('tests/fixtures/Bundled.tla')
+        before = source.read_bytes()
+        self.assertEqual(parse_file(source).root.name, 'Bundled')
+        self.assertEqual(source.read_bytes(), before)
+
+    def test_module_extraction_ignores_comments_and_nested_modules(self):
+        text = '''(* ---- MODULE Fake ----
+==== *)
+---- MODULE Outer ----
+---- MODULE Inner ----
+A == "---- MODULE Quoted ----"
+====
+====
+---- MODULE Other ----
+X == TRUE
+====
+'''
+        self.assertEqual([name for name, _ in source_modules(text)], ['Outer', 'Other'])

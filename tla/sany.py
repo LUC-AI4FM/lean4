@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 import base64
 import os
+import re
+import tempfile
 from pathlib import Path
 import subprocess
 import xml.etree.ElementTree as ET
@@ -118,7 +120,68 @@ class Graph:
         return [self.resolve(ref) for ref in self.root.node.findall('OpDeclNodeRef')
                 if self.resolve(ref).node.findtext('kind') == '2']
 
+def source_modules(text):
+    """Locate concatenated top-level modules, ignoring comments and strings.
+
+    Nested MODULE declarations remain in their enclosing module. This only
+    supplies file names to SANY; SANY still parses and validates all syntax.
+    """
+    masked = list(text)
+    i, comment, string = 0, 0, False
+    while i < len(text):
+        if comment:
+            if text.startswith('(*', i):
+                masked[i:i+2] = '  '; comment += 1; i += 2
+            elif text.startswith('*)', i):
+                masked[i:i+2] = '  '; comment -= 1; i += 2
+            else:
+                if text[i] != '\n': masked[i] = ' '
+                i += 1
+        elif string:
+            if text[i] == '\\':
+                masked[i:i+2] = '  '; i += 2
+            else:
+                if text[i] == '"': string = False
+                if text[i] != '\n': masked[i] = ' '
+                i += 1
+        elif text.startswith('(*', i):
+            masked[i:i+2] = '  '; comment = 1; i += 2
+        elif text.startswith('\\*', i):
+            end = text.find('\n', i)
+            end = len(text) if end < 0 else end
+            masked[i:end] = ' ' * (end - i); i = end
+        elif text[i] == '"':
+            masked[i] = ' '; string = True; i += 1
+        else:
+            i += 1
+    tokens = re.finditer(r'(?m)^[ \t]*(?:-{4,}[ \t]*MODULE[ \t]+([A-Za-z_][A-Za-z_0-9]*)\b[^\n]*|={4,}[ \t]*$)', ''.join(masked))
+    depth, start, name, modules = 0, 0, None, []
+    for token in tokens:
+        if token[1]:
+            if depth == 0: start, name = token.start(), token[1]
+            depth += 1
+        elif depth:
+            depth -= 1
+            if depth == 0:
+                modules.append((name, '\n' * text.count('\n', 0, start) + text[start:token.end()] + '\n'))
+    return modules
+
+
 def parse_file(source, *, jar=None, includes=(), timeout=30):
+    source = Path(source).resolve(strict=True)
+    modules = source_modules(source.read_text())
+    if len(modules) <= 1:
+        return _parse_file(source, jar=jar, includes=includes, timeout=timeout)
+    names = [name for name, _ in modules]
+    if len(names) != len(set(names)):
+        raise SanyError('duplicate top-level module names in source file')
+    with tempfile.TemporaryDirectory(prefix='tla-source-modules-') as directory:
+        for name, content in modules:
+            (Path(directory) / (name + '.tla')).write_text(content)
+        return _parse_file(source, jar=jar, includes=[*includes, directory], timeout=timeout)
+
+
+def _parse_file(source, *, jar=None, includes=(), timeout=30):
     source = Path(source).resolve(strict=True)
     jar = Path(jar or os.environ.get('TLA2TOOLS', DEFAULT_JAR)).resolve()
     if not jar.is_file():
