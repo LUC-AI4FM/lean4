@@ -352,7 +352,7 @@ def compile_proofs(source, **kwargs):
                   'realBinary_add_integer realBinary_mul_integer realNegate_integer '
                   'realSubtract_integer realLessEqual_integer realLess_integer realPower_integer_nonnegative '
                   'intBinary_integer numberInterval_integer integer_mem_interval '
-                  'mem_enumerate mem_image caseValue apply_function domain_function function_isFunc_iff '
+                  'enumerate_nil mem_enumerate mem_image caseValue apply_function domain_function function_isFunc_iff '
                   'domain_update domain_updatePath_cons update_same update_other updatePath '
                   'domain_tuple apply_tuple_at tuple_eq_iff length_tuple '
                   'prepend_tuple mem_cartesian_cons mem_cartesian_nil '

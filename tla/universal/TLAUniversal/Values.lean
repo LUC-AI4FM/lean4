@@ -98,6 +98,8 @@ def interval (lo hi : Value) : Value :=
 
 def enumerate (values : List Value) : Value := values.foldr Insert.insert ∅
 
+theorem enumerate_nil : enumerate [] = ∅ := rfl
+
 theorem mem_enumerate (value : Value) (values : List Value) :
     value ∈ enumerate values ↔ value ∈ values := by
   induction values with
