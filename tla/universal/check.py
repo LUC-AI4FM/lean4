@@ -27,9 +27,9 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         target = Path(directory) / source.with_suffix('.lean').name
         code = compile_file(source, includes=[root.parent / 'tests' / 'corpus' / 'tlaps', root.parent / 'tests' / 'corpus' / 'community'])
         if source.name == 'ArithmeticOperations.tla':
-            code += "\nexample (c : ArithmeticOperations.Constants) (b : Behavior) (n : Nat) : truth (ArithmeticOperations.DivisionLaw c b n) := by\n  simp [ArithmeticOperations.DivisionLaw, truth_boolean, intBinary_integer, intUnary, integer_mem, toInt_integer]\n"
+            code += "\nexample (c : ArithmeticOperations.Constants) (b : Behavior) (n : Nat) : truth (ArithmeticOperations.DivisionLaw c b n) := by\n  simp [ArithmeticOperations.DivisionLaw, truth_boolean, intBinary_integer, realNegate_integer, integer_mem, toInt_integer]\n"
         if source.name == 'NestedModules.tla':
-            code += "\nexample (c : NestedModules.Constants) (b : Behavior) (n : Nat) : NestedModules.Answer c b n = integer 8 := by\n  simp only [NestedModules.Answer, NestedModules.«I!Value», intBinary_integer]; rfl\nexample (c : NestedModules.Constants) (b : Behavior) (n : Nat) : NestedModules.Next c b n = boolean (b (n+1) \"x\" = intBinary (fun a b => a+b) (b n \"x\") (integer 1)) := rfl\n"
+            code += "\nexample (c : NestedModules.Constants) (b : Behavior) (n : Nat) : NestedModules.Answer c b n = integer 8 := by\n  simp only [NestedModules.Answer, NestedModules.«I!Value», realBinary_add_integer]; rfl\nexample (c : NestedModules.Constants) (b : Behavior) (n : Nat) : NestedModules.Next c b n = boolean (b (n+1) \"x\" = realBinary (fun a b => a+b) (b n \"x\") (integer 1)) := rfl\n"
         if source.name == 'SequenceOperations.tla':
             code += "\nexample (c : SequenceOperations.Constants) (b : Behavior) (n : Nat) : truth (SequenceOperations.LengthLaw c b n) := by\n  simp only [SequenceOperations.LengthLaw, SequenceOperations.Length, SequenceOperations.S, truth_boolean, length_tuple]; rfl\nexample (c : SequenceOperations.Constants) (b : Behavior) (n : Nat) : truth (SequenceOperations.FirstLaw c b n) := by\n  simp only [SequenceOperations.FirstLaw, SequenceOperations.First, SequenceOperations.S, truth_boolean]\n  exact apply_tuple [integer 1, ZFSet.zftrue, string \"x\"] 0 (by decide)\n"
         if source.name == 'ToolDefinitions.tla':
@@ -45,11 +45,14 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         if source.name == 'LevelClaims.tla':
             code += "\nexample (c : LevelClaims.Constants) : LevelClaims.Certificate c := by\n  constructor <;> intros <;> simp [LevelClaims.TLAProofClaim0, LevelClaims.TLAProofClaim1, LevelClaims.TLAProofClaim2, LevelClaims.TLAProofClaim3, LevelClaims.TLAProofClaim4, LevelClaims.TLAProofClaim5, truth_boolean]\n"
         if source.name == 'HigherOrder.tla':
-            code += "\nexample (c : HigherOrder.Constants) (b : Behavior) (n : Nat) : HigherOrder.Answer c b n = integer 3 := by simp only [HigherOrder.Answer, intBinary_integer]; rfl\nexample (c : HigherOrder.Constants) (b : Behavior) (n : Nat) : HigherOrder.ConstantCall c b n = c.F (integer 2) := rfl\n"
+            code += "\nexample (c : HigherOrder.Constants) (b : Behavior) (n : Nat) : HigherOrder.Answer c b n = integer 3 := by simp only [HigherOrder.Answer, realBinary_add_integer]; rfl\nexample (c : HigherOrder.Constants) (b : Behavior) (n : Nat) : HigherOrder.ConstantCall c b n = c.F (integer 2) := rfl\n"
         if source.name == 'Labels.tla':
             code += "\nexample (c : Labels.Constants) (b : Behavior) (n : Nat) : truth (Labels.B c b n) := by simp [Labels.B, truth_boolean]\n"
         if source.name == 'Recursive.tla':
             code += (root / 'RecursiveProof.txt').read_text()
+        if source.name == 'NumericDomains.tla':
+            code = code.replace('import TLAUniversal', 'import TLAUniversal\nimport Mathlib.Tactic.NormNum')
+            code += (root / 'NumericProof.txt').read_text()
         if source.name == 'RealNumbers.tla':
             code = code.replace('import TLAUniversal', 'import TLAUniversal\nimport Mathlib.Tactic.NormNum')
             code += (root / 'RealProof.txt').read_text()

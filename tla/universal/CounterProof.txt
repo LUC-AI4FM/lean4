@@ -12,11 +12,11 @@ theorem source_invariant (c : Constants) (b : Behavior)
       obtain ⟨k, hk⟩ := ih
       rcases h.2 n (Nat.zero_le n) with step | stutter
       · refine ⟨k + 1, ?_⟩
-        rw [hk, intBinary_integer] at step
+        rw [hk, realBinary_add_integer] at step
         simpa only [Nat.cast_add, Nat.cast_one] using step
       · exact ⟨k, stutter.trans hk⟩
   intro n
   obtain ⟨k, hk⟩ := values n
-  simp only [Inv, intCompare, truth_boolean, hk, toInt_integer]
-  exact ⟨integer_mem _, integer_mem _, Int.natCast_nonneg k⟩
+  simp only [Inv, hk, realLessEqual_integer]
+  exact Int.natCast_nonneg k
 end Counter

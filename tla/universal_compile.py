@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 from compiler import CompileError, ident, lean_string
 from sany import parse_file, SanyError
 
-SEMANTIC_NAMES = set("""Value State Behavior Expression truth boolean integer integers toInt naturals interval real reals realUnary realBinary realDivide realPower realLess realLessEqual infinity
+SEMANTIC_NAMES = set("""Value State Behavior Expression truth boolean integer integers toInt naturals interval real reals realUnary realBinary realDivide realPower realLess realLessEqual infinity realSubtract realNegate numberInterval
     enumerate image choose function apply domain update undefined intUnary intBinary intCompare
     tuple length sequences append prepend cartesian caseValue concatenate subsequence string strings
     record recordSpace selectPath updatePath finite cardinality intPower recursiveOperator expressionLevel""".split())
@@ -63,7 +63,6 @@ class SyntaxBinding:
 class UniversalCompiler:
     def __init__(self, graph):
         self.g = graph
-        self.real_arithmetic = any(s.location == "Reals" for s in graph.symbols.values())
         self.vars = {s.uid for s in graph.variables()}
         self.consts = {s.uid for s in graph.constants()}
         self.active = []
@@ -438,32 +437,27 @@ class UniversalCompiler:
         if name in ('$ConjList', '$DisjList'):
             op = ' ∧ ' if name == '$ConjList' else ' ∨ '
             return '(boolean (' + op.join('truth ' + v for v in values) + '))'
-        if self.real_arithmetic:
-            if name in ('+', '-', '*'):
-                return f'(realBinary (fun x y => x {name} y) {values[0]} {values[1]})'
-            if name == '-.': return f'(realUnary (fun x => -x) {values[0]})'
-            if name == '/': return call('realDivide')
-            if name == '^': return call('realPower')
-            if name == 'Real': return 'reals'
-            if name == 'Infinity': return 'infinity'
-            if name in ('<', '>', '\\leq', '\\geq'):
-                fn = 'realLess' if name in ('<', '>') else 'realLessEqual'
-                left, right = values if name in ('<', '\\leq') else reversed(values)
-                return f'({fn} {left} {right})'
-        if name in ('+', '-', '*', '\\div', '%'):
+        if name in ('+', '*'):
+            return f'(realBinary (fun x y => x {name} y) {values[0]} {values[1]})'
+        if name == '-': return call('realSubtract')
+        if name == '-.': return call('realNegate')
+        if name == '/': return call('realDivide')
+        if name == '^': return call('realPower')
+        if name == 'Real': return 'reals'
+        if name == 'Infinity': return 'infinity'
+        if name in ('<', '>', '\\leq', '\\geq'):
+            fn = 'realLess' if name in ('<', '>') else 'realLessEqual'
+            left, right = values if name in ('<', '\\leq') else reversed(values)
+            return f'({fn} {left} {right})'
+        if name in ('\\div', '%'):
             op = {'\\div': '/'}.get(name, name)
             return f'(intBinary (fun x y => x {op} y) {values[0]} {values[1]})'
-        if name == '^': return call('intPower')
         if standard and name == 'IsFiniteSet': return call('finite')
         if standard and name == 'Cardinality': return call('cardinality')
-        if name == '-.': return f'(intUnary (fun x => -x) {values[0]})'
-        if name in ('<', '>', '\\leq', '\\geq'):
-            op = {'\\leq': '≤', '\\geq': '≥'}.get(name, name)
-            return f'(intCompare (fun x y => x {op} y) {values[0]} {values[1]})'
         if name == '$IfThenElse': return f'(if truth {values[0]} then {values[1]} else {values[2]})'
         if name == 'Nat': return 'naturals'
         if name == 'Int': return 'integers'
-        if name == '..': return call('interval')
+        if name == '..': return call('numberInterval')
         if name in ('\\in', '\\notin', '\\subseteq'):
             op = {'\\in': '∈', '\\notin': '∉', '\\subseteq': '⊆'}[name]
             return f'(boolean ({values[0]} {op} {values[1]}))'

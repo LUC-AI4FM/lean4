@@ -6,4 +6,6 @@ Same == Sum = 1
 Ratio == 3 / 2
 Positive == Ratio > 1
 Bound == 100 < Infinity
+Lower == -Infinity < 0
+DoubleNegative == -(-Infinity) = Infinity
 ====

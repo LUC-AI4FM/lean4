@@ -4,6 +4,7 @@ public import TLA.Basic
 public import ZFLean.Booleans
 public import TLAUniversal.Numbers
 public import Mathlib.SetTheory.Cardinal.Finite
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 @[expose] public noncomputable section
 namespace TLAUniversal
@@ -208,8 +209,8 @@ def realDivide (x y : Value) : Value :=
   if x ∈ reals ∧ y ∈ reals ∧ toReal y ≠ 0 then real (toReal x / toReal y) else undefined
 
 def realPower (base exponent : Value) : Value :=
-  if base ∈ reals ∧ exponent ∈ naturals then
-    real ((toReal base) ^ (toInt exponent).toNat)
+  if base ∈ reals ∧ exponent ∈ reals then
+    real (Real.rpow (toReal base) (toReal exponent))
   else undefined
 
 /-- The set of all real encodings is not itself one of those encodings. -/
@@ -217,16 +218,90 @@ def infinity : Value := reals
 
 theorem infinity_not_real : infinity ∉ reals := ZFSet.mem_irrefl reals
 
-def realLess (x y : Value) : Value := boolean
-  ((x ∈ reals ∧ y ∈ reals ∧ toReal x < toReal y) ∨ (x ∈ reals ∧ y = infinity))
+def minusInfinity : Value := {infinity}
+
+theorem minusInfinity_not_real : minusInfinity ∉ reals := by
+  intro h
+  exact ZFSet.mem_asymm h (by simp [minusInfinity, infinity])
+
+theorem minusInfinity_ne_infinity : minusInfinity ≠ infinity := by
+  intro h
+  have member : infinity ∈ minusInfinity := by simp [minusInfinity]
+  rw [h] at member
+  exact ZFSet.mem_irrefl _ member
+
+theorem real_ne_infinity (r : Real) : real r ≠ infinity := by
+  intro h
+  exact infinity_not_real (h ▸ real_mem r)
+
+theorem real_ne_minusInfinity (r : Real) : real r ≠ minusInfinity := by
+  intro h
+  exact minusInfinity_not_real (h ▸ real_mem r)
+
+/-- The numeric modules share real arithmetic, independently of which is imported. -/
+def realSubtract (x y : Value) : Value :=
+  if x ∈ reals then
+    if y = infinity then minusInfinity
+    else if y = minusInfinity then infinity
+    else realBinary (fun a b => a - b) x y
+  else undefined
+
+def realNegate (x : Value) : Value := realSubtract (integer 0) x
 
 def realLessEqual (x y : Value) : Value := boolean
-  (truth (realLess x y) ∨ (x = y ∧ (x ∈ reals ∨ x = infinity)))
+  (if x ∈ reals ∧ y ∈ reals then toReal x ≤ toReal y
+   else x = y ∨ (x = minusInfinity ∧ y ∈ reals) ∨
+     ((x ∈ reals ∨ x = minusInfinity) ∧ y = infinity))
+
+def realLess (x y : Value) : Value := boolean (truth (realLessEqual x y) ∧ x ≠ y)
+
+/-- Integer intervals may have real or infinite endpoints. -/
+def numberInterval (lo hi : Value) : Value :=
+  integers.sep (fun n => truth (realLessEqual lo n) ∧ truth (realLessEqual n hi))
+
+theorem realLessEqual_real (a b : Real) :
+    truth (realLessEqual (real a) (real b)) ↔ a ≤ b := by
+  simp [realLessEqual, truth_boolean, real_mem, toReal_real]
+
+theorem realLessEqual_integer (a b : Int) :
+    truth (realLessEqual (integer a) (integer b)) ↔ a ≤ b := by
+  simp only [realLessEqual, truth_boolean, integer_mem_real, and_self, if_true, toReal_integer]
+  norm_cast
+
+theorem realLess_real_infinity (r : Real) : truth (realLess (real r) infinity) := by
+  simp [realLess, realLessEqual, truth_boolean, real_mem, infinity_not_real, real_ne_infinity]
 
 theorem realBinary_real (op : Real → Real → Real) (a b : Real) :
     realBinary op (real a) (real b) = real (op a b) := by
   unfold realBinary
   rw [if_pos ⟨real_mem a, real_mem b⟩, toReal_real, toReal_real]
+
+theorem realBinary_add_integer (a b : Int) :
+    realBinary (fun x y => x + y) (integer a) (integer b) = integer (a + b) := by
+  simp [integer, realBinary_real, Int.cast_add]
+
+theorem realBinary_mul_integer (a b : Int) :
+    realBinary (fun x y => x * y) (integer a) (integer b) = integer (a * b) := by
+  simp [integer, realBinary_real, Int.cast_mul]
+
+theorem realSubtract_real (a b : Real) : realSubtract (real a) (real b) = real (a - b) := by
+  simp [realSubtract, real_mem, real_ne_infinity, real_ne_minusInfinity, realBinary_real]
+
+theorem realNegate_integer (a : Int) : realNegate (integer a) = integer (-a) := by
+  simp [realNegate, integer, realSubtract_real]
+
+theorem realNegate_infinity : realNegate infinity = minusInfinity := by
+  simp [realNegate, realSubtract, integer_mem_real]
+
+theorem realNegate_minusInfinity : realNegate minusInfinity = infinity := by
+  simp [realNegate, realSubtract, integer_mem_real, minusInfinity_ne_infinity]
+
+theorem realLess_minusInfinity_real (r : Real) : truth (realLess minusInfinity (real r)) := by
+  simp [realLess, realLessEqual, truth_boolean, minusInfinity_not_real, real_mem,
+    Ne.symm (real_ne_minusInfinity r)]
+
+theorem realPower_real (a b : Real) : realPower (real a) (real b) = real (Real.rpow a b) := by
+  simp [realPower, real_mem, toReal_real]
 
 def tuple (values : List Value) : Value :=
   function (interval (integer 1) (integer values.length))

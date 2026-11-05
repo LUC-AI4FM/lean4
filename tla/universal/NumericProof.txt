@@ -1,0 +1,25 @@
+
+example (c : NumericDomains.Constants) (b : Behavior) (n : Nat) :
+    truth (NumericDomains.HalfSum c b n) := by
+  simp only [NumericDomains.HalfSum, truth_boolean, integer, realBinary_real]
+  congr 1
+  norm_num
+
+example (c : NumericDomains.Constants) (b : Behavior) (n : Nat) :
+    truth (NumericDomains.FractionalPower c b n) := by
+  simp only [NumericDomains.FractionalPower, truth_boolean, integer, realPower_real]
+  congr 1
+  norm_num [Real.one_rpow]
+
+example (c : NumericDomains.Constants) (b : Behavior) (n : Nat) :
+    truth (NumericDomains.NegativePower c b n) := by
+  simp only [NumericDomains.NegativePower, truth_boolean, realNegate_integer, integer, realPower_real]
+  congr 1
+  norm_num [Real.rpow_neg_one]
+
+example (c : NumericDomains.Constants) (b : Behavior) (n : Nat) :
+    truth (NumericDomains.RealInterval c b n) := by
+  simp only [NumericDomains.RealInterval, truth_boolean, numberInterval, ZFSet.mem_sep,
+    integer_mem, true_and]
+  simp only [integer, realLessEqual_real]
+  norm_num

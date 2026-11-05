@@ -8,5 +8,13 @@ example (c : RealNumbers.Constants) (b : Behavior) (n : Nat) :
 
 example (c : RealNumbers.Constants) (b : Behavior) (n : Nat) :
     truth (RealNumbers.Bound c b n) := by
-  simp only [RealNumbers.Bound, realLess, truth_boolean]
-  exact Or.inr ⟨integer_mem_real _, trivial⟩
+  exact realLess_real_infinity ((100 : Int) : Real)
+
+example (c : RealNumbers.Constants) (b : Behavior) (n : Nat) :
+    truth (RealNumbers.Lower c b n) := by
+  simp only [RealNumbers.Lower, realNegate_infinity]
+  exact realLess_minusInfinity_real ((0 : Int) : Real)
+
+example (c : RealNumbers.Constants) (b : Behavior) (n : Nat) :
+    truth (RealNumbers.DoubleNegative c b n) := by
+  simp [RealNumbers.DoubleNegative, truth_boolean, realNegate_infinity, realNegate_minusInfinity]
