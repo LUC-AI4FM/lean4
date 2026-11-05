@@ -61,6 +61,29 @@ theorem strong_implies_weak (a : Action σ) (v : σ → α)
   rcases he with ⟨k, _, hk⟩
   intro m hm
   exact ⟨max k m, Nat.le_max_right _ _, hk _ (Nat.le_max_left _ _)⟩
+theorem weak_fairness_continuously_enabled (a : Action σ) (v : σ → α)
+    (b : Behavior σ) (n : Nat) (fair : weakFairness a v b n)
+    (available : always (state (enabled (angle a v))) b n) :
+    always (eventually (action (angle a v))) b n :=
+  fair ⟨n, Nat.le_refl n, available⟩
+
+theorem weak_fairness_progress (a : Action σ) (v : σ → α) (q : Predicate σ)
+    (b : Behavior σ) (n : Nat) (fair : weakFairness a v b n)
+    (available : ∀ k, n ≤ k → ¬ q (b k) → enabled (angle a v) (b k))
+    (progress : ∀ k, n ≤ k → angle a v (b k) (b (k + 1)) → q (b (k + 1))) :
+    eventually (state q) b n := by
+  classical
+  apply Classical.byContradiction
+  intro absent
+  have never : ∀ k, n ≤ k → ¬ q (b k) := by
+    intro k hk hq
+    exact absent ⟨k, hk, hq⟩
+  have continuous : always (state (enabled (angle a v))) b n := by
+    intro k hk
+    exact available k hk (never k hk)
+  obtain ⟨k, hk, step⟩ := weak_fairness_continuously_enabled a v b n fair continuous n (Nat.le_refl n)
+  exact never (k + 1) (Nat.le_trans hk (Nat.le_succ k)) (progress k hk step)
+
 def compose (a b : Action σ) : Action σ := fun s t => ∃ mid, a s mid ∧ b mid t
 
 /-- Repetition of states with no skipped state and no infinitely postponed suffix. -/
