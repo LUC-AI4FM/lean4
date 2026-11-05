@@ -214,15 +214,33 @@ theorem enumerate_eq_iff (left right : List Value) :
     intro x
     simpa only [mem_enumerate] using Iff.intro (forward x) (backward x)
 
+theorem record_unique_of_nodup (fields : List (String × Value))
+    (distinct : (fields.map Prod.fst).Nodup) :
+    ∀ a ∈ fields, ∀ b ∈ fields, a.1 = b.1 → a.2 = b.2 := by
+  induction fields with
+  | nil => simp
+  | cons head tail ih =>
+    simp only [List.map_cons, List.nodup_cons] at distinct
+    intro a ha b hb eq
+    simp only [List.mem_cons] at ha hb
+    rcases ha with rfl | ha
+    · rcases hb with rfl | hb
+      · rfl
+      · exact False.elim (distinct.1 (List.mem_map.mpr ⟨b, hb, eq.symm⟩))
+    · rcases hb with rfl | hb
+      · exact False.elim (distinct.1 (List.mem_map.mpr ⟨a, ha, eq⟩))
+      · exact ih distinct.2 a ha b hb eq
+
 theorem record_eq_iff (left right : List (String × Value))
-    (hl : ∀ a ∈ left, ∀ b ∈ left, a.1 = b.1 → a.2 = b.2)
-    (hr : ∀ a ∈ right, ∀ b ∈ right, a.1 = b.1 → a.2 = b.2) :
+    (hl : (left.map Prod.fst).Nodup)
+    (hr : (right.map Prod.fst).Nodup) :
     record left = record right ↔
       (∀ p ∈ left.map (fun f => ZFSet.pair (string f.1) f.2),
         p ∈ right.map (fun f => ZFSet.pair (string f.1) f.2)) ∧
       (∀ p ∈ right.map (fun f => ZFSet.pair (string f.1) f.2),
         p ∈ left.map (fun f => ZFSet.pair (string f.1) f.2)) := by
-  rw [record_as_pairs left hl, record_as_pairs right hr, enumerate_eq_iff]
+  rw [record_as_pairs left (record_unique_of_nodup left hl),
+    record_as_pairs right (record_unique_of_nodup right hr), enumerate_eq_iff]
 
 theorem powerset_subset_contradiction (domain range witness : Value)
     (included : ZFSet.powerset domain ⊆ range)
