@@ -103,7 +103,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         print(('FAIL ' if result.returncode else 'PASS ') + fixture, flush=True)
     # The proof CLI writes an artifact only after Lean accepts its proof terms.
     proof_output = Path(directory) / 'CheckedProofs.lean'
-    for proof_fixture in ('Leaves', 'ProofShapes', 'DefinitionScope'):
+    for proof_fixture in ('Leaves', 'ProofShapes', 'DefinitionScope', 'Arithmetic'):
         proved = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
                                  str(root.parent / 'tests/proofs' / (proof_fixture + '.tla')),
                                  '-o', str(proof_output)],
@@ -129,7 +129,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
                 failures.append('proof certificate consumer: ' + proof_fixture)
                 print(imported.stdout + imported.stderr, flush=True)
             print('PASS source proof reconstruction: ' + proof_fixture, flush=True)
-    for proof_fixture in ('FalseLeaf', 'FalseStep', 'Omitted'):
+    for proof_fixture in ('FalseLeaf', 'FalseStep', 'FalseArithmetic', 'Omitted'):
         proof_output.write_text('preserve existing output')
         rejected = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
                                    str(root.parent / 'tests/proofs' / (proof_fixture + '.tla')),

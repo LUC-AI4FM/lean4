@@ -32,13 +32,24 @@ class Renderer:
         return '_root_.TLAUniversal.truth ' + qualify(self.compiler.expr(node, env))
 
     def leaf(self, proof, indent):
-        unfold = list(self.unfold)
+        unfold = list(self.unfold) + [
+            '_root_.TLAUniversal.realBinary_add_integer',
+            '_root_.TLAUniversal.realBinary_mul_integer',
+            '_root_.TLAUniversal.realNegate_integer',
+            '_root_.TLAUniversal.realLessEqual_integer',
+            '_root_.TLAUniversal.integer_injective.eq_iff',
+            '_root_.TLAUniversal.integer_mem_naturals',
+            '_root_.TLAUniversal.integer_mem',
+            '_root_.TLAUniversal.numberInterval_integer',
+            '_root_.TLAUniversal.integer_mem_interval',
+            '_root_.TLAUniversal.mem_enumerate',
+        ]
         for reference in proof.findall('defs/*'):
             symbol = self.graph.resolve(reference)
             if symbol.uid in self.compiler.emitted:
                 unfold.append(self.compiler.emitted[symbol.uid][0])
         return [indent + 'simp_all only [' + ', '.join(dict.fromkeys(unfold)) + ']',
-                indent + 'all_goals aesop']
+                indent + 'all_goals first | omega | (solve | norm_num) | aesop']
 
     def open_statement(self, node, env, indent):
         env = dict(env)
@@ -176,7 +187,7 @@ def compile_proofs(source, **kwargs):
     theorems = graph.claims('TheoremNode')
     if not theorems:
         return code
-    code = code.replace('public import TLAUniversal', 'public import TLAUniversal\nimport Aesop', 1)
+    code = code.replace('public import TLAUniversal', 'public import TLAUniversal\nimport Aesop\nimport Mathlib.Tactic.NormNum', 1)
     lines = [f'namespace {exports["namespace"]}', '@[expose] public noncomputable section']
     names = exports['proof_names']
     for index, theorem in enumerate(theorems):

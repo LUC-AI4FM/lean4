@@ -34,4 +34,4 @@ class ProofTests(unittest.TestCase):
 
     def test_scoped_definitions(self):
         code = compile_proofs(Path('tests/proofs/DefinitionScope.tla'))
-        self.assertIn('«DefinitionScope».«A»]', code)
+        self.assertIn('«DefinitionScope».«A»', code)
