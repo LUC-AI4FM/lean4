@@ -71,6 +71,7 @@ class Bound:
 class Closure:
     node: object
     env: dict
+    active: tuple
 
 class Compiler:
     def __init__(self, graph):
@@ -145,7 +146,7 @@ class Compiler:
                 parts = [x for x in subst if x.tag not in ('location', 'level')]
                 if len(parts) != 2 or not parts[0].tag.endswith('Ref'):
                     raise CompileError('malformed module substitution')
-                extended[parts[0].findtext('UID')] = Closure(parts[1], env)
+                extended[parts[0].findtext('UID')] = Closure(parts[1], env, tuple(self.active))
             return self.term(node.find('body')[0], extended, b, n)
         if node.tag == 'LetInNode':
             return self.term(node.find('body')[0], env, b, n)
@@ -160,7 +161,12 @@ class Compiler:
                 raise CompileError('operator-valued parameters are not implemented')
             if isinstance(value, Bound):
                 return value.term
-            return self.term(value.node, value.env, b, n)
+            previous = self.active
+            self.active = list(value.active)
+            try:
+                return self.term(value.node, value.env, b, n)
+            finally:
+                self.active = previous
         if op.uid in self.vars:
             if args:
                 raise CompileError('variable cannot take operator arguments')
@@ -191,7 +197,7 @@ class Compiler:
                 raise CompileError(f'arity mismatch for {name}')
             extended = dict(env)
             for parameter, argument in zip(params, args):
-                extended[parameter.findtext('UID')] = Closure(argument, env)
+                extended[parameter.findtext('UID')] = Closure(argument, env, tuple(self.active))
             self.active.append(op.uid)
             try:
                 return self.term(op.body, extended, b, n)

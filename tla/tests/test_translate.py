@@ -66,3 +66,15 @@ class TranslationTests(unittest.TestCase):
         self.assertIn('TLAUniversal.cardinality', result)
         self.assertIn('def «Samples»', result)
         self.assertIn('def «Position»', result)
+
+    def test_numeric_meaning_does_not_change_when_extending_reals(self):
+        template = '---- MODULE Numeric ----\nEXTENDS {}\nCONSTANT x, y\nSum == x + y\nPower == x ^ y\nBound == x <= y\n===='
+        natural = translate(template.format('Naturals'))
+        self.assertEqual(natural, translate(template.format('Integers')))
+        self.assertEqual(natural, translate(template.format('Reals')))
+
+    def test_nested_local_calls_are_not_recursive_definitions(self):
+        source = '---- MODULE Nested ----\nEXTENDS Integers\nAnswer == LET F(x) == x + 1 IN F(F(1))\n===='
+        for backend in ('typed', 'universal'):
+            with self.subTest(backend=backend):
+                self.assertIn('def «Answer»', translate(source, backend=backend))

@@ -214,7 +214,6 @@ def realDivide (x y : Value) : Value :=
 
 theorem realDivide_zero_zero_mem : realDivide (integer 0) (integer 0) ∈ reals := by
   simp only [realDivide, integer_mem_real, and_self, if_true, toReal_integer, Int.cast_zero]
-  simp only [if_pos rfl]
   exact choose_spec (fun value => value ∈ reals) ⟨integer 0, integer_mem_real 0⟩
 
 def realPower (base exponent : Value) : Value :=

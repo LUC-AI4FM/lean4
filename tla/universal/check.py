@@ -28,6 +28,8 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         code = compile_file(source, includes=[root.parent / 'tests' / 'corpus' / 'tlaps', root.parent / 'tests' / 'corpus' / 'community'])
         if source.name == 'ArithmeticOperations.tla':
             code += "\nexample (c : ArithmeticOperations.Constants) (b : Behavior) (n : Nat) : truth (ArithmeticOperations.DivisionLaw c b n) := by\n  simp [ArithmeticOperations.DivisionLaw, truth_boolean, intBinary_integer, realNegate_integer, integer_mem, toInt_integer]\n"
+        if source.name == 'NestedCalls.tla':
+            code += "\nexample (c : NestedCalls.Constants) (b : Behavior) (n : Nat) : NestedCalls.Answer c b n = integer 3 := by\n  simp only [NestedCalls.Answer, realBinary_add_integer]; rfl\nexample (c : NestedCalls.Constants) (b : Behavior) (n : Nat) : NestedCalls.Higher c b n = integer 2 := by\n  simp only [NestedCalls.Higher, realBinary_add_integer]; rfl\n"
         if source.name == 'NestedModules.tla':
             code += "\nexample (c : NestedModules.Constants) (b : Behavior) (n : Nat) : NestedModules.Answer c b n = integer 8 := by\n  simp only [NestedModules.Answer, NestedModules.«I!Value», realBinary_add_integer]; rfl\nexample (c : NestedModules.Constants) (b : Behavior) (n : Nat) : NestedModules.Next c b n = boolean (b (n+1) \"x\" = realBinary (fun a b => a+b) (b n \"x\") (integer 1)) := rfl\n"
         if source.name == 'SequenceOperations.tla':

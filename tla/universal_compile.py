@@ -59,6 +59,7 @@ class ExpressionBinding:
 class SyntaxBinding:
     node: object
     env: dict
+    active: tuple
 
 class UniversalCompiler:
     def __init__(self, graph):
@@ -170,7 +171,7 @@ class UniversalCompiler:
                 parts = [x for x in subst if x.tag not in ('location', 'level')]
                 if len(parts) != 2:
                     raise CompileError('malformed module substitution')
-                substituted[parts[0].findtext('UID')] = SyntaxBinding(parts[1], env)
+                substituted[parts[0].findtext('UID')] = SyntaxBinding(parts[1], env, tuple(self.active))
             return self.expr(node.find('body')[0], substituted, b, n)
         if node.tag == 'AtNode':
             parts = [x for x in node if x.tag not in ('location', 'level')]
@@ -217,11 +218,7 @@ class UniversalCompiler:
                     raise CompileError('operator parameter arity mismatch')
                 actuals = [f'(fun b n => {self.expr(a, env)})' for a in args]
                 return f'({binding.name} {" ".join(actuals)} ({b}) ({n}))'
-            if binding.node.tag == 'OpArgNode':
-                return self.operator_argument(binding.node, args, env, binding.env, b, n)
-            if args:
-                raise CompileError('nonoperator syntax argument applied')
-            return self.expr(binding.node, binding.env, b, n)
+            return self.expand_binding(binding, args, env, b, n)
         if symbol.uid in self.vars:
             return f'(({b}) ({n}) {json.dumps(symbol.name)})'
         if symbol.uid in self.consts:
@@ -267,7 +264,7 @@ class UniversalCompiler:
             if symbol.node.find('recursive') is not None:
                 return self.recursive(symbol, params, args, env, b, n)
             extended = dict(env)
-            extended.update({p.findtext('UID'): SyntaxBinding(a, env) for p, a in zip(params, args)})
+            extended.update({p.findtext('UID'): SyntaxBinding(a, env, tuple(self.active)) for p, a in zip(params, args)})
             self.active.append(symbol.uid)
             try:
                 return self.expr(symbol.body, extended, b, n)
@@ -479,11 +476,25 @@ class UniversalCompiler:
         if standard and name == 'Tail': return f'(subsequence {values[0]} (integer 2) (length {values[0]}))'
         raise CompileError(f'unsupported universal operator {name!r} from {origin}')
 
+    def expand_binding(self, binding, args, caller, b, n):
+        # Actual parameters are evaluated in their caller's expansion context.
+        # F(F(1)) is nested application, not a recursive definition of F.
+        previous = self.active
+        self.active = list(binding.active)
+        try:
+            if binding.node.tag == 'OpArgNode':
+                return self.operator_argument(binding.node, args, caller, binding.env, b, n)
+            if args:
+                raise CompileError('nonoperator syntax argument applied')
+            return self.expr(binding.node, binding.env, b, n)
+        finally:
+            self.active = previous
+
     def operator_argument(self, argument, args, caller, context, b, n):
         target = self.g.resolve(argument.find('argument')[0])
         binding = context.get(target.uid)
         if isinstance(binding, SyntaxBinding) and binding.node.tag == 'OpArgNode':
-            return self.operator_argument(binding.node, args, caller, binding.env, b, n)
+            return self.expand_binding(binding, args, caller, b, n)
         if isinstance(binding, ExpressionBinding):
             if len(args) != binding.arity:
                 raise CompileError('operator argument arity mismatch')
@@ -505,7 +516,7 @@ class UniversalCompiler:
             if target.node.find('recursive') is not None:
                 return self.recursive(target, params, args, context, b, n, argument_env=caller)
             extended = dict(context)
-            extended.update({p.findtext('UID'): SyntaxBinding(a, caller) for p, a in zip(params, args)})
+            extended.update({p.findtext('UID'): SyntaxBinding(a, caller, tuple(self.active)) for p, a in zip(params, args)})
             return self.expr(target.body, extended, b, n)
         raise CompileError(f'unsupported operator argument target: {target.name}')
 
