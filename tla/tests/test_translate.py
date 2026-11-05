@@ -89,3 +89,8 @@ class TranslationTests(unittest.TestCase):
             result = compile_file(root / 'Shared.tla')
             self.assertLess(len(result), 15000)
             self.assertIn('_root_.TLAImported.«Shared».«D10»', result)
+
+    def test_recursive_operator_parameters(self):
+        result = compile_file('tests/fixtures/HigherRecursive.tla')
+        self.assertIn('def «Fold»', result)
+        self.assertIn('TLAUniversal.recursiveOperator', result)
