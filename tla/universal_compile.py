@@ -679,7 +679,7 @@ class UniversalCompiler:
         certificate_name = declaration_name('Certificate')
         namespace = 'TLAImported.' + ident(self.g.root.name)
         lines = ['module', 'public import TLAUniversal', '', 'open TLAUniversal Classical',
-                 'set_option autoImplicit false', f'namespace {namespace}', '@[expose] public noncomputable section', f'structure {constants_type} where']
+                 'set_option autoImplicit false', 'set_option maxHeartbeats 1000000', f'namespace {namespace}', '@[expose] public noncomputable section', f'structure {constants_type} where']
         for constant in self.g.constants():
             ty = ' → '.join(['_root_.TLAUniversal.Value'] * (constant.arity + 1))
             lines.append(f'  {ident(constant.name)} : {ty}')
