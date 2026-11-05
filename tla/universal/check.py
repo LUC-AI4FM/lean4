@@ -24,6 +24,8 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         code = compile_file(source, includes=[root.parent / 'tests' / 'corpus' / 'tlaps'])
         if source.name == 'Counter.tla':
             code += (root / 'CounterProof.txt').read_text()
+        if source.name == 'Recursive.tla':
+            code += (root / 'RecursiveProof.txt').read_text()
         if source.name == 'RealNumbers.tla':
             code = code.replace('import TLAUniversal', 'import TLAUniversal\nimport Mathlib.Tactic.NormNum')
             code += (root / 'RealProof.txt').read_text()

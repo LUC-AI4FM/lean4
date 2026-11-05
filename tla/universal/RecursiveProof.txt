@@ -1,0 +1,7 @@
+
+example (c : Recursive.Constants) (b : Behavior) (n : Nat) :
+    Recursive.Fact (fun _ _ => integer 0) c b n = integer 1 := by
+  unfold Recursive.Fact
+  apply recursiveOperator_base
+  intro g
+  simp only [truth_boolean, if_pos rfl]

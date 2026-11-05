@@ -96,3 +96,10 @@ at 0e32a039a4286cc3e1b0f70c00eaff3178d49f85: DieHard, CoffeeCan,
 DiningPhilosophers and Bakery. Their source provenance and licenses are retained.
 Bakery's TLAPS pragma dependency is pinned separately with its BSD license;
 pragma hints do not discharge generated Lean obligations.
+
+Run 41966351016 passed at 0f47e67: shared operator output avoids Bakery's
+elaboration timeout, all four upstream corpus modules elaborate, structured
+proof certificates check, mutual recursion imports, and the common rational-cut
+numeric encoding has checked injectivity and decoding proofs. Integration of
+that encoding into real/integer arithmetic is in the next CI gate. The source
+CLI now defaults to universal values; the typed backend is an explicit option.

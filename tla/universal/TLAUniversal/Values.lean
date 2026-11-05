@@ -102,6 +102,13 @@ theorem mem_domain (f x : Value) : x ∈ domain f ↔ ∃ y, ZFSet.pair x y ∈ 
     apply ZFSet.mem_sUnion.mpr
     exact ⟨ZFSet.pair x y, hy, by simp [ZFSet.pair]⟩
 
+theorem function_congr (set : Value) (f g : Value → Value)
+    (h : ∀ x ∈ set, f x = g x) : function set f = function set g := by
+  unfold function image
+  apply congrArg ZFSet.range
+  funext x
+  rw [h x.val x.property]
+
 theorem domain_function (set : Value) (f : Value → Value) :
     domain (function set f) = set := by
   ext x
@@ -251,6 +258,28 @@ theorem recursiveOperator_witness (body : Value → Value → Value) (x : Value)
     ∃ g, x ∈ domain g ∧ fixes body g ∧ recursiveOperator body x = apply g x := by
   have h := choose_spec (fun g => x ∈ domain g ∧ fixes body g) existsGraph
   exact ⟨_, h.1, h.2, rfl⟩
+
+theorem recursiveOperator_base (body : Value → Value → Value) (x value : Value)
+    (base : ∀ g, body x g = value) : recursiveOperator body x = value := by
+  have witness : ∃ g, x ∈ domain g ∧ fixes body g := by
+    refine ⟨function {x} (fun _ => value), ?_, ?_⟩
+    · rw [domain_function]
+      simp
+    · intro h _
+      rw [domain_function]
+      apply function_congr
+      intro y hy
+      have eq : y = x := by simpa using hy
+      subst y
+      exact (base h).symm
+  obtain ⟨g, hx, hg, result⟩ := recursiveOperator_witness body x witness
+  rw [result]
+  have eq := hg g (by intro y _; rfl)
+  calc
+    apply g x = apply (function (domain g) (fun y => body y g)) x :=
+      congrArg (fun f => apply f x) eq
+    _ = body x g := apply_function _ _ _ hx
+    _ = value := base g
 
 theorem recursiveOperator_constant (value x : Value) :
     recursiveOperator (fun _ _ => value) x = value := by
