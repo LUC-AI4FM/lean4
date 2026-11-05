@@ -85,3 +85,41 @@ Linux asset tlapm-1.6.0-pre-x86_64-linux-gnu.tar.gz, 51958583 bytes, SHA256
 source commit. Use a pinned/checksummed offloaded workflow for reference runs;
 do not run substantive prover workloads on the Mac. Baseline workflow has not
 yet been implemented. Native goal remains active; the full port is incomplete.
+
+Continuation checkpoint (2026-11-05):
+- Strict TLAPS baseline 42057966135 completed: reference binary efe4f2d,
+  213 reported proved, including 13 explicitly false known soundness tests.
+  200 non-negative reference-proved candidates are recorded in
+  tests/proofs/reference-baseline.json. False reference successes remain
+  negative tests, not compatibility targets. Four reference inputs timed out.
+- Second Lean audit 42057016191 at 3f595c9 completed all 379 inputs:
+  90 checked, 134 Lean-rejected, 95 translation-rejected, 37 no claims,
+  21 timed out, TWO false inputs accepted. Among the 200 reference positives:
+  80 checked, 82 Lean-rejected, 20 translation-rejected, 17 timeouts, one
+  module USE-only input with no generated claim.
+- The two accepted false claims concern aliased module instantiation under
+  strong fairness and guarantees (-+->). This revealed a compiler semantics
+  defect, not a Lean kernel defect. 97f2f2d instantiates the free behavior
+  before binding original state coordinates; it disables cached instantiated
+  definitions inside that environment so substitution is not repeated.
+- CI 42061752128 at 97f2f2d confirmed positive instantiation/ENABLED proofs,
+  tuple binders, bounded witness annotations, and rejection of both false
+  instantiation regressions. It failed only the symbolic remainder test:
+  normalization changes the upper-bound goal to a strict inequality. The
+  direct checked Int.emod_lt_of_pos rule is now being added.
+- All 34 unchanged upstream soundness tests are in tests/proofs/negative;
+  d8ac1df also checks module-level USE facts, including USE FALSE rejection.
+- Current main CI 42062953878 at d8ac1df is running; the full 433-module
+  specification audit 42063087821 is running after the behavior-instantiation
+  fix. Revalidate both; the previous 433/433 result predates this change.
+- Reference artifacts: /private/tmp/tlaps-reference-42057966135.
+  Second audit artifacts: /private/tmp/tlaps-proof-audit-42057016191/full.
+  GitHub had transient commit_refs_rules/HTTP 500 errors; ordinary retries
+  succeeded, without force pushes or changing access policy.
+
+Remaining scope is still the full proof port. In addition to backend coverage,
+remaining issues include CASE-step references, temporal fact scopes, module
+instantiation/level correctness beyond the captured regressions, and source
+syntax accepted by TLAPM but rejected by the pinned SANY frontend. Do not mark
+complete on the 200-case subset, on parser acceptance, or on theorem statements
+whose source proof steps were not reconstructed and checked.
