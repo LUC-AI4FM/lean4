@@ -52,7 +52,7 @@ class Renderer:
             if symbol.uid in self.compiler.emitted:
                 unfold.append(self.compiler.emitted[symbol.uid][0])
         return [indent + 'simp_all only [' + ', '.join(dict.fromkeys(unfold)) + ']',
-                indent + 'all_goals first | omega | (solve | norm_num) | aesop (add safe (by omega), norm (by tla_choice))']
+                indent + 'all_goals first | omega | (solve | norm_num) | (solve | apply _root_.TLAUniversal.natural_induction <;> aesop (add safe (by omega), norm (by tla_choice))) | aesop (add safe (by omega), norm (by tla_choice))']
 
     def open_statement(self, node, env, indent):
         env = dict(env)

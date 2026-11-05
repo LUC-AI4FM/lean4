@@ -5,3 +5,4 @@ public import TLAUniversal.Numbers
 public import TLAUniversal.HigherRecursion
 public import TLAUniversal.FunctionProofs
 public import TLAUniversal.ProofAutomation
+public import TLAUniversal.InductionProofs
