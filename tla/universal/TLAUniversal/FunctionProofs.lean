@@ -298,6 +298,26 @@ theorem record_isFunc (fields : List (String × Value)) (range : Value)
   rw [hv]
   exact hr selected hs
 
+theorem record_eta (fields : List (String × Value)) (f range : Value)
+    (hf : ZFSet.IsFunc (enumerate (fields.map (fun field => string field.1))) range f)
+    (values : ∀ field ∈ fields, apply f (string field.1) = field.2) :
+    f = record fields := by
+  have member (field : String × Value) (h : field ∈ fields) :
+      string field.1 ∈ enumerate (fields.map (fun field => string field.1)) :=
+    (mem_enumerate _ _).mpr (List.mem_map.mpr ⟨field, h, rfl⟩)
+  have hr : ∀ field ∈ fields, field.2 ∈ range := by
+    intro field h
+    rw [← values field h]
+    exact apply_mem hf (member field h)
+  apply function_ext hf (record_isFunc fields range hr)
+  intro key hk
+  obtain ⟨field, h, rfl⟩ := List.mem_map.mp ((mem_enumerate _ _).mp hk)
+  rw [values field h]
+  symm
+  apply apply_record fields field.1 field.2 h
+  intro other ho eq
+  rw [← values other ho, ← values field h, eq]
+
 theorem mem_recordSpace (f : Value) (fields : List (String × Value)) :
     f ∈ recordSpace fields ↔
       ZFSet.IsFunc (enumerate (fields.map (fun field => string field.1)))
