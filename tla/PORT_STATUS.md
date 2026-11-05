@@ -133,3 +133,12 @@ The LOCAL INSTANCE audit exposed copied declaration locations in standard
 libraries; source-body provenance now resolves them, with Randomization and
 Toolbox fixtures queued. A source THEOREM FALSE / OBVIOUS certificate regression
 adds a direct check that source proof hints cannot manufacture a Lean proof.
+
+The broader library audit added all exported bag and sequence operations,
+Randomization and Toolbox. It found and fixed an unconstrained Lean universe
+in boolean-only equality. Separate-file verification also caught generated
+private declarations; both backends now export public, exposed definitions and
+compile a consumer proof file. The typed consumer check passes locally. Universal
+sequence length, source hiding/guarantees, and nested parameterized INSTANCE
+proofs are in the current CI gate. Local suite: 33 tests plus native and typed
+source/consumer proofs pass. Full compatibility is not claimed by these results.

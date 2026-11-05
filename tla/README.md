@@ -15,8 +15,9 @@ python3 tools.py
 cd universal
 lake update
 lake exe cache get
+lake build
 python3 ../translate.py ../tests/Counter.tla -o Counter.lean
-lake env lean Counter.lean
+lake env lean -o .lake/build/lib/lean/Counter.olean Counter.lean
 python3 check.py
 ```
 
@@ -61,7 +62,10 @@ source backend explicitly with `translate.py --backend typed`.
 
 `universal/CounterProof.txt` proves the unchanged counter source specification's
 invariant, including stuttering. Append it to the generated counter module to
-check the proof. `tests/Native.lean`, `tests/Data.lean` and `tests/Temporal.lean`
+check the proof. Generated definitions are public and exposed, so a separate
+proof file can also begin with `module`, `import Counter`, and
+`open TLAUniversal`, then contain that proof. Both backends test this separate
+import path. `tests/Native.lean`, `tests/Data.lean` and `tests/Temporal.lean`
 exercise the typed native APIs. Both CI jobs reject deliberately false proofs.
 
 Source `ASSUME` and `THEOREM` statements become explicit assumptions and claims.

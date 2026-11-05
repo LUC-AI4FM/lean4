@@ -16,6 +16,7 @@ def run(*args):
 
 run(lake, 'build')
 run(sys.executable, '-m', 'unittest', 'discover', '-s', 'tests')
+run(sys.executable, 'audit_standard.py')
 run(lake, 'env', 'lean', 'tests/Native.lean')
 run(lake, 'env', 'lean', 'tests/Data.lean')
 run(lake, 'env', 'lean', 'tests/Temporal.lean')

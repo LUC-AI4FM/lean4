@@ -42,3 +42,8 @@ class ReferenceTests(unittest.TestCase):
         result = self.check_fixture('SequenceOperations', 'LengthLaw /\\ FirstLaw')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn('No error has been found', result.stdout)
+
+    def test_reference_agrees_with_signed_division(self):
+        result = self.check_fixture('ArithmeticOperations', 'DivisionLaw')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('No error has been found', result.stdout)
