@@ -52,7 +52,8 @@ class Renderer:
             if symbol.uid in self.compiler.emitted:
                 unfold.append(self.compiler.emitted[symbol.uid][0])
         simplifiers = ', '.join(dict.fromkeys(unfold))
-        return [indent + 'first | simp_all only [' + simplifiers + '] | simp only [' + simplifiers + '] at *',
+        return [indent + 'try (solve | trivial)',
+                indent + 'all_goals first | simp_all only [' + simplifiers + '] | simp only [' + simplifiers + '] at *',
                 indent + 'all_goals first | omega | (solve | norm_num) | (solve | tla_temporal_induction <;> aesop (add safe (by omega), norm (by tla_choice))) | (solve | apply _root_.TLAUniversal.natural_induction <;> aesop (add safe (by omega), norm (by tla_choice))) | aesop (add safe (by omega), norm (by tla_choice))']
 
     def open_statement(self, node, env, indent):
@@ -349,6 +350,7 @@ def compile_proofs(source, **kwargs):
                   'mem_enumerate mem_image caseValue apply_function domain_function function_isFunc_iff '
                   'domain_update update_same update_other updatePath '
                   'domain_tuple apply_tuple_at tuple_eq_iff length_tuple '
+                  'prepend_tuple mem_cartesian_cons mem_cartesian_nil '
                   'string_eq_iff string_mem domain_record').split()
     lines.append('attribute [local simp] ' + ' '.join(
         '_root_.TLAUniversal.' + name for name in normalized)

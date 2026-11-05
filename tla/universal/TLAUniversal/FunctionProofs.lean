@@ -156,4 +156,36 @@ theorem diagonal_ne (s f x : Value) (hx : x ∈ s) :
 theorem exists_container (x : Value) : ∃ s : Value, x ∈ s :=
   ⟨enumerate [x], (mem_enumerate _ _).mpr (by simp)⟩
 
+theorem prepend_tuple (x : Value) (values : List Value) :
+    prepend x (tuple values) = tuple (x :: values) := by
+  unfold prepend
+  rw [length_tuple, toInt_integer]
+  conv_rhs => unfold tuple
+  simp only [List.length_cons, Nat.cast_add, Nat.cast_one]
+  apply function_congr
+  intro key hkey
+  obtain ⟨k, rfl⟩ := (mem_integers _).mp (ZFSet.mem_sep.mp hkey).1
+  have bounds := (integer_mem_interval _ _ _).mp hkey
+  simp only [toInt_integer]
+  by_cases hk : k = 1
+  · subst k
+    simp
+  · rw [if_neg hk, apply_tuple_at values (k - 1) (by omega)]
+    have shift : (k - 1).toNat = (k - 2).toNat + 1 := by omega
+    have subtract : k - 1 - 1 = k - 2 := by omega
+    rw [subtract, shift, List.getElem?_cons_succ]
+
+theorem mem_cartesian_cons (x first : Value) (rest : List Value) :
+    x ∈ cartesian (first :: rest) ↔
+      ∃ head ∈ first, ∃ tail ∈ cartesian rest, prepend head tail = x := by
+  simp only [cartesian, ZFSet.mem_sUnion, mem_image]
+  constructor
+  · rintro ⟨_, ⟨head, hh, rfl⟩, tail, ht, eq⟩
+    exact ⟨head, hh, tail, ht, eq⟩
+  · rintro ⟨head, hh, tail, ht, eq⟩
+    exact ⟨image (cartesian rest) (prepend head), ⟨head, hh, rfl⟩, tail, ht, eq⟩
+
+theorem mem_cartesian_nil (x : Value) : x ∈ cartesian [] ↔ x = tuple [] := by
+  simp [cartesian, mem_enumerate]
+
 end TLAUniversal

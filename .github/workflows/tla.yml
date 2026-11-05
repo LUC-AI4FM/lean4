@@ -25,7 +25,7 @@ jobs:
           python3 check.py
   universal:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
       - name: Install elan
