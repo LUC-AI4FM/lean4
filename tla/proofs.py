@@ -98,6 +98,14 @@ class Renderer:
                 break
         return goal
 
+    def binder_refs(self, goal):
+        goal = self.goal_body(goal)
+        if goal is None or goal.tag != 'OpApplNode' or goal.find('boundSymbols') is None:
+            return []
+        group = goal.find('boundSymbols')[0]
+        refs = [x.findtext('UID') for x in group.findall('FormalParamNodeRef')]
+        return refs if group.find('tuple') is not None else refs[:1]
+
     def consume_binder(self, goal):
         goal = self.goal_body(goal)
         if goal is None or goal.tag != 'OpApplNode' or goal.find('boundSymbols') is None:
@@ -173,21 +181,27 @@ class Renderer:
                 for group in body.find('boundSymbols'):
                     if group.find('tuple') is not None:
                         refs = group.findall('FormalParamNodeRef')
+                        goal_refs = self.binder_refs(goal)
                         _, goal = self.consume_binder(goal)
                         variable = 'taken_tuple_' + refs[0].findtext('UID')
                         lines.append(indent + 'intro ' + variable)
                         for component, ref in enumerate(refs, 1):
                             env[ref.findtext('UID')] = ValueBinding(
                                 f'(_root_.TLAUniversal.apply {variable} (_root_.TLAUniversal.integer {component}))')
+                        for original, ref in zip(goal_refs, refs):
+                            env[original] = env[ref.findtext('UID')]
                         if group.tag != 'unbound':
                             lines.append(indent + 'intro bound_' + variable)
                         continue
                     for ref in group.findall('FormalParamNodeRef'):
                         uid = ref.findtext('UID')
+                        goal_refs = self.binder_refs(goal)
                         _, goal = self.consume_binder(goal)
                         variable = 'taken_' + uid
                         lines.append(indent + 'intro ' + variable)
                         env[uid] = ValueBinding(variable)
+                        for original in goal_refs:
+                            env[original] = env[uid]
                         if group.tag != 'unbound':
                             lines.append(indent + 'intro bound_' + uid)
                 continue
@@ -298,7 +312,9 @@ def compile_proofs(source, **kwargs):
         + ' _root_.ZFSet.zftrue_ne_zffalse')
     lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.remainder_nonnegative '
                  '_root_.TLAUniversal.remainder_upper _root_.Int.emod_lt_of_pos '
-                 '_root_.TLAUniversal.exists_state_pair')
+                 '_root_.TLAUniversal.exists_state_pair '
+                 '_root_.TLAUniversal.separation_subset '
+                 '_root_.TLAUniversal.exists_nat_of_nonneg')
     lines.append('attribute [local aesop safe forward] _root_.TLAUniversal.domain_isFunc '
                  '_root_.TLAUniversal.apply_mem')
     lines.append('attribute [local aesop unsafe 50% apply] _root_.TLAUniversal.function_ext '

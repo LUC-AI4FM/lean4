@@ -136,4 +136,11 @@ theorem apply_record (fields : List (String × Value)) (key : String) (value : V
   · apply (mem_enumerate _ _).mpr
     exact List.mem_map.mpr ⟨(key, value), member, rfl⟩
 
+theorem separation_subset (s : Value) (p : Value → Prop) : s.sep p ⊆ s := by
+  intro x hx
+  exact (ZFSet.mem_sep.mp hx).1
+
+theorem exists_nat_of_nonneg (z : Int) (h : 0 ≤ z) : ∃ n : Nat, (n : Int) = z :=
+  ⟨z.toNat, Int.toNat_of_nonneg h⟩
+
 end TLAUniversal
