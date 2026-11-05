@@ -104,7 +104,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
     # The proof CLI writes an artifact only after Lean accepts its proof terms.
     proof_output = Path(directory) / 'CheckedProofs.lean'
     proof_sources = [root.parent / 'tests/proofs' / (name + '.tla') for name in
-                     ('RecordEquality', 'imported/ImportedLaw', 'TemporalInduction', 'StateGeneralization', 'NaturalInduction', 'CaseReferences', 'Leaves', 'ProofShapes', 'DefinitionScope', 'Arithmetic', 'LocalDefinition', 'LevelBinders', 'Foundation', 'BoundedWitness', 'TupleBinders', 'SymbolicArithmetic', 'InstanceBinding', 'ModuleUse')]
+                     ('FunctionRange', 'RecordEquality', 'imported/ImportedLaw', 'TemporalInduction', 'StateGeneralization', 'NaturalInduction', 'CaseReferences', 'Leaves', 'ProofShapes', 'DefinitionScope', 'Arithmetic', 'LocalDefinition', 'LevelBinders', 'Foundation', 'BoundedWitness', 'TupleBinders', 'SymbolicArithmetic', 'InstanceBinding', 'ModuleUse')]
     proof_sources += sorted((root.parent / 'tests/proofs/upstream').glob('*.tla'))
     for proof_source in proof_sources:
         proof_fixture = proof_source.stem
@@ -134,7 +134,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
                 failures.append('proof certificate consumer: ' + proof_fixture)
                 print(imported.stdout + imported.stderr, flush=True)
             print('PASS source proof reconstruction: ' + proof_fixture, flush=True)
-    negative_sources = [root.parent / 'tests/proofs' / (name + '.tla') for name in ('FalseRecordEquality', 'imported/FalseImportedLaw', 'FalseTemporalInduction', 'FalseStateGeneralization', 'FalseInduction', 'FalseHave', 'FalseCaseReferences', 'FalseChoice', 'FalseLeaf', 'FalseStep', 'FalseArithmetic', 'FalseSymbolicArithmetic', 'FalseWitness', 'FalseModuleUse', 'Omitted')]
+    negative_sources = [root.parent / 'tests/proofs' / (name + '.tla') for name in ('FalseFunctionRange', 'FalseRecordEquality', 'imported/FalseImportedLaw', 'FalseTemporalInduction', 'FalseStateGeneralization', 'FalseInduction', 'FalseHave', 'FalseCaseReferences', 'FalseChoice', 'FalseLeaf', 'FalseStep', 'FalseArithmetic', 'FalseSymbolicArithmetic', 'FalseWitness', 'FalseModuleUse', 'Omitted')]
     negative_sources += sorted((root.parent / 'tests/proofs/negative').glob('*.tla'))
     for negative_source in negative_sources:
         proof_fixture = negative_source.stem
