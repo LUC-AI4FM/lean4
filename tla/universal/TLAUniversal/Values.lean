@@ -81,6 +81,32 @@ theorem integer_mem_interval (value lo hi : Int) :
     integer value ∈ interval (integer lo) (integer hi) ↔ lo ≤ value ∧ value ≤ hi := by
   simp only [interval, ZFSet.mem_sep, integer_mem, toInt_integer, true_and]
 
+theorem integer_mem_naturals (n : Int) : integer n ∈ naturals ↔ 0 ≤ n := by
+  simp only [naturals, ZFSet.mem_sep, integer_mem, toInt_integer, true_and]
+
+theorem mem_naturals (value : Value) : value ∈ naturals ↔ ∃ n : Nat, integer n = value := by
+  constructor
+  · intro h
+    obtain ⟨hi, hn⟩ := ZFSet.mem_sep.mp h
+    obtain ⟨k, rfl⟩ := ZFSet.mem_range.mp hi
+    rw [toInt_integer] at hn
+    exact ⟨k.toNat, congrArg integer (Int.toNat_of_nonneg hn)⟩
+  · rintro ⟨n, rfl⟩
+    exact (integer_mem_naturals _).mpr (by omega)
+
+theorem interval_nat_injective (a b : Nat)
+    (h : interval (integer 1) (integer a) = interval (integer 1) (integer b)) : a = b := by
+  have bound : ∀ k l : Nat, interval (integer 1) (integer k) = interval (integer 1) (integer l) → k ≤ l := by
+    intro k l eq
+    by_cases hk : k = 0
+    · omega
+    · have member : integer k ∈ interval (integer 1) (integer k) :=
+        (integer_mem_interval _ _ _).mpr ⟨by omega, by omega⟩
+      rw [eq] at member
+      have := (integer_mem_interval _ _ _).mp member
+      omega
+  exact Nat.le_antisymm (bound a b h) (bound b a h.symm)
+
 def image (domain : Value) (f : Value → Value) : Value :=
   ZFSet.range (fun x : domain => f x.val)
 
@@ -216,6 +242,21 @@ theorem apply_tuple (values : List Value) (index : Nat) (h : index < values.leng
 
 def length (sequence : Value) : Value :=
   choose (fun n => n ∈ naturals ∧ domain sequence = interval (integer 1) n)
+
+theorem length_tuple (values : List Value) : length (tuple values) = integer values.length := by
+  have witness : integer values.length ∈ naturals ∧
+      domain (tuple values) = interval (integer 1) (integer values.length) := by
+    exact ⟨(integer_mem_naturals _).mpr (by omega), domain_function _ _⟩
+  have chosen := choose_spec
+    (fun n => n ∈ naturals ∧ domain (tuple values) = interval (integer 1) n)
+    ⟨integer values.length, witness⟩
+  change length (tuple values) ∈ naturals ∧
+    domain (tuple values) = interval (integer 1) (length (tuple values)) at chosen
+  obtain ⟨k, hk⟩ := (mem_naturals _).mp chosen.1
+  have domains := chosen.2
+  rw [← hk, witness.2] at domains
+  have equal := interval_nat_injective values.length k domains
+  rw [← hk, ← equal]
 
 def sequences (elements : Value) : Value :=
   ZFSet.sUnion (ZFSet.range (fun n : Nat => (interval (integer 1) (integer n)).funs elements))

@@ -7,4 +7,12 @@ Count == BagCardinality(Bag)
 Copies == CopiesIn(1, Bag)
 Joined == Bag (+) Bag
 Filtered == BagOfAll(Positive, Bag)
+Valid == IsABag(Bag)
+Elements == BagToSet(Bag)
+Contains == BagIn(1, Bag)
+Empty == EmptyBag
+Difference == Joined (-) Bag
+Union == BagUnion({Bag, Joined})
+Included == Bag \sqsubseteq Joined
+Subbags == SubBag(Bag)
 ====

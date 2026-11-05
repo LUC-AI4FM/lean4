@@ -37,3 +37,8 @@ class ReferenceTests(unittest.TestCase):
         result = self.check_fixture('ValueLaws', '~TupleRead')
         self.assertNotEqual(result.returncode, 0)
         self.assertTrue('Invariant Checks is violated' in result.stdout or 'invariant of Checks is equal to FALSE' in result.stdout, result.stdout + result.stderr)
+
+    def test_reference_agrees_with_sequence_laws(self):
+        result = self.check_fixture('SequenceOperations', 'LengthLaw /\\ FirstLaw')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('No error has been found', result.stdout)

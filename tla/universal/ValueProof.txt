@@ -13,3 +13,8 @@ example (c : ValueLaws.Constants) (b : Behavior) (n : Nat) :
   simp only [ValueLaws.FunctionRead, ValueLaws.Identity, truth_boolean]
   apply apply_function
   simp [mem_enumerate]
+
+example (c : ValueLaws.Constants) (b : Behavior) (n : Nat) :
+    truth (ValueLaws.BooleanEquality c b n) ∧ truth (ValueLaws.BooleanSet c b n) ∧
+    truth (ValueLaws.BooleanFalse c b n) := by
+  simp [ValueLaws.BooleanEquality, ValueLaws.BooleanSet, ValueLaws.BooleanFalse, truth_boolean]

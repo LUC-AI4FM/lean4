@@ -426,8 +426,8 @@ class UniversalCompiler:
             return value
         values = [self.expr(a, env, b, n) for a in args]
         def call(fn): return '(' + ' '.join([fn, *values]) + ')'
-        if name in ('TRUE', 'FALSE'): return 'ZFSet.zftrue' if name == 'TRUE' else 'ZFSet.zffalse'
-        if name == 'BOOLEAN': return 'ZFSet.𝔹'
+        if name in ('TRUE', 'FALSE'): return '(ZFSet.zftrue : Value)' if name == 'TRUE' else '(ZFSet.zffalse : Value)'
+        if name == 'BOOLEAN': return '(ZFSet.𝔹 : Value)'
         if name == 'STRING': return 'strings'
         if name in ('=', '/='):
             return f'(boolean ({values[0]} {"=" if name == "=" else "≠"} {values[1]}))'
