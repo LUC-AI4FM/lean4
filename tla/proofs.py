@@ -208,6 +208,9 @@ class Renderer:
             if name == '$Witness':
                 lines.append(indent + 'first | apply (_root_.TLAUniversal.truth_boolean _).2 | skip')
                 for argument in args:
+                    goal_refs = self.binder_refs(goal)
+                    binder = self.goal_body(goal)
+                    tuple_binder = bool(goal_refs) and binder.find('boundSymbols')[0].find('tuple') is not None
                     bounded, goal = self.consume_binder(goal)
                     if bounded and argument.tag == 'OpApplNode' and self.graph.operator(argument).name == '\\in':
                         lines.append(indent + f'have witness_bound_{index} : '
@@ -220,6 +223,14 @@ class Renderer:
                     lines.append(indent + '| refine And.intro (by')
                     lines += self.leaf(ET.Element('obvious'), indent + '    ')
                     lines.append(indent + f'    ) (Exists.intro {value} ?_)')
+                    if bounded:
+                        lines.append(indent + 'refine And.intro (by')
+                        lines += self.leaf(ET.Element('obvious'), indent + '  ')
+                        lines.append(indent + '  ) ?_')
+                    for component, original in enumerate(goal_refs, 1):
+                        env[original] = ValueBinding(
+                            f'(_root_.TLAUniversal.apply {value} (_root_.TLAUniversal.integer {component}))'
+                            if tuple_binder else value)
                 continue
             if name == '$Pick':
                 existential = self.compiler.expr(body, env, operator_override='$UnboundedExists')
