@@ -17,13 +17,14 @@ def main():
     parser.add_argument('source', type=Path)
     parser.add_argument('-o', '--output', type=Path, required=True)
     parser.add_argument('-I', '--include', type=Path, action='append', default=[])
+    parser.add_argument('--trace', action='store_true', help='Show generated leaf goals for proof diagnostics')
     parser.add_argument('--timeout', type=int, default=120)
     args = parser.parse_args()
     if args.timeout <= 0:
         parser.error('timeout must be positive')
     root = Path(__file__).resolve().parent
     try:
-        code = compile_proofs(args.source, includes=args.include)
+        code = compile_proofs(args.source, includes=args.include, trace=args.trace)
         with tempfile.TemporaryDirectory(prefix='proof-check-', dir=root / 'universal') as directory:
             target = Path(directory) / 'Proof.lean'
             target.write_text(code)
@@ -31,6 +32,8 @@ def main():
                                     cwd=root / 'universal', timeout=args.timeout)
             if result.returncode:
                 parser.exit(1, 'tla-proof: Lean rejected the generated proof:\n' + result.stdout + result.stderr)
+        if args.trace:
+            print(result.stdout, end='')
         # Preserve existing output when translation or checking fails.
         args.output.write_text(code)
     except subprocess.TimeoutExpired as error:

@@ -24,10 +24,13 @@ def proof_node(theorem, *, implicit=False):
 
 
 class Renderer:
-    def __init__(self, compiler, unfold):
+    def __init__(self, compiler, unfold, trace=False, claim=0):
         self.compiler = compiler
         self.graph = compiler.g
         self.unfold = unfold
+        self.trace = trace
+        self.claim = claim
+        self.leaves = 0
 
     def proposition(self, node, env):
         return '_root_.TLAUniversal.truth ' + qualify(self.compiler.expr(node, env))
@@ -58,7 +61,10 @@ class Renderer:
                 unfold.append(self.compiler.emitted[symbol.uid][0])
         simplifiers = ', '.join(dict.fromkeys(unfold))
         direct_simplifiers = ', '.join(dict.fromkeys(self.unfold + ['_root_.TLAUniversal.truth_boolean']))
-        return [indent + 'try (solve | trivial)',
+        self.leaves += 1
+        tracing = ([indent + f'trace \"TLA claim {self.claim} leaf {self.leaves}\"',
+                    indent + 'trace_state'] if self.trace else [])
+        return tracing + [indent + 'try (solve | trivial)',
                 indent + 'try (solve | simp only [' + direct_simplifiers + ']; apply _root_.TLAUniversal.record_mem_singletonSpace; decide)',
                 indent + 'try (solve | simp (config := { maxSteps := 10000 }) [' + simplifiers + '])',
                 indent + 'all_goals simp only [' + simplifiers + '] at *',
@@ -338,7 +344,7 @@ class Renderer:
         raise ProofError('hierarchical proof has no final QED')
 
 
-def compile_proofs(source, **kwargs):
+def compile_proofs(source, *, trace=False, **kwargs):
     graph = parse_file(source, **kwargs)
     compiler = UniversalCompiler(graph)
     code = compiler.compile()
@@ -427,7 +433,7 @@ def compile_proofs(source, **kwargs):
         for previous in range(index):
             lines.append(f'  have prior_{previous} := {names[previous]} c')
             unfold.append(exports['claims'][previous])
-        renderer = Renderer(compiler, unfold)
+        renderer = Renderer(compiler, unfold, trace=trace, claim=index)
         opened, environment = renderer.open_statement(theorem.body, {}, '  ')
         lines += opened + renderer.render(proof, environment, goal=theorem.body)
     lines += [f'def {exports["certificate_proof"]} (c : {exports["constants"]}) : '

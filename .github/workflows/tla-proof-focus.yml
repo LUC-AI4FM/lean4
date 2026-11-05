@@ -10,6 +10,10 @@ on:
         description: 'Seconds per positive proof (1–600); negatives keep their 15-second limit'
         required: true
         default: '60'
+      proof_trace:
+        description: 'Trace generated proof leaf goals for diagnostics'
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -35,6 +39,7 @@ jobs:
         env:
           PROOF_SOURCES: ${{ inputs.sources }}
           PROOF_TIMEOUT: ${{ inputs.proof_timeout }}
+          PROOF_TRACE: ${{ inputs.proof_trace }}
         run: |
           python3 - <<'PY'
           import os
@@ -66,7 +71,8 @@ jobs:
                           print('FAIL parser preflight ' + entry + ': ' + str(error), flush=True)
                           continue
                   output.write_text('preserve existing output')
-                  result = subprocess.run([sys.executable, 'prove.py', str(source),
+                  trace_options = ['--trace'] if os.environ.get('PROOF_TRACE') == 'true' else []
+                  result = subprocess.run([sys.executable, 'prove.py', str(source), *trace_options,
                       '--timeout', '15' if reject else str(proof_timeout), '-I', 'tests/corpus/tlaps',
                       '-o', str(output)], capture_output=True, text=True, timeout=max(100, proof_timeout + 90))
                   passed = result.returncode != 0 if reject else result.returncode == 0
