@@ -81,3 +81,10 @@ mixed collections, records, temporal hiding, tuple binders, products and CASE.
 The next gate adds a source Counter invariant proof and parameterized native
 exports. Control-character strings now use a lossless SANY adapter when the
 official XML 1.0 serializer fails; source files remain unchanged.
+
+Run 41964655689 passed at 5aec0b8: the universal Counter source invariant is
+kernel-checked, parameterized operators are exported, and control strings pass
+both frontend and Lean checks. Recursive operator implementation now follows
+Gonthier–Lamport's fixing-graph semantics (recursive-ops.pdf section 3.1), not an
+unconditional fixed-point equation. Recursive function definitions use CHOOSE.
+Higher-order and mutually recursive operators remain open coverage gates.

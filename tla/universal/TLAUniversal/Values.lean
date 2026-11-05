@@ -3,6 +3,7 @@ module
 public import TLA.Basic
 public import ZFLean.Booleans
 public import ZFLean.Integers
+public import Mathlib.SetTheory.Cardinal.Finite
 
 @[expose] public noncomputable section
 namespace TLAUniversal
@@ -87,6 +88,19 @@ theorem mem_domain (f x : Value) : x ∈ domain f ↔ ∃ y, ZFSet.pair x y ∈ 
     apply ZFSet.mem_sUnion.mpr
     exact ⟨ZFSet.pair x y, hy, by simp [ZFSet.pair]⟩
 
+theorem domain_function (set : Value) (f : Value → Value) :
+    domain (function set f) = set := by
+  ext x
+  rw [mem_domain]
+  constructor
+  · rintro ⟨y, hy⟩
+    rw [function, mem_image] at hy
+    obtain ⟨a, ha, eq⟩ := hy
+    have h := (ZFSet.pair_inj.mp eq).1
+    exact h ▸ ha
+  · intro hx
+    exact ⟨f x, (mem_image _ _ _).mpr ⟨x, hx, rfl⟩⟩
+
 def update (f x y : Value) : Value :=
   function (domain f) (fun z => if z = x then y else apply f z)
 
@@ -104,6 +118,16 @@ def intBinary (op : Int → Int → Int) (x y : Value) : Value :=
 
 def intCompare (op : Int → Int → Prop) (x y : Value) : Value :=
   boolean (x ∈ ZFSet.Int ∧ y ∈ ZFSet.Int ∧ op (toInt x) (toInt y))
+
+def finite (set : Value) : Value := boolean (Finite set)
+
+def cardinality (set : Value) : Value :=
+  if Finite set then integer (Nat.card set) else undefined
+
+def intPower (base exponent : Value) : Value :=
+  if base ∈ ZFSet.Int ∧ exponent ∈ naturals then
+    integer ((toInt base) ^ (toInt exponent).toNat)
+  else undefined
 
 def tuple (values : List Value) : Value :=
   function (interval (integer 1) (integer values.length))
@@ -167,6 +191,38 @@ theorem intBinary_integer (op : Int → Int → Int) (a b : Int) :
     intBinary op (integer a) (integer b) = integer (op a b) := by
   unfold intBinary
   rw [if_pos ⟨integer_mem a, integer_mem b⟩, toInt_integer, toInt_integer]
+
+/-- Gonthier–Lamport's fixing condition, including agreement outside recursive calls. -/
+def fixes (body : Value → Value → Value) (g : Value) : Prop :=
+  ∀ h : Value, (∀ x ∈ domain g, apply h x = apply g x) →
+    g = function (domain g) (fun x => body x h)
+
+/-- Recursive operators choose a fixing graph containing the actual argument.
+See https://lamport.azurewebsites.net/pubs/recursive-ops.pdf, section 3.1. -/
+def recursiveOperator (body : Value → Value → Value) (x : Value) : Value :=
+  apply (choose (fun g => x ∈ domain g ∧ fixes body g)) x
+
+theorem recursiveOperator_witness (body : Value → Value → Value) (x : Value)
+    (existsGraph : ∃ g, x ∈ domain g ∧ fixes body g) :
+    ∃ g, x ∈ domain g ∧ fixes body g ∧ recursiveOperator body x = apply g x := by
+  have h := choose_spec (fun g => x ∈ domain g ∧ fixes body g) existsGraph
+  exact ⟨_, h.1, h.2, rfl⟩
+
+theorem recursiveOperator_constant (value x : Value) :
+    recursiveOperator (fun _ _ => value) x = value := by
+  have witness : ∃ g, x ∈ domain g ∧ fixes (fun _ _ => value) g := by
+    refine ⟨function {x} (fun _ => value), ?_, ?_⟩
+    · rw [domain_function]
+      simp
+    · intro h _
+      rw [domain_function]
+  obtain ⟨g, hx, hg, result⟩ := recursiveOperator_witness (fun _ _ => value) x witness
+  rw [result]
+  have eq := hg g (by intro y _; rfl)
+  calc
+    apply g x = apply (function (domain g) (fun _ => value)) x :=
+      congrArg (fun f => apply f x) eq
+    _ = value := apply_function _ _ _ hx
 
 /-- A native specification over the same untyped value universe as source specifications. -/
 def liftPredicate (p : State → Prop) : Expression := fun b n => boolean (p (b n))

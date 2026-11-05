@@ -14,6 +14,11 @@ class ValueBinding:
     code: str
 
 @dataclass
+class RecursiveBinding:
+    graph: str
+    arity: int
+
+@dataclass
 class StateBinding:
     key: str
 
@@ -49,7 +54,7 @@ class UniversalCompiler:
         operands.extend(args)
         return node
 
-    def expr(self, node, env=None, b='b', n='n'):
+    def expr(self, node, env=None, b='b', n='n', *, operator_override=None):
         env = {} if env is None else env
         if node.tag == 'NumeralNode':
             number = node.findtext('IntValue') or node.findtext('BigIntValue')
@@ -79,6 +84,12 @@ class UniversalCompiler:
         args = list(node.find('operands'))
         if symbol.uid in env:
             binding = env[symbol.uid]
+            if isinstance(binding, RecursiveBinding):
+                if len(args) != binding.arity:
+                    raise CompileError('recursive operator arity mismatch')
+                actuals = [self.expr(a, env, b, n) for a in args]
+                key = actuals[0] if len(actuals) == 1 else f'(tuple [{", ".join(actuals)}])'
+                return f'(apply {binding.graph} {key})'
             if isinstance(binding, StateBinding):
                 if args:
                     raise CompileError('flexible variable used as an operator')
@@ -109,7 +120,7 @@ class UniversalCompiler:
         if symbol.uid in self.consts:
             values = [self.expr(a, env, b, n) for a in args]
             return f'(c.{ident(symbol.name)} {" ".join(values)})'
-        name, origin = symbol.name, symbol.location
+        name, origin = operator_override or symbol.name, symbol.location
         body = symbol.node.find('body')
         if body is not None and len(body) == 1 and body[0].tag == 'SubstInNode':
             original = body[0].find('body')
@@ -128,6 +139,8 @@ class UniversalCompiler:
             params = symbol.node.findall('params/leibnizparam/FormalParamNodeRef')
             if len(params) != len(args):
                 raise CompileError(f'arity mismatch: {name}')
+            if symbol.node.find('recursive') is not None:
+                return self.recursive(symbol, params, args, env, b, n)
             extended = dict(env)
             extended.update({p.findtext('UID'): SyntaxBinding(a, env) for p, a in zip(params, args)})
             self.active.append(symbol.uid)
@@ -135,6 +148,15 @@ class UniversalCompiler:
                 return self.expr(symbol.body, extended, b, n)
             finally:
                 self.active.pop()
+        if name == '$RecursiveFcnSpec':
+            copy = ET.fromstring(ET.tostring(node))
+            unbound = copy.find('boundSymbols/unbound')
+            variable = self.fresh()
+            extended = dict(env)
+            extended[unbound[0].findtext('UID')] = ValueBinding(variable)
+            copy.find('boundSymbols').remove(unbound)
+            body = self.expr(copy, extended, b, n, operator_override='$FcnConstructor')
+            return f'(choose (fun ({variable} : Value) => {variable} = {body}))'
         if name in ('$TemporalExists', '$TemporalForall'):
             refs = node.findall('boundSymbols/unbound/FormalParamNodeRef')
             if not refs:
@@ -285,6 +307,9 @@ class UniversalCompiler:
         if name in ('+', '-', '*', '\\div', '%'):
             op = {'\\div': '/'}.get(name, name)
             return f'(intBinary (fun x y => x {op} y) {values[0]} {values[1]})'
+        if name == '^': return call('intPower')
+        if standard and name == 'IsFiniteSet': return call('finite')
+        if standard and name == 'Cardinality': return call('cardinality')
         if name == '-.': return f'(intUnary (fun x => -x) {values[0]})'
         if name in ('<', '>', '\\leq', '\\geq'):
             op = {'\\leq': '≤', '\\geq': '≥'}.get(name, name)
@@ -314,6 +339,24 @@ class UniversalCompiler:
         if standard and name == 'Tail': return f'(subsequence {values[0]} (integer 2) (length {values[0]}))'
         raise CompileError(f'unsupported universal operator {name!r} from {origin}')
 
+    def recursive(self, symbol, params, args, env, b, n):
+        if any(self.g.resolve(p).arity for p in params):
+            raise CompileError('recursive higher-order parameters need operator semantics')
+        actuals = [self.expr(a, env, b, n) for a in args]
+        key = actuals[0] if len(actuals) == 1 else f'(tuple [{", ".join(actuals)}])'
+        point, graph = self.fresh(), self.fresh()
+        extended = dict(env)
+        extended[symbol.uid] = RecursiveBinding(graph, len(params))
+        for i, parameter in enumerate(params):
+            value = point if len(params) == 1 else f'(apply {point} (integer {i + 1}))'
+            extended[parameter.findtext('UID')] = ValueBinding(value)
+        self.active.append(symbol.uid)
+        try:
+            body = self.expr(symbol.body, extended, b, n)
+        finally:
+            self.active.pop()
+        return f'(recursiveOperator (fun ({point} {graph} : Value) => {body}) {key})'
+
     def compile(self):
         lines = ['module', 'import TLAUniversal', '', 'open TLAUniversal Classical',
                  f'namespace {ident(self.g.root.name)}', 'noncomputable section', 'structure Constants where']
@@ -328,7 +371,12 @@ class UniversalCompiler:
                 ty = ' → '.join(['Expression'] * (parameter.arity + 1))
                 parameters.append(f'({name} : {ty})')
                 environment[parameter.uid] = ExpressionBinding(name, parameter.arity)
-            code = self.expr(definition.body, environment) if parameters else self.expr(self.app(definition))
+            if parameters and definition.node.find('recursive') is not None:
+                refs = definition.node.findall('params/leibnizparam/FormalParamNodeRef')
+                actuals = [self.app(self.g.resolve(ref)) for ref in refs]
+                code = self.recursive(definition, refs, actuals, environment, 'b', 'n')
+            else:
+                code = self.expr(definition.body, environment) if parameters else self.expr(self.app(definition))
             signature = (' '.join(parameters) + ' ') if parameters else ''
             context = 'c' if 'c.' in code else '_c'
             trace = 'b' if '(b)' in code else '_b'
