@@ -104,4 +104,23 @@ theorem tuple_injective : Function.Injective tuple := by
 theorem tuple_eq_iff (xs ys : List Value) : tuple xs = tuple ys ↔ xs = ys :=
   tuple_injective.eq_iff
 
+theorem string_injective : Function.Injective string := by
+  intro a b eq
+  apply String.toList_injective
+  have mapped := tuple_injective eq
+  apply (List.map_inj_right (fun x y h => ?_)).mp mapped
+  apply Char.toNat_inj.mp
+  have integers := integer_injective (ZFSet.pair_inj.mp h).2
+  exact_mod_cast integers
+
+theorem string_eq_iff (a b : String) : string a = string b ↔ a = b :=
+  string_injective.eq_iff
+
+theorem string_mem (s : String) : string s ∈ strings :=
+  ZFSet.mem_range.mpr ⟨s, rfl⟩
+
+theorem domain_record (fields : List (String × Value)) :
+    domain (record fields) = enumerate (fields.map (fun field => string field.1)) :=
+  domain_function _ _
+
 end TLAUniversal
