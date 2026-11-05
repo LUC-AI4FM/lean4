@@ -361,6 +361,10 @@ class Compiler:
             values[0].ty.unify(PROP)
             values[1].ty.unify(values[2].ty)
             return Term(f'(if {codes[0]} then {codes[1]} else {codes[2]})', values[1].ty)
+        if name == 'STRING':
+            return Term('(fun (_ : String) => True)', Ty('Set', STRING))
+        if name == 'BOOLEAN':
+            return Term('(fun (_ : Prop) => True)', Ty('Set', PROP))
         if name in ('Nat', 'Int') and standard:
             return Term('TLA.Data.Set.' + ('naturals' if name == 'Nat' else 'integers'), Ty('Set', INT))
         if name == '..':

@@ -109,7 +109,7 @@ theorem function_congr (set : Value) (f g : Value → Value)
   unfold function image
   apply congrArg ZFSet.range
   funext x
-  rw [h x.val x.property]
+  exact congrArg (ZFSet.pair x.val) (h x.val x.property)
 
 theorem domain_function (set : Value) (f : Value → Value) :
     domain (function set f) = set := by

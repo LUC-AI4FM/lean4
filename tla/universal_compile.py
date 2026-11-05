@@ -377,6 +377,7 @@ class UniversalCompiler:
         def call(fn): return '(' + ' '.join([fn, *values]) + ')'
         if name in ('TRUE', 'FALSE'): return 'ZFSet.zftrue' if name == 'TRUE' else 'ZFSet.zffalse'
         if name == 'BOOLEAN': return 'ZFSet.𝔹'
+        if name == 'STRING': return 'strings'
         if name in ('=', '/='):
             return f'(boolean ({values[0]} {"=" if name == "=" else "≠"} {values[1]}))'
         if name in ('\\land', '\\lor', '=>', '\\equiv'):
