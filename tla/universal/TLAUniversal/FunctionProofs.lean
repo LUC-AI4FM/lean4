@@ -383,4 +383,21 @@ theorem mem_union_enumerate (x : Value) (sets : List Value) :
     x ∈ ZFSet.sUnion (enumerate sets) ↔ ∃ s ∈ sets, x ∈ s := by
   simp only [ZFSet.mem_sUnion, mem_enumerate]
 
+theorem mem_recordSpace_two (f A B : Value) (a b : String) (different : a ≠ b) :
+    f ∈ recordSpace [(a, A), (b, B)] ↔
+      ∃ x ∈ A, ∃ y ∈ B, f = record [(a, x), (b, y)] := by
+  rw [mem_recordSpace]
+  constructor
+  · rintro ⟨hf, values⟩
+    have ha : apply f (string a) ∈ A := values (a, A) (by simp)
+    have hb : apply f (string b) ∈ B := values (b, B) (by simp)
+    refine ⟨apply f (string a), ha, apply f (string b), hb, ?_⟩
+    exact record_eta [(a, apply f (string a)), (b, apply f (string b))] f
+      (ZFSet.sUnion (enumerate [A, B])) hf (by simp)
+  · rintro ⟨x, hx, y, hy, rfl⟩
+    constructor
+    · exact record_isFunc [(a, x), (b, y)] (ZFSet.sUnion (enumerate [A, B]))
+        (by simp [mem_union_enumerate, hx, hy])
+    · simp [apply_record_lookup, different, Ne.symm different, List.lookup_cons, hx, hy]
+
 end TLAUniversal
