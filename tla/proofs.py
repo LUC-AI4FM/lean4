@@ -351,7 +351,7 @@ def compile_proofs(source, **kwargs):
                   'domain_update update_same update_other updatePath '
                   'domain_tuple apply_tuple_at tuple_eq_iff length_tuple '
                   'prepend_tuple mem_cartesian_cons mem_cartesian_nil '
-                  'string_eq_iff string_mem domain_record').split()
+                  'string_eq_iff string_mem domain_record mem_recordSpace mem_interval_iff').split()
     lines.append('attribute [local simp] ' + ' '.join(
         '_root_.TLAUniversal.' + name for name in normalized)
         + ' _root_.ZFSet.zftrue_ne_zffalse')
@@ -365,7 +365,8 @@ def compile_proofs(source, **kwargs):
     lines.append('attribute [local aesop safe forward] _root_.TLAUniversal.domain_isFunc '
                  '_root_.TLAUniversal.apply_mem')
     lines.append('attribute [local aesop unsafe 50% apply] _root_.TLAUniversal.function_ext '
-                 '_root_.TLAUniversal.apply_record')
+                 '_root_.TLAUniversal.apply_record '
+                 '_root_.TLAUniversal.record_isFunc')
     names = exports['proof_names']
     for index, theorem in enumerate(theorems):
         proof = proof_node(theorem)

@@ -188,4 +188,35 @@ theorem mem_cartesian_cons (x first : Value) (rest : List Value) :
 theorem mem_cartesian_nil (x : Value) : x ∈ cartesian [] ↔ x = tuple [] := by
   simp [cartesian, mem_enumerate]
 
+theorem mem_interval_iff (x : Value) (lo hi : Int) :
+    x ∈ interval (integer lo) (integer hi) ↔
+      ∃ n : Int, integer n = x ∧ lo ≤ n ∧ n ≤ hi := by
+  constructor
+  · intro hx
+    obtain ⟨n, rfl⟩ := (mem_integers _).mp (ZFSet.mem_sep.mp hx).1
+    exact ⟨n, rfl, (integer_mem_interval _ _ _).mp hx⟩
+  · rintro ⟨n, rfl, h⟩
+    exact (integer_mem_interval _ _ _).mpr h
+
+theorem record_isFunc (fields : List (String × Value)) (range : Value)
+    (hr : ∀ field ∈ fields, field.2 ∈ range) :
+    ZFSet.IsFunc (enumerate (fields.map (fun field => string field.1))) range
+      (record fields) := by
+  unfold record
+  apply function_isFunc
+  intro key hk
+  obtain ⟨field, hf, hkey⟩ := List.mem_map.mp ((mem_enumerate _ _).mp hk)
+  obtain ⟨selected, hs, _, hv⟩ := choose_spec
+    (fun value => ∃ field ∈ fields, key = string field.1 ∧ value = field.2)
+    ⟨field.2, field, hf, hkey.symm, rfl⟩
+  rw [hv]
+  exact hr selected hs
+
+theorem mem_recordSpace (f : Value) (fields : List (String × Value)) :
+    f ∈ recordSpace fields ↔
+      ZFSet.IsFunc (enumerate (fields.map (fun field => string field.1)))
+        (ZFSet.sUnion (enumerate (fields.map Prod.snd))) f ∧
+      ∀ field ∈ fields, apply f (string field.1) ∈ field.2 := by
+  simp only [recordSpace, ZFSet.mem_sep, ZFSet.mem_funs]
+
 end TLAUniversal
