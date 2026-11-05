@@ -35,7 +35,7 @@ with tempfile.TemporaryDirectory(prefix='check-', dir='.') as directory:
     import_env['LEAN_PATH'] = str(Path(directory).resolve()) + os.pathsep + import_env.get('LEAN_PATH', '')
     subprocess.run([lake, 'env', 'lean', str(consumer)], env=import_env, check=True)
     # A false invariant must fail in Lean, even when parsing succeeds.
-    generated.write_text(source + '\nexample : Counter.Init ⟨⟩ (fun _ => ⟨1⟩) 0 := by rfl\n')
+    generated.write_text(source + '\nexample : TLAImported.Counter.Init ⟨⟩ (fun _ => ⟨1⟩) 0 := by rfl\n')
     negative = subprocess.run([lake, 'env', 'lean', str(generated)], capture_output=True, text=True)
     if negative.returncode == 0 or 'error:' not in negative.stdout:
         raise RuntimeError('negative proof was not rejected with a Lean diagnostic')

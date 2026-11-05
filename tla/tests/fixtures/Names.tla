@@ -8,4 +8,6 @@ Nat == 5
 TLAProofClaim0 == 6
 THEOREM TRUE
 PROOF OBVIOUS
+True == TRUE
+False == FALSE
 ====

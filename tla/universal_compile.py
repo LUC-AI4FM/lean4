@@ -565,11 +565,9 @@ class UniversalCompiler:
         constants_type = declaration_name('Constants')
         assumptions_name = declaration_name('TLAProofAssumptions')
         certificate_name = declaration_name('Certificate')
-        namespace = self.g.root.name
-        if namespace in {'TLA', 'TLAUniversal', 'Nat', 'Int', 'Real', 'String', 'List', 'Classical', 'ZFSet'}:
-            namespace = 'Source_' + namespace
+        namespace = 'TLAImported.' + ident(self.g.root.name)
         lines = ['module', 'public import TLAUniversal', '', 'open TLAUniversal Classical',
-                 'set_option autoImplicit false', f'namespace {ident(namespace)}', '@[expose] public noncomputable section', f'structure {constants_type} where']
+                 'set_option autoImplicit false', f'namespace {namespace}', '@[expose] public noncomputable section', f'structure {constants_type} where']
         for constant in self.g.constants():
             ty = ' → '.join(['_root_.TLAUniversal.Value'] * (constant.arity + 1))
             lines.append(f'  {ident(constant.name)} : {ty}')
@@ -596,7 +594,7 @@ class UniversalCompiler:
         assumptions = [qualify(self.expr(s.body)) for s in self.g.claims('AssumeNode')]
         obligations = [qualify(self.expr(s.body)) for s in self.g.claims('TheoremNode')]
         if assumptions or obligations:
-            condition = ' ∧ '.join(f'_root_.TLAUniversal.truth {a}' for a in assumptions) or 'True'
+            condition = ' ∧ '.join(f'_root_.TLAUniversal.truth {a}' for a in assumptions) or '_root_.True'
             lines += [f'def {assumptions_name} (c : {constants_type}) (b : _root_.TLAUniversal.Behavior) (n : _root_.Nat) : Prop := {condition}']
             claim_names = [declaration_name(f'TLAProofClaim{i}') for i in range(len(obligations))]
             for name, claim in zip(claim_names, obligations):
@@ -605,7 +603,7 @@ class UniversalCompiler:
             lines += [f'structure {certificate_name} (c : {constants_type}) : Prop where']
             for i in range(len(obligations)):
                 lines += [f'  obligation_{i} : ∀ (b : _root_.TLAUniversal.Behavior) (n : _root_.Nat), {assumptions_name} c b n → {claim_names[i]} c b n']
-        lines.extend(['end', f'end {ident(namespace)}', ''])
+        lines.extend(['end', f'end {namespace}', ''])
         return '\n'.join(lines)
 
 def compile_file(source, **kwargs):

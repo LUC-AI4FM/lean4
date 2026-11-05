@@ -23,7 +23,7 @@ python3 check.py
 
 Use `-I directory` to resolve additional source modules. Input files remain
 unchanged. Output is written after successful translation. Generated modules
-expose their constants and operators; an operator takes its parameters, constants,
+expose their constants and operators under `TLAImported.ModuleName`; an operator takes its parameters, constants,
 a behavior and a time index. Source operator parameters become Lean expressions,
 so priming retains their state dependence.
 

@@ -11,7 +11,7 @@ class CompilerTests(unittest.TestCase):
         code = compile_file(source)
         with tempfile.TemporaryDirectory(dir='.') as directory:
             target = Path(directory) / 'Generated.lean'
-            target.write_text(code + '\n' + extra)
+            target.write_text(code + '\nopen TLAImported\n' + extra)
             result = subprocess.run([os.environ.get('LAKE', 'lake'), 'env', 'lean', str(target)],
                                     capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, code + '\n' + result.stdout + result.stderr)

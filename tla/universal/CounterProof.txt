@@ -1,5 +1,5 @@
 
-namespace Counter
+namespace TLAImported.Counter
 /-- The unchanged source specification preserves a nonnegative integer value. -/
 theorem source_invariant (c : Constants) (b : Behavior)
     (h : truth (Spec c b 0)) : ∀ n, truth (Inv c b n) := by
@@ -19,4 +19,4 @@ theorem source_invariant (c : Constants) (b : Behavior)
   obtain ⟨k, hk⟩ := values n
   simp only [Inv, hk, realLessEqual_integer]
   exact Int.natCast_nonneg k
-end Counter
+end TLAImported.Counter

@@ -26,6 +26,9 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         source = root.parent / 'tests' / fixture
         target = Path(directory) / source.with_suffix('.lean').name
         code = compile_file(source, includes=[root.parent / 'tests' / 'corpus' / 'tlaps', root.parent / 'tests' / 'corpus' / 'community'])
+        code += '\nopen TLAImported\n'
+        if source.name == 'Bool.tla':
+            code += '\nexample (c : TLAImported.Bool.Constants) : TLAImported.Bool.Certificate c := by\n  constructor; intros; rfl\n'
         if source.name == 'ArithmeticOperations.tla':
             code += "\nexample (c : ArithmeticOperations.Constants) (b : Behavior) (n : Nat) : truth (ArithmeticOperations.DivisionLaw c b n) := by\n  simp [ArithmeticOperations.DivisionLaw, truth_boolean, intBinary_integer, realNegate_integer, integer_mem, toInt_integer]\n"
         if source.name == 'NestedCalls.tla':
@@ -82,7 +85,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
     # trusted Lean proofs or make a source certificate trivially inhabited.
     target = Path(directory) / 'FalseClaim.lean'
     code = compile_file(root.parent / 'tests' / 'fixtures' / 'FalseClaim.tla')
-    target.write_text(code + "\nexample (c : FalseClaim.Constants) : FalseClaim.Certificate c := by\n  constructor; intros; simp [FalseClaim.TLAProofClaim0, truth, ZFSet.zftrue_ne_zffalse]\n")
+    target.write_text(code + "\nexample (c : TLAImported.FalseClaim.Constants) : TLAImported.FalseClaim.Certificate c := by\n  constructor; intros; simp [TLAImported.FalseClaim.TLAProofClaim0, truth, ZFSet.zftrue_ne_zffalse]\n")
     result = subprocess.run([lake, 'env', 'lean', str(target)], capture_output=True, text=True, timeout=120)
     if result.returncode == 0 or 'unsolved goals' not in result.stdout:
         raise RuntimeError('false source proof certificate was not rejected: ' + result.stdout + result.stderr)

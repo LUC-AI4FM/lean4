@@ -10,7 +10,7 @@ class TranslationTests(unittest.TestCase):
     def test_counter(self):
         result = translate(Path('tests/Counter.tla').read_text())
         self.assertIn('import TLAUniversal', result)
-        self.assertIn('namespace «Counter»', result)
+        self.assertIn('namespace TLAImported.«Counter»', result)
         self.assertIn('def «Spec»', result)
         self.assertNotIn('sorry', result)
 

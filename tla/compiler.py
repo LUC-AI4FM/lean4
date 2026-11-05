@@ -479,7 +479,7 @@ class Compiler:
         state_type = f'(State {parameters})' if free else 'State'
         constants_type = f'(Constants {parameters})' if free else 'Constants'
         lines = ['/- Generated from the SANY semantic graph; inspect before proving source claims. -/',
-                 'module', 'public import TLA', '', f'namespace {ident(self.g.root.name)}',
+                 'module', 'public import TLA', '', f'namespace TLAImported.{ident(self.g.root.name)}',
                  '@[expose] public noncomputable section', 'open Classical']
         for labels in records.values():
             name = ident('TLARecord_' + '_'.join(labels))
@@ -504,7 +504,7 @@ class Compiler:
             lines += [f'structure Certificate (c : {constants_type}) : Prop where']
             for i in range(len(obligations)):
                 lines += [f'  obligation_{i} : ∀ (b : TLA.Behavior {state_type}) (n : Nat), TLAProofAssumptions c b n → TLAProofClaim{i} c b n']
-        lines += ['end', f'end {ident(self.g.root.name)}', '']
+        lines += ['end', f'end TLAImported.{ident(self.g.root.name)}', '']
         return '\n'.join(lines)
 
 def compile_file(path, **kwargs):

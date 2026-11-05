@@ -1,5 +1,5 @@
 /-! The translated source supports an invariant proved for every behavior. -/
-namespace Counter
+namespace TLAImported.Counter
 
 theorem safety (c : Constants) (b : TLA.Behavior State) (h : Spec c b 0) :
     ∀ n, Inv c b n := by
@@ -12,4 +12,4 @@ theorem safety (c : Constants) (b : TLA.Behavior State) (h : Spec c b 0) :
     rcases h.2 n (Nat.zero_le n) with step | stutter
     · omega
     · omega
-end Counter
+end TLAImported.Counter
