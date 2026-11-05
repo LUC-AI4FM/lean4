@@ -18,7 +18,7 @@ lake env lean Counter.lean
 
 `tools.py` downloads the official TLA+ 1.7.4 tools and verifies a pinned SHA-256.
 There are no third-party Python packages or Lean dependencies. The package pins
-Lean 4.33.1 and builds independently of the upstream compiler in this fork.
+Lean 4.33.0 and builds independently of the upstream compiler in this fork.
 Use `-I directory` for additional source-module search paths.
 
 `check.py` builds the library, checks source parsing and compilation, verifies
@@ -78,7 +78,7 @@ Supported source constructs currently include:
 - Constants, variables, operator calls, LET and INSTANCE substitutions.
 - Integers, arithmetic, comparisons, propositional operators and IF/THEN/ELSE.
 - Set enumeration, intervals, membership, union/intersection/difference, subset,
-  powerset, UNION, single-binder comprehensions and bounded quantifiers/CHOOSE.
+  powerset, UNION, comprehensions, multiple bounded quantifiers and bounded CHOOSE.
 - Function constructors, application, DOMAIN and function spaces.
 - Records, record sets, nested EXCEPT, and sequential @ update semantics.
 - Homogeneous tuples/sequences, Len, Append, Head, Tail, SubSeq and concatenation.
@@ -89,7 +89,7 @@ Supported source constructs currently include:
 The generated data interpretation is currently **typed**. It is not yet a faithful
 universal model of all untyped TLA+ values. Heterogeneous collections, mixed
 function/record/sequence equality, unrestricted quantification and arbitrary
-recursive definitions require further semantic work. Multiple/tuple binders, operator-valued parameters/constants, temporal hiding,
+recursive definitions require further semantic work. Tuple binders and multi-argument function constructors, operator-valued parameters/constants, temporal hiding,
 general standard modules, and proof/assumption obligations also remain incomplete.
 Unsupported constructs are rejected, never replaced by axioms or placeholder
 proofs. Source ASSUME and THEOREM declarations are currently rejected so they

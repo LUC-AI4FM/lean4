@@ -81,3 +81,18 @@ example (c : Records.Constants) (b : TLA.Behavior Records.State) (n : Nat) :
   simp [Records.UpdateGood, TLA.Data.Function.apply, TLA.Data.Function.update,
         TLA.Data.Function.make, TLA.Data.Set.interval]
 """)
+
+    def test_multiple_binders(self):
+        self.check(Path('tests/fixtures/Binders.tla'), r"""
+example (c : Binders.Constants) (b : TLA.Behavior Binders.State) (n : Nat) :
+    Binders.All c b n := by
+  intro x hx y hy
+  simp [TLA.Data.Set.interval] at *
+  omega
+example (c : Binders.Constants) (b : TLA.Behavior Binders.State) (n : Nat) :
+    Binders.Some c b n := by
+  exact ⟨2, by simp [TLA.Data.Set.interval], 2, by simp [TLA.Data.Set.interval], rfl⟩
+example (c : Binders.Constants) (b : TLA.Behavior Binders.State) (n : Nat) :
+    Binders.Member c b n := by
+  exact ⟨2, by simp [TLA.Data.Set.interval], 3, by simp [TLA.Data.Set.interval], rfl⟩
+""")

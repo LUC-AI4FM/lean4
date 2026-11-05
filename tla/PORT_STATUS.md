@@ -51,3 +51,10 @@ ae928234e7ed6b26241344ef4ba6d7cf98c0ed91 (Lean 4.33.0) in a separate Lake packag
 its initial proofs are pending public CI, not claimed verified. Builds are kept
 off the coordinator. Public dependency source reference is retained temporarily
 at /private/tmp/lean4-tla-zflean-reference for API inspection.
+
+
+Universal CI diagnosis: Lake promoted the child package from 4.33.0 to the parent
+4.33.1, invalidating the pinned Mathlib cache. Aligned the parent package to 4.33.0
+rather than rebuilding Mathlib on the coordinator. Existing local lightweight
+checks may use installed 4.33.1 explicitly; CI checks the pinned 4.33.0 build.
+Added multiple bounded quantifiers/comprehensions with generated Lean proofs.

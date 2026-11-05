@@ -223,6 +223,38 @@ class Compiler:
             act.ty.unify(PROP)
             fn = 'weakFairness' if name == '$WF' else 'strongFairness'
             return Term(f'(TLA.{fn} (fun {s} {t} => {act.code}) (fun {s} => {frame.code}) ({b}) ({n}))', PROP)
+        if name in ('$BoundedForall', '$BoundedExists', '$SetOfAll'):
+            bounds = node.findall('boundSymbols/bound')
+            bindings = []
+            extended = dict(env)
+            for bound in bounds:
+                refs = bound.findall('FormalParamNodeRef')
+                domains = [x for x in bound if x.tag != 'FormalParamNodeRef']
+                if len(domains) != 1:
+                    raise CompileError('tuple-pattern binders require universal value semantics')
+                domain = self.term(domains[0], extended, b, n)
+                element = Ty(); domain.ty.unify(Ty('Set', element))
+                for ref in refs:
+                    v = self.fresh()
+                    bindings.append((v, domain))
+                    extended[ref.findtext('UID')] = Bound(Term(v, element))
+            if not bindings:
+                raise CompileError('missing bounded variables')
+            body = self.term(args[0], extended, b, n)
+            if name == '$SetOfAll':
+                result = self.fresh()
+                code = f'{body.code} = {result}'
+            else:
+                body.ty.unify(PROP)
+                code = body.code
+            for v, domain in reversed(bindings):
+                if name == '$BoundedForall':
+                    code = f'(∀ {v}, ({domain.code}) {v} → {code})'
+                else:
+                    code = f'(∃ {v}, ({domain.code}) {v} ∧ {code})'
+            if name == '$SetOfAll':
+                return Term(f'(fun {result} => {code})', Ty('Set', body.ty))
+            return Term(code, PROP)
         if name in ('$BoundedForall', '$BoundedExists', '$BoundedChoose', '$SubsetOf', '$SetOfAll', '$FcnConstructor'):
             bounds = node.findall('boundSymbols/bound')
             if len(bounds) != 1:
