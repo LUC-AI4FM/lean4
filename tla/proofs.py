@@ -282,7 +282,7 @@ def compile_proofs(source, **kwargs):
         '_root_.TLAUniversal.' + name for name in normalized)
         + ' _root_.ZFSet.zftrue_ne_zffalse')
     lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.remainder_nonnegative '
-                 '_root_.TLAUniversal.remainder_upper')
+                 '_root_.TLAUniversal.remainder_upper _root_.TLAUniversal.exists_state_pair')
     names = exports['proof_names']
     for index, theorem in enumerate(theorems):
         proof = proof_node(theorem)

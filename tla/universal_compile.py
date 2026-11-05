@@ -178,11 +178,32 @@ class UniversalCompiler:
             # are unchanged and every module substitution is identical.
             substituted['@instance'] = (ET.tostring(node.find('substs'))
                                         if '@instance' not in env else None)
+            state_substitutions = []
             for subst in node.findall('substs/Subst'):
                 parts = [x for x in subst if x.tag not in ('location', 'level')]
                 if len(parts) != 2:
                     raise CompileError('malformed module substitution')
-                substituted[parts[0].findtext('UID')] = SyntaxBinding(parts[1], env, tuple(self.active))
+                declaration = self.g.resolve(parts[0])
+                if declaration.node.findtext('kind') == '3':
+                    key = '$instance:' + declaration.uid
+                    substituted[declaration.uid] = StateBinding(key)
+                    state_substitutions.append((key, parts[1]))
+                else:
+                    substituted[declaration.uid] = SyntaxBinding(parts[1], env, tuple(self.active))
+            if state_substitutions:
+                # Instantiate the free behavior before evaluating the source
+                # expression. ENABLED, composition, fairness and guarantees
+                # subsequently bind original state coordinates independently.
+                # Textual substitution inside those binders incorrectly aliases
+                # distinct original variables when their replacements coincide.
+                substituted['@instance'] = None
+                trace, time, field = self.fresh(), self.fresh(), self.fresh()
+                value = f'({b}) {time} {field}'
+                for key, actual in reversed(state_substitutions):
+                    replacement = self.expr(actual, env, b, time)
+                    value = f'if {field} = {json.dumps(key)} then {replacement} else {value}'
+                inner = self.expr(node.find('body')[0], substituted, trace, n)
+                return f'(let {trace} : Behavior := fun {time} {field} => {value}; {inner})'
             return self.expr(node.find('body')[0], substituted, b, n)
         if node.tag == 'AtNode':
             parts = [x for x in node if x.tag not in ('location', 'level')]

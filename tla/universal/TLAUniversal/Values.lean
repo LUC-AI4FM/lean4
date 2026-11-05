@@ -15,6 +15,12 @@ abbrev State := String → Value
 abbrev Behavior := TLA.Behavior State
 abbrev Expression := Behavior → Nat → Value
 
+theorem exists_state_pair (x y : String) (a b : Value) (h : x ≠ y) :
+    ∃ s : State, s x = a ∧ s y = b := by
+  refine ⟨fun key => if key = x then a else b, ?_⟩
+  simp [Ne.symm h]
+
+
 /-- Semantic locality of source expressions at the four SANY levels. -/
 def expressionLevel (level : Nat) (e : Expression) : Prop :=
   match level with
