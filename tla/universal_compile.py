@@ -36,6 +36,11 @@ class RecursiveBinding:
     tag: int | None = None
 
 @dataclass
+class LevelBinding:
+    name: str
+    level: int
+
+@dataclass
 class StateBinding:
     key: str
 
@@ -105,29 +110,43 @@ class UniversalCompiler:
         if node.tag == 'StringNode':
             return '(string ' + lean_string(node.findtext('StringValue', '')) + ')'
         if node.tag == 'AssumeProveNode':
-            def obligation(items, context):
+            def obligation(items, context, trace):
                 if not items:
-                    return 'truth ' + self.expr(node.find('prove')[0], context, b, n)
+                    return 'truth ' + self.expr(node.find('prove')[0], context, trace, n)
                 head, *tail = items
                 if head.tag != 'NewSymbNode':
-                    premise = self.expr(head, context, b, n)
-                    return f'(truth {premise} → {obligation(tail, context)})'
+                    premise = self.expr(head, context, trace, n)
+                    return f'(truth {premise} → {obligation(tail, context, trace)})'
                 declaration = self.g.resolve(head.find('OpDeclNodeRef'))
-                if declaration.level not in (None, 0):
-                    raise CompileError('NEW state/action/temporal symbols require level-specific quantification')
                 variable = self.fresh()
                 extended = dict(context)
-                extended[declaration.uid] = OperatorBinding(variable, declaration.arity)
-                ty = ' → '.join(['Value'] * (declaration.arity + 1))
-                body = obligation(tail, extended)
+                level = declaration.level or 0
+                if level and declaration.arity:
+                    raise CompileError('level-specific NEW operator arguments require a locality contract')
+                if declaration.node.findtext('kind') == '25':
+                    key, time, field = '$new:' + declaration.uid, self.fresh(), self.fresh()
+                    extended[declaration.uid] = StateBinding(key)
+                    trace = f'(fun {time} {field} => if {field} = {lean_string(key)} then {variable} {time} else ({trace}) {time} {field})'
+                    ty = 'Nat → Value'
+                elif level:
+                    extended[declaration.uid] = LevelBinding(variable, level)
+                    ty = {1: 'State → Value', 2: 'State → State → Value', 3: 'Behavior → Value'}[level]
+                else:
+                    extended[declaration.uid] = OperatorBinding(variable, declaration.arity)
+                    ty = ' → '.join(['Value'] * (declaration.arity + 1))
+                body = obligation(tail, extended, trace)
+                if level == 3:
+                    left, right = self.fresh(), self.fresh()
+                    body = f'((∀ ({left} {right} : Behavior), TLA.stutteringEquivalent {left} {right} → {variable} {left} = {variable} {right}) → {body})'
                 bounds = [x for x in head if x.tag not in ('location', 'level', 'OpDeclNodeRef')]
                 if bounds:
                     if len(bounds) != 1 or declaration.arity:
                         raise CompileError('invalid NEW symbol bound')
-                    domain = self.expr(bounds[0], context, b, n)
-                    body = f'({variable} ∈ {domain} → {body})'
+                    domain = self.expr(bounds[0], context, trace, n)
+                    value = self.expr(self.app(declaration), extended, trace, n)
+                    body = f'({value} ∈ {domain} → {body})'
                 return f'(∀ ({variable} : {ty}), {body})'
-            return '(boolean ' + obligation(list(node.find('assumes')), env) + ')'
+            return '(boolean ' + obligation(list(node.find('assumes')), env, b) + ')'
         if node.tag in ('LetInNode', 'LabelNode'):
             return self.expr(node.find('body')[0], env, b, n)
         if node.tag == 'SubstInNode':
@@ -149,6 +168,14 @@ class UniversalCompiler:
         args = list(node.find('operands'))
         if symbol.uid in env:
             binding = env[symbol.uid]
+            if isinstance(binding, LevelBinding):
+                if args:
+                    raise CompileError('level-specific expression used as an operator')
+                if binding.level == 1:
+                    return f'({binding.name} (({b}) ({n})))'
+                if binding.level == 2:
+                    return f'({binding.name} (({b}) ({n})) (({b}) (({n}) + 1)))'
+                return f'({binding.name} (fun k => ({b}) (({n}) + k)))'
             if isinstance(binding, OperatorBinding):
                 if len(args) != binding.arity:
                     raise CompileError('operator arity mismatch')
