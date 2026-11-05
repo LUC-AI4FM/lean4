@@ -229,3 +229,20 @@ Boolean and record checkpoint (2026-11-05):
   record equality and large temporal proofs. No complete aggregate yet.
 - Full TLAPS compatibility remains incomplete. Continue from current diagnostics
   and keep positive/negative gates; do not treat focused passes as full coverage.
+
+Record-domain and diagonal checkpoint (2026-11-05):
+- 53a2c24 adds record_eq_keys, proved by domain congruence. Focused run
+  42086388613 passed unchanged recordeq_difffields_smt_test, the 30-field
+  record proof and false-leaf rejection.
+- Separation normalization alone did not fix Cantor2/Cantor4 (42085864998).
+  9e2d1dc applies the checked diagonal lemma before general search. Focused
+  run 42086552560 passed both unchanged Cantor proofs, record-domain
+  disequality, and FalseCaseReferences rejection. Local frontend tests: 23 pass.
+- Partial full-audit artifacts from 42083872494: shards 0, 1, 3, 4 account for
+  190 inputs. Of 96 reference-positive candidates encountered, 69 checked,
+  18 timed out, 8 were Lean-rejected and one translation-rejected. All 16
+  encountered negative inputs rejected or timed out. These are partial counts,
+  not the final 379-input aggregate, and predate the newest fixes.
+- Outstanding work includes full record extensionality, larger temporal proofs,
+  exact fact visibility and remaining source/frontend compatibility. Keep the
+  goal active; focused passing examples do not establish completion.
