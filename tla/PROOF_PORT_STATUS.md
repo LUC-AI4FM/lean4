@@ -41,3 +41,15 @@ Scoped USE/HIDE DEF and standalone certificate imports are under verification.
 USE facts are reconstructed as obligations. HIDE fact visibility, ONLY fact
 selection, local definitions/instances, full backend reasoning and the full
 reference corpus remain open; current success does not establish a full port.
+
+Verified checkpoints:
+- c52cae0: complete main CI 42052439148 passed, including separate imports of
+  generated proof certificates and scoped USE/HIDE DEF.
+- e50d151: complete main CI 42052750103 passed, including ground arithmetic,
+  finite-set membership and a false arithmetic proof rejection.
+- Upstream unchanged proof audit 42052441125 is running on all 379 pinned
+  TLAPM `.tla` files. It preserves per-file diagnostics and distinguishes
+  modules without claims and intentionally false soundness inputs. It does
+  not establish that all other files are reference-proved positive tests.
+- 089b4d3 local DEFINE and level-specific NEW reconstruction, and e41e8cd
+  simple SUFFICES / NEW VARIABLE reconstruction await final CI results.

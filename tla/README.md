@@ -77,6 +77,26 @@ A generated `Certificate` requires Lean proofs of the claims. Structured
 `ASSUME NEW ... PROVE ...` obligations retain their quantifiers. Source proof
 hints, including `OBVIOUS` and TLAPS pragmas, do not supply trusted proofs.
 
+## Checking source proofs
+
+After building `universal`, run from `tla`:
+
+```sh
+python3 prove.py tests/proofs/ProofShapes.tla -o CheckedProofs.lean
+```
+
+This reconstructs supported source proof steps and asks Lean to check them
+before writing the output. The resulting `TLACheckedCertificate` can be used
+from a separate Lean module. Existing output is preserved on failure.
+Leaf proofs, hierarchical assertions, TAKE, WITNESS, PICK, HAVE, CASE, SUFFICES,
+USE/HIDE DEF, and arithmetic on concrete integers have checked regressions.
+Every intermediate assertion must be proved, even if the final goal is TRUE.
+
+The full TLAPS proof port is in progress. Backend pragmas are hints, never
+axioms; unsupported obligations fail. Full fact visibility, imported theorem
+reconstruction, backend reasoning and unchanged proof corpus coverage remain
+open. See [PROOF_PORT_STATUS.md](PROOF_PORT_STATUS.md).
+
 ## Source coverage
 
 The importer supports resolved module substitutions, LET, operator parameters,
@@ -109,8 +129,8 @@ All 61 exports of the ten pinned standard modules have reachable test fixtures.
 The separate compatibility workflow checks all 433 modules in the pinned
 upstream example corpus, retaining a result for every input. It checks source
 acceptance and Lean elaboration; it does not prove every example specification
-correct. Source proof scripts are parsed, but their tactics are not translated
-into Lean proofs: the generated certificates must be proved in Lean. Level-specific `NEW` declarations and real arithmetic have
+correct. The separate proof command reconstructs the supported proof steps
+listed above; specification import alone does not discharge claims. Level-specific `NEW` declarations and real arithmetic have
 checked fixtures. Operator-valued recursive parameters use class-level fixing graphs, including
 recursive calls that change an operator or capture arguments in a local
 operator. `higherRecursiveOperator_wellFounded` proves agreement with defining
