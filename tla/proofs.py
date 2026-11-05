@@ -34,6 +34,9 @@ class Renderer:
 
     def leaf(self, proof, indent):
         unfold = list(self.unfold) + [
+            '_root_.eq_self_iff_true',
+            '_root_.not_true_eq_false',
+            '_root_.imp_self',
             '_root_.TLAUniversal.truth_true',
             '_root_.TLAUniversal.not_truth_false',
             '_root_.TLAUniversal.realBinary_add_integer',
