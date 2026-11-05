@@ -1,14 +1,15 @@
-/-! The translated source supports the same kernel-checked invariant proof. -/
+/-! The translated source supports an invariant proved for every behavior. -/
 namespace Counter
 
-theorem safety (b : TLA.Behavior State) (h : Spec b 0) :
-    TLA.always (TLA.state Inv) b 0 := by
-  apply TLA.invariant Init Inv Next ?_ ?_ b h
-  · intro s hs
-    simp [Init] at hs
-    simp [Inv, hs]
-  · intro s t hs hn
-    simp [Inv] at *
-    simp [Next] at hn
-    omega
+theorem safety (c : Constants) (b : TLA.Behavior State) (h : Spec c b 0) :
+    ∀ n, Inv c b n := by
+  intro n
+  change 0 ≤ (b n).x
+  change (b 0).x = 0 ∧ _ at h
+  induction n with
+  | zero => omega
+  | succ n ih =>
+    rcases h.2 n (Nat.zero_le n) with step | stutter
+    · omega
+    · omega
 end Counter

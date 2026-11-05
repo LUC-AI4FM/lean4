@@ -1,24 +1,31 @@
 # TLA+ in Lean 4
 
-An initial port with two entry points: write specifications directly in Lean or
-translate an existing `.tla` file into Lean. Both use `TLA.Basic`, and proofs are
-checked by the Lean kernel. This is an experimental integer/action fragment,
-not a complete TLA+ implementation or a replacement for TLC/TLAPS.
+Write specifications directly in Lean, or translate existing `.tla` modules to
+Lean definitions. Both paths use the temporal and data semantics in `TLA`.
+The full port is in progress; see [the acceptance record](PORT_STATUS.md).
 
 ## Run
 
-Install Lean's `elan` toolchain manager, then run from this directory:
+Install Lean's `elan` toolchain manager, Java 11 or later, and Python 3.11 or
+later. From this directory:
 
 ```sh
+python3 tools.py
 python3 check.py
 python3 translate.py tests/Counter.tla -o Counter.lean
 lake env lean Counter.lean
 ```
 
-The package pins Lean 4.33.1 and has no third-party Lean or Python dependencies.
-It can be checked independently of a full build of the forked Lean compiler.
-`check.py` builds the library, tests translation and rejection cases, checks
-native and translated invariant proofs, and verifies that a false proof fails.
+`tools.py` downloads the official TLA+ 1.7.4 tools and verifies a pinned SHA-256.
+There are no third-party Python packages or Lean dependencies. The package pins
+Lean 4.33.1 and builds independently of the upstream compiler in this fork.
+Use `-I directory` for additional source-module search paths.
+
+`check.py` builds the library, checks source parsing and compilation, verifies
+native and translated proofs, and confirms that a false proof fails. Tests cover
+invalid priming, module substitution, lexical binding, generic sets, collection
+semantics, stuttering, fairness and output preservation after failed translation.
+CI downloads and verifies the same pinned reference tools before running tests.
 
 ## Native specifications
 
@@ -31,69 +38,68 @@ def Next : TLA.Action Int := fun x y => y = x + 1
 def Spec : TLA.Formula Int := TLA.spec Init Next
 ```
 
-See `tests/Native.lean` for a complete invariant proof and stuttering/fairness
-examples. Native specifications may use any Lean state type. The library provides
-state predicates, actions, infinite behaviors, always, eventually, leads-to,
-ENABLED, UNCHANGED, square/angle actions, and weak/strong fairness. `TLA.invariant`
-proves safety for every infinite behavior satisfying Init and the stuttering
-closure of Next. No axioms or `sorry` declarations are added by this package.
+`tests/Native.lean` proves the counter invariant and checks stuttering/fairness.
+`tests/Data.lean` proves collection and function-update properties. The native
+library provides:
+
+- State predicates, actions and infinite behaviors.
+- Always, eventually, leads-to, ENABLED, UNCHANGED, square/angle actions.
+- Weak/strong fairness, invariant induction, and strong-implies-weak fairness.
+- Extensional sets, comprehensions, images, powersets, union and choice.
+- Functions with explicit domains, extensionality, application and update.
+- Typed sequences with one-based indexing and subsequences.
 
 Semantics follow the action/behavior definitions in
 [Specifying Systems](https://lamport.azurewebsites.net/tla/book.html).
 Fairness uses enabled **non-stuttering** actions relative to the supplied frame.
+Set/function proofs use Lean's classical logic; this library adds no axioms or
+`sorry` declarations.
 
-## Existing `.tla` source
+## Existing source
 
-`tests/Counter.tla` is an ordinary, unchanged TLA+ module:
+The CLI uses the official SANY parser and level checker, consumes resolved
+symbol identities, and emits inspectable Lean code. It rejects parser/level
+errors even when the reference exporter exits with status zero. Local files
+cannot shadow trusted standard modules. Output is written only after translation
+succeeds.
 
-```tla
----- MODULE Counter ----
-EXTENDS Integers
-VARIABLE x
-Init == x = 0
-Next == x' = x + 1
-Inv == x >= 0
-Spec == Init /\ [][Next]_x
-====
-```
+`tests/Counter.tla` and `tests/fixtures/Collections.tla` demonstrate unchanged
+source input. The latter covers sets, quantifiers, functions, operator parameters,
+LET, conditionals, action references and fairness. Local module `INSTANCE`
+substitutions are expanded using resolved bindings rather than textual replacement.
 
-The translator emits a Lean `State` structure and definitions. Append the proof
-in `tests/CounterProof.txt` to the generated module to prove its invariant.
-Translation does not prove any property automatically.
+Generated modules expose `Constants`, `State`, and definitions taking constants,
+a behavior and a time index. Value types are inferred; unconstrained types remain
+explicit generic Lean types. Append `tests/CounterProof.txt` to the translated
+counter to check its invariant. Translation alone does not prove a property.
 
-Current source subset:
+Supported source constructs currently include:
 
-- One module; `EXTENDS Integers, Naturals`; integer-valued variables.
-- Zero-argument state predicate and action definitions, in dependency order.
-- Integer literals, primed variables, parentheses, unary minus, `+`, `-`, `*`.
-- Integer comparisons, TRUE/FALSE, conjunction, disjunction, implication,
-  equivalence, and negation of parenthesized predicates.
-- References to earlier state predicates, and `UNCHANGED variable`.
-- `Init /\ [][Next]_vars`, with a scalar or tuple containing all variables in
-  declaration order.
-- Line comments and nested block comments.
+- Constants, variables, operator calls, LET and INSTANCE substitutions.
+- Integers, arithmetic, comparisons, propositional operators and IF/THEN/ELSE.
+- Set enumeration, intervals, membership, union/intersection/difference, subset,
+  powerset, UNION, single-binder comprehensions and bounded quantifiers/CHOOSE.
+- Function constructors, application, DOMAIN and function spaces.
+- Homogeneous tuples/sequences, Len, Append, Head, Tail, SubSeq and concatenation.
+- Priming, UNCHANGED, action frames, ENABLED, always/eventually and fairness.
 
-All source variables have domain `Int` in this first fragment. `Naturals` does
-not implicitly constrain them to nonnegative values; use an invariant/init
-condition. Source definitions must return a proposition. Actions and temporal
-formulas cannot yet be referenced inside arbitrary expressions.
+## Remaining compatibility boundaries
 
-Unsupported syntax raises a diagnostic before writing output. In particular,
-sets, membership, records, sequences, function values, quantifiers, constants,
-operator parameters, IF/THEN/ELSE, LET, CHOOSE, INSTANCE, recursive definitions,
-PlusCal, proof syntax, and general temporal source expressions are not ported.
-Use explicit parentheses for logical grouping. The Python translator is part
-of the trusted source-to-Lean translation path: Lean checks the generated
-statement and its proof, not a proved correspondence with the original text.
+The generated data interpretation is currently **typed**. It is not yet a faithful
+universal model of all untyped TLA+ values. Heterogeneous collections, mixed
+function/record/sequence equality, unrestricted quantification and arbitrary
+recursive definitions require further semantic work. Source records and EXCEPT,
+multiple/tuple binders, operator-valued parameters/constants, temporal hiding,
+general standard modules, and proof/assumption obligations also remain incomplete.
+Unsupported constructs are rejected, never replaced by axioms or placeholder
+proofs. Source ASSUME and THEOREM declarations are currently rejected so they
+cannot silently disappear from a translated module.
 
-## Remaining port work
+Some operations outside their specified mathematical domains have total Lean
+values; source claims about such operations are not covered by a correspondence
+theorem. The SANY-to-Lean compiler remains part of the trusted translation path.
+Lean checks generated statements and proofs, not a proved equivalence to source.
+This package is not yet a replacement for TLC or TLAPS.
 
-1. Define a value universe and set/function semantics for untyped TLA+.
-2. Add a source AST, level checking, module resolution and standard modules.
-3. Extend source translation to general temporal formulas and operator binding.
-4. Validate source semantics against the reference tools and prove translation
-   correspondence for the supported fragment.
-5. Add proof-language interoperability and broader upstream compatibility tests.
-
-The upstream compiler and its kernel are unchanged. The package is kept in
-`tla/` so upstream Lean changes can be incorporated without a compiler patch.
+The upstream Lean compiler and kernel are unchanged. The port lives in `tla/`
+to allow upstream compiler updates without a kernel patch.

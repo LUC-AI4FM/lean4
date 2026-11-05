@@ -4,3 +4,5 @@ __pycache__/
 lake-manifest.json
 /Counter.lean
 /check-*/
+
+.tools/
