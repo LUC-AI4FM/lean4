@@ -279,3 +279,18 @@ Complete audit checkpoint (2026-11-05):
   contradiction and unchanged Cantor3/Cantor10 fixtures (42089288668 pending).
 - Full compatibility remains incomplete. The new full audit predates recent
   Boolean, Cantor, record equality and process cleanup repairs.
+
+Cantor and timeout-regression verification (2026-11-05):
+- Focused 42089145550 passed with process-group timeout cleanup, including
+  record/Cantor proofs and false-record/temporal rejection.
+- Focused 42089288668 at f5bd06f passed unchanged Cantor3 and Cantor10,
+  plus false-leaf and false-record rejection. universal_set_contradiction
+  is proved from foundation, not assumed.
+- Focused 42089462628 passed all three prior timeout regressions:
+  critical_bounded_test, excapp1_test and typingremainder_test, plus false-leaf
+  rejection. This establishes current focused behavior, not corpus stability.
+- Focused 42089746734 at bd5209f passed unchanged Cantor8, Cantor9 and
+  Cantor10 plus false-leaf rejection. powerset_subset_contradiction is a
+  proved inference connecting powerset inclusion, subset and nonmembership.
+- Local tests: 25 pass. A new full compatibility audit was dispatched at
+  bd5209f to measure all recent changes together. Full port remains incomplete.
