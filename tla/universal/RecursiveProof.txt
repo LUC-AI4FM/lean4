@@ -4,4 +4,4 @@ example (c : Recursive.Constants) (b : Behavior) (n : Nat) :
   unfold Recursive.Fact
   apply recursiveOperator_base
   intro g
-  simp only [truth_boolean, if_pos rfl]
+  simp [truth_boolean]

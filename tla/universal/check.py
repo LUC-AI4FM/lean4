@@ -17,6 +17,7 @@ subprocess.run([lake, 'build'], check=True)
 fixtures = ['Counter.tla', 'fixtures/Collections.tla', 'fixtures/Records.tla',
             'fixtures/Binders.tla', 'fixtures/Universal.tla', 'fixtures/Claims.tla', 'fixtures/Temporal.tla', 'fixtures/ValueForms.tla', 'fixtures/Strings.tla', 'fixtures/Finite.tla', 'fixtures/Recursive.tla', 'fixtures/StructuredClaims.tla', 'fixtures/Mutual.tla', 'fixtures/RealNumbers.tla', 'fixtures/StandardLibrary.tla', 'fixtures/Labels.tla', 'fixtures/HigherOrder.tla']
 fixtures += [str(p.relative_to(root.parent / 'tests')) for p in sorted((root.parent / 'tests' / 'corpus').glob('*.tla'))]
+failures = []
 with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as directory:
     for fixture in fixtures:
         source = root.parent / 'tests' / fixture
@@ -36,10 +37,16 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         if source.name == 'StructuredClaims.tla':
             code += "\nexample (c : StructuredClaims.Constants) : StructuredClaims.Certificate c := by\n  constructor <;> intros <;> simp [StructuredClaims.TLAProofClaim0, StructuredClaims.TLAProofClaim1, truth_boolean]\n"
         target.write_text(code)
-        subprocess.run([lake, 'env', 'lean', str(target)], check=True, timeout=120)
+        result = subprocess.run([lake, 'env', 'lean', str(target)], capture_output=True, text=True, timeout=120)
+        if result.returncode:
+            failures.append(fixture)
+            print(result.stdout + result.stderr, flush=True)
+        print(('FAIL ' if result.returncode else 'PASS ') + fixture, flush=True)
     target = Path(directory) / 'Negative.lean'
     target.write_text('module\nimport TLAUniversal\nexample : TLAUniversal.truth (TLAUniversal.boolean False) := by simp [TLAUniversal.truth_boolean]\n')
     result = subprocess.run([lake, 'env', 'lean', str(target)], capture_output=True, text=True)
     if result.returncode == 0 or 'error:' not in result.stdout:
         raise RuntimeError('false universal-value proof was not rejected')
+if failures:
+    raise RuntimeError('Universal checks failed: ' + ', '.join(failures))
 print('Universal definitions, generated modules and negative proof checks passed.')
