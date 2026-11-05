@@ -1,0 +1,14 @@
+/-! The translated source supports the same kernel-checked invariant proof. -/
+namespace Counter
+
+theorem safety (b : TLA.Behavior State) (h : Spec b 0) :
+    TLA.always (TLA.state Inv) b 0 := by
+  apply TLA.invariant Init Inv Next ?_ ?_ b h
+  · intro s hs
+    simp [Init] at hs
+    simp [Inv, hs]
+  · intro s t hs hn
+    simp [Inv] at *
+    simp [Next] at hn
+    omega
+end Counter

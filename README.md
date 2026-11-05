@@ -1,3 +1,7 @@
+# Lean 4 with TLA+
+
+This public fork adds an experimental [TLA+ port](tla/README.md): native Lean specifications and translation of an integer/action subset of existing `.tla` files, with Lean-checked invariant proofs. Full TLA+ source compatibility is under development.
+
 This is the repository for **Lean 4**.
 
 # About

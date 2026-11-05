@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.lake/
+lake-manifest.json
+/Counter.lean
+/check-*/

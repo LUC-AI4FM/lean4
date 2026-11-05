@@ -1,0 +1,6 @@
+name = "tla"
+version = "0.1.0"
+defaultTargets = ["TLA"]
+
+[[lean_lib]]
+name = "TLA"
