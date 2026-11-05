@@ -43,10 +43,6 @@ theorem boolean_function_apply {D f x : Value} (hf : ZFSet.IsFunc D ZFSet.𝔹 f
     (hx : x ∈ D) : apply f x = ZFSet.zffalse ∨ apply f x = ZFSet.zftrue :=
   (ZFSet.ZFBool.mem_𝔹_iff _).mp (apply_mem hf hx)
 
-theorem integer_function_apply {D f x : Value} (hf : ZFSet.IsFunc D integers f)
-    (hx : x ∈ D) : ∃ n : Int, integer n = apply f x :=
-  (mem_integers _).mp (apply_mem hf hx)
-
 theorem function_range_mono {domain source target f : Value}
     (hf : ZFSet.IsFunc domain source f) (included : source ⊆ target) :
     ZFSet.IsFunc domain target f := by

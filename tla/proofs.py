@@ -376,7 +376,12 @@ def compile_proofs(source, **kwargs):
                  '_root_.TLAUniversal.domain_update _root_.TLAUniversal.domain_record')
     # Boolean range inference is useful only when the emitted source uses BOOLEAN.
     if 'integers' in code:
-        lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.integer_function_apply')
+        lines += [
+            'private theorem tla_integer_function_apply {D f x : _root_.TLAUniversal.Value} '
+            '(hf : _root_.ZFSet.IsFunc D _root_.TLAUniversal.integers f) (hx : x ∈ D) : '
+            '∃ n : _root_.Int, _root_.TLAUniversal.integer n = _root_.TLAUniversal.apply f x := '
+            '(_root_.TLAUniversal.mem_integers _).mp (_root_.TLAUniversal.apply_mem hf hx)',
+            'attribute [local aesop safe apply] tla_integer_function_apply']
     if 'ZFSet.𝔹' in code:
         lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.boolean_function_apply')
     lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.remainder_nonnegative '
