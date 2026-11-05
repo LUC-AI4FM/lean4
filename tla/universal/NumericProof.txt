@@ -13,7 +13,8 @@ example (c : NumericDomains.Constants) (b : Behavior) (n : Nat) :
 
 example (c : NumericDomains.Constants) (b : Behavior) (n : Nat) :
     truth (NumericDomains.NegativePower c b n) := by
-  simp only [NumericDomains.NegativePower, truth_boolean, realNegate_integer, integer, realPower_real]
+  simp only [NumericDomains.NegativePower, truth_boolean, realNegate_integer]
+  simp only [integer, realPower_real]
   congr 1
   norm_num [Real.rpow_neg_one]
 
