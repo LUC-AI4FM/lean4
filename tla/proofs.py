@@ -51,7 +51,8 @@ class Renderer:
             symbol = self.graph.resolve(reference)
             if symbol.uid in self.compiler.emitted:
                 unfold.append(self.compiler.emitted[symbol.uid][0])
-        return [indent + 'simp_all only [' + ', '.join(dict.fromkeys(unfold)) + ']',
+        simplifiers = ', '.join(dict.fromkeys(unfold))
+        return [indent + 'first | simp_all only [' + simplifiers + '] | simp only [' + simplifiers + '] at *',
                 indent + 'all_goals first | omega | (solve | norm_num) | (solve | tla_temporal_induction <;> aesop (add safe (by omega), norm (by tla_choice))) | (solve | apply _root_.TLAUniversal.natural_induction <;> aesop (add safe (by omega), norm (by tla_choice))) | aesop (add safe (by omega), norm (by tla_choice))']
 
     def open_statement(self, node, env, indent):
@@ -356,6 +357,7 @@ def compile_proofs(source, **kwargs):
                  '_root_.TLAUniversal.remainder_upper _root_.Int.emod_lt_of_pos '
                  '_root_.TLAUniversal.exists_state_pair '
                  '_root_.TLAUniversal.separation_subset '
+                 '_root_.TLAUniversal.diagonal_ne '
                  '_root_.TLAUniversal.exists_nat_of_nonneg')
     lines.append('attribute [local aesop safe forward] _root_.TLAUniversal.domain_isFunc '
                  '_root_.TLAUniversal.apply_mem')

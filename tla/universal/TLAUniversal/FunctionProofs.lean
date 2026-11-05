@@ -143,4 +143,14 @@ theorem separation_subset (s : Value) (p : Value → Prop) : s.sep p ⊆ s := by
 theorem exists_nat_of_nonneg (z : Int) (h : 0 ≤ z) : ∃ n : Nat, (n : Int) = z :=
   ⟨z.toNat, Int.toNat_of_nonneg h⟩
 
+theorem diagonal_ne (s f x : Value) (hx : x ∈ s) :
+    apply f x ≠ s.sep (fun z => z ∉ apply f z) := by
+  intro eq
+  by_cases hm : x ∈ apply f x
+  · have diagonal : x ∈ s.sep (fun z => z ∉ apply f z) := eq ▸ hm
+    exact (ZFSet.mem_sep.mp diagonal).2 hm
+  · have diagonal : x ∈ s.sep (fun z => z ∉ apply f z) :=
+      ZFSet.mem_sep.mpr ⟨hx, hm⟩
+    exact hm (eq.symm ▸ diagonal)
+
 end TLAUniversal
