@@ -17,9 +17,14 @@ SEMANTIC_NAMES = set("""Value State Behavior Expression truth boolean integer in
 
 def qualify(code):
     # Keep source identifiers and string literals intact while qualifying library names.
-    return re.sub(r'"(?:\\.|[^"\\])*"|«[^»]*»|[A-Za-z_][A-Za-z_0-9]*',
-                  lambda m: '_root_.TLAUniversal.' + m[0] if m[0] in SEMANTIC_NAMES else
-                  ('_root_.' + m[0] if m[0] in {'TLA', 'ZFSet', 'Nat', 'Int', 'Real', 'String'} else m[0]), code)
+    def token(match):
+        name = match[0]
+        if name in SEMANTIC_NAMES:
+            return '_root_.TLAUniversal.' + name
+        if name.split('.')[0] in {'TLA', 'ZFSet', 'Nat', 'Int', 'Real', 'String'}:
+            return '_root_.' + name
+        return name
+    return re.sub(r'"(?:\\.|[^"\\])*"|«[^»]*»|[A-Za-z_][A-Za-z_0-9]*(?:\.[A-Za-z_][A-Za-z_0-9]*)*', token, code)
 
 @dataclass
 class ValueBinding:
