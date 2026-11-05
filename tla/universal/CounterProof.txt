@@ -3,7 +3,7 @@ namespace Counter
 /-- The unchanged source specification preserves a nonnegative integer value. -/
 theorem source_invariant (c : Constants) (b : Behavior)
     (h : truth (Spec c b 0)) : ∀ n, truth (Inv c b n) := by
-  simp only [Spec, truth_boolean] at h
+  simp only [Spec, Init, Next, truth_boolean] at h
   have values : ∀ n : Nat, ∃ k : Nat, b n "x" = integer (k : Int) := by
     intro n
     induction n with

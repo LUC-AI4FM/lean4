@@ -4,10 +4,21 @@
 import argparse
 from dataclasses import dataclass
 import json
+import re
 from pathlib import Path
 import xml.etree.ElementTree as ET
 from compiler import CompileError, ident, lean_string
 from sany import parse_file, SanyError
+
+SEMANTIC_NAMES = set("""Value State Behavior Expression truth boolean integer toInt naturals interval
+    enumerate image choose function apply domain update undefined intUnary intBinary intCompare
+    tuple length sequences append prepend cartesian caseValue concatenate subsequence string strings
+    record recordSpace selectPath updatePath finite cardinality intPower recursiveOperator""".split())
+
+def qualify(code):
+    # Keep source identifiers and string literals intact while qualifying library names.
+    return re.sub(r'"(?:\\.|[^"\\])*"|«[^»]*»|[A-Za-z_][A-Za-z_0-9]*',
+                  lambda m: 'TLAUniversal.' + m[0] if m[0] in SEMANTIC_NAMES else m[0], code)
 
 @dataclass
 class ValueBinding:
@@ -44,6 +55,7 @@ class UniversalCompiler:
         self.vars = {s.uid for s in graph.variables()}
         self.consts = {s.uid for s in graph.constants()}
         self.active = []
+        self.emitted = {}
         self.serial = 0
         recursive = {uid: symbol for uid, symbol in graph.symbols.items()
                      if symbol.node.tag == 'UserDefinedOpKind' and symbol.node.find('recursive') is not None}
@@ -174,6 +186,15 @@ class UniversalCompiler:
         if symbol.uid in self.consts:
             values = [self.expr(a, env, b, n) for a in args]
             return f'(c.{ident(symbol.name)} {" ".join(values)})'
+        if symbol.uid in self.emitted:
+            name, arities = self.emitted[symbol.uid]
+            if len(args) == len(arities) and not any(arities):
+                actuals = []
+                for argument in args:
+                    trace, time = self.fresh(), self.fresh()
+                    body = self.expr(argument, env, trace, time)
+                    actuals.append(f'(fun ({trace} : Behavior) ({time} : Nat) => {body})')
+                return '(' + ' '.join([name, *actuals, 'c', f'({b})', f'({n})']) + ')'
         name, origin = operator_override or symbol.name, symbol.location
         name = {'\\union': '\\cup', '\\intersect': '\\cap'}.get(name, name)
         body = symbol.node.find('body')
@@ -430,7 +451,7 @@ class UniversalCompiler:
 
     def compile(self):
         lines = ['module', 'import TLAUniversal', '', 'open TLAUniversal Classical',
-                 f'namespace {ident(self.g.root.name)}', 'noncomputable section', 'structure Constants where']
+                 'set_option autoImplicit false', f'namespace {ident(self.g.root.name)}', 'noncomputable section', 'structure Constants where']
         for constant in self.g.constants():
             ty = ' → '.join(['Value'] * (constant.arity + 1))
             lines.append(f'  {ident(constant.name)} : {ty}')
@@ -449,17 +470,18 @@ class UniversalCompiler:
             else:
                 code = self.expr(definition.body, environment) if parameters else self.expr(self.app(definition))
             signature = (' '.join(parameters) + ' ') if parameters else ''
-            context = 'c' if 'c.' in code else '_c'
-            trace = 'b' if '(b)' in code else '_b'
-            index = 'n' if '(n)' in code else '_n'
+            code = qualify(code)
+            context, trace, index = 'c', 'b', 'n'
             lines.extend([f'def {ident(definition.name)} {signature}({context} : Constants) ({trace} : Behavior) ({index} : Nat) : Value :=', '  ' + code])
-        assumptions = [self.expr(s.body) for s in self.g.claims('AssumeNode')]
-        obligations = [self.expr(s.body) for s in self.g.claims('TheoremNode')]
+            refs = definition.node.findall('params/leibnizparam/FormalParamNodeRef')
+            self.emitted[definition.uid] = (ident(definition.name), [self.g.resolve(r).arity for r in refs])
+        assumptions = [qualify(self.expr(s.body)) for s in self.g.claims('AssumeNode')]
+        obligations = [qualify(self.expr(s.body)) for s in self.g.claims('TheoremNode')]
         if assumptions or obligations:
-            condition = ' ∧ '.join(f'truth {a}' for a in assumptions) or 'True'
+            condition = ' ∧ '.join(f'TLAUniversal.truth {a}' for a in assumptions) or 'True'
             lines += [f'def TLAProofAssumptions (c : Constants) (b : Behavior) (n : Nat) : Prop := {condition}']
             for i, claim in enumerate(obligations):
-                lines += [f'def TLAProofClaim{i} (c : Constants) (b : Behavior) (n : Nat) : Prop := truth {claim}']
+                lines += [f'def TLAProofClaim{i} (c : Constants) (b : Behavior) (n : Nat) : Prop := TLAUniversal.truth {claim}']
         if obligations:
             lines += ['structure Certificate (c : Constants) : Prop where']
             for i in range(len(obligations)):
