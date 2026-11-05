@@ -206,7 +206,16 @@ def realBinary (op : Real → Real → Real) (x y : Value) : Value :=
   if x ∈ reals ∧ y ∈ reals then real (op (toReal x) (toReal y)) else undefined
 
 def realDivide (x y : Value) : Value :=
-  if x ∈ reals ∧ y ∈ reals ∧ toReal y ≠ 0 then real (toReal x / toReal y) else undefined
+  if x ∈ reals ∧ y ∈ reals then
+    if toReal y = 0 then
+      if toReal x = 0 then choose (fun value => value ∈ reals) else undefined
+    else real (toReal x / toReal y)
+  else undefined
+
+theorem realDivide_zero_zero_mem : realDivide (integer 0) (integer 0) ∈ reals := by
+  simp only [realDivide, integer_mem_real, and_self, if_true, toReal_integer, Int.cast_zero]
+  simp only [if_pos rfl]
+  exact choose_spec (fun value => value ∈ reals) ⟨integer 0, integer_mem_real 0⟩
 
 def realPower (base exponent : Value) : Value :=
   if base ∈ reals ∧ exponent ∈ reals then

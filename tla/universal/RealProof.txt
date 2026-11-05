@@ -18,3 +18,8 @@ example (c : RealNumbers.Constants) (b : Behavior) (n : Nat) :
 example (c : RealNumbers.Constants) (b : Behavior) (n : Nat) :
     truth (RealNumbers.DoubleNegative c b n) := by
   simp [RealNumbers.DoubleNegative, truth_boolean, realNegate_infinity, realNegate_minusInfinity]
+
+example (c : RealNumbers.Constants) (b : Behavior) (n : Nat) :
+    truth (RealNumbers.ZeroQuotientIsReal c b n) := by
+  simp only [RealNumbers.ZeroQuotientIsReal, truth_boolean]
+  exact realDivide_zero_zero_mem

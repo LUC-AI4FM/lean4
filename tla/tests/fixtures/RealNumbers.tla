@@ -8,4 +8,5 @@ Positive == Ratio > 1
 Bound == 100 < Infinity
 Lower == -Infinity < 0
 DoubleNegative == -(-Infinity) = Infinity
+ZeroQuotientIsReal == (0 / 0) \in Real
 ====

@@ -142,3 +142,17 @@ compile a consumer proof file. The typed consumer check passes locally. Universa
 sequence length, source hiding/guarantees, and nested parameterized INSTANCE
 proofs are in the current CI gate. Local suite: 33 tests plus native and typed
 source/consumer proofs pass. Full compatibility is not claimed by these results.
+
+Run 41971199364 passed at 75a02c0, including separate-module universal proofs,
+sequence length, nested module instances, stuttering-aware source proofs, all
+eleven upstream modules and source false-certificate rejection. Run 41971950715
+passed at 6c0c6d7 with all 61 exported standard operators covered by reachable
+fixture calls and 34 Python/reference tests.
+
+The deeper numeric audit against Specifying Systems §18.4 found that the numeric
+modules share real arithmetic even without EXTENDS Reals. The universal backend
+now follows that rule, supports real/negative exponents, real interval endpoints
+and both infinities. Run 41972377311 checked these definitions and all fixtures
+except one proof normalization step for negative exponentiation, since corrected.
+Additional CHOOSE-defined zero-division and bounded-quantifier proof checks are
+in flight. General source correspondence remains an explicit trust boundary.
