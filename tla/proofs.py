@@ -361,6 +361,7 @@ def compile_proofs(source, **kwargs):
         + ' _root_.ZFSet.zftrue_ne_zffalse')
     lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.remainder_nonnegative '
                  '_root_.TLAUniversal.remainder_upper _root_.Int.emod_lt_of_pos '
+                 '_root_.TLAUniversal.realPower_integer_mem '
                  '_root_.TLAUniversal.exists_state_pair '
                  '_root_.TLAUniversal.separation_subset '
                  '_root_.TLAUniversal.exists_container '

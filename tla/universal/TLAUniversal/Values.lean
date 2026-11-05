@@ -371,6 +371,16 @@ theorem realLess_minusInfinity_real (r : Real) : truth (realLess minusInfinity (
 theorem realPower_real (a b : Real) : realPower (real a) (real b) = real (Real.rpow a b) := by
   simp [realPower, real_mem, toReal_real]
 
+theorem realPower_integer_nat (base : Int) (exponent : Nat) :
+    realPower (integer base) (integer exponent) = integer (base ^ exponent) := by
+  simp [integer, realPower_real, Real.rpow_natCast]
+
+theorem realPower_integer_mem (base exponent : Int) (h : 0 ≤ exponent) :
+    realPower (integer base) (integer exponent) ∈ integers := by
+  have cast : (exponent.toNat : Int) = exponent := Int.toNat_of_nonneg h
+  rw [← cast, realPower_integer_nat]
+  exact integer_mem _
+
 def tuple (values : List Value) : Value :=
   function (interval (integer 1) (integer values.length))
     (fun index => values[(toInt index - 1).toNat]?.getD undefined)
