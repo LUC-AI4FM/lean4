@@ -352,13 +352,16 @@ def compile_proofs(source, **kwargs):
                   'realSubtract_integer realLessEqual_integer realLess_integer '
                   'intBinary_integer numberInterval_integer integer_mem_interval '
                   'mem_enumerate mem_image caseValue apply_function domain_function function_isFunc_iff '
-                  'domain_update update_same update_other updatePath '
+                  'domain_update domain_updatePath_cons update_same update_other updatePath '
                   'domain_tuple apply_tuple_at tuple_eq_iff length_tuple '
                   'prepend_tuple mem_cartesian_cons mem_cartesian_nil '
                   'string_eq_iff string_mem domain_record record_eq_iff mem_recordSpace mem_interval_iff mem_union_enumerate').split()
     lines.append('attribute [local simp] ' + ' '.join(
         '_root_.TLAUniversal.' + name for name in normalized)
         + ' _root_.ZFSet.zftrue_ne_zffalse')
+    lines.append('attribute [local simp ↓] _root_.TLAUniversal.apply_updatePath_other '
+                 '_root_.TLAUniversal.apply_updatePath_single '
+                 '_root_.TLAUniversal.update_other _root_.TLAUniversal.update_same')
     lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.remainder_nonnegative '
                  '_root_.TLAUniversal.remainder_upper _root_.Int.emod_lt_of_pos '
                  '_root_.TLAUniversal.realPower_integer_mem '

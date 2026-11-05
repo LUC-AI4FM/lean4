@@ -79,6 +79,20 @@ theorem update_other (f x y z : Value) (hz : z ∈ domain f) (hne : z ≠ x) :
     apply (update f x y) z = apply f z := by
   simp [update, apply_function _ _ _ hz, hne]
 
+theorem domain_updatePath_cons (value key replacement : Value) (rest : List Value) :
+    domain (updatePath value (key :: rest) replacement) = domain value := by
+  simp only [updatePath, domain_update]
+
+theorem apply_updatePath_other (value key replacement field : Value) (rest : List Value)
+    (member : field ∈ domain value) (different : field ≠ key) :
+    apply (updatePath value (key :: rest) replacement) field = apply value field := by
+  simp only [updatePath, update_other _ _ _ _ member different]
+
+theorem apply_updatePath_single (value key replacement : Value)
+    (member : key ∈ domain value) :
+    apply (updatePath value [key] replacement) key = replacement := by
+  simp only [updatePath, update_same _ _ _ member]
+
 theorem domain_tuple (values : List Value) :
     domain (tuple values) = interval (integer 1) (integer values.length) :=
   domain_function _ _
