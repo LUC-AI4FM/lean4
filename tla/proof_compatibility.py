@@ -14,6 +14,7 @@ from sany import parse_file
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('reference_root', type=Path)
+    parser.add_argument('-I', '--include', type=Path, action='append', default=[])
     parser.add_argument('--shard', type=int, default=0)
     parser.add_argument('--shards', type=int, default=1)
     parser.add_argument('--report', type=Path, required=True)
@@ -25,7 +26,7 @@ def main():
     sources = sorted(reference.rglob('*.tla'))[args.shard::args.shards]
     if not sources:
         parser.error('empty reference corpus')
-    includes = [reference / 'library', root / 'tests/corpus/tlaps']
+    includes = [reference / 'library', *[p.resolve() for p in args.include], root / 'tests/corpus/tlaps']
     results = []
     with tempfile.TemporaryDirectory(prefix='proof-audit-', dir=root / 'universal') as directory:
         target = Path(directory) / 'Proof.lean'

@@ -18,6 +18,11 @@ jobs:
           repository: tlaplus/tlapm
           ref: d1760ab9a1a3e7e76f81172166a955167cd163f2
           path: reference-tlapm
+      - uses: actions/checkout@v5
+        with:
+          repository: tlaplus/CommunityModules
+          ref: 1805e9d5e1cef05d74806309fb87788e69b48f26
+          path: reference-community
       - name: Install elan
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -o /tmp/elan-init.sh
@@ -33,7 +38,7 @@ jobs:
       - name: Check unchanged proof scripts
         working-directory: tla
         run: |
-          python3 proof_compatibility.py ../reference-tlapm --shard ${{ matrix.shard }} --shards 4 --report ../proof-compatibility-report/${{ matrix.shard }}.json
+          python3 proof_compatibility.py ../reference-tlapm -I ../reference-community/modules --shard ${{ matrix.shard }} --shards 4 --report ../proof-compatibility-report/${{ matrix.shard }}.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:

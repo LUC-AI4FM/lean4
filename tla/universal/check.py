@@ -104,12 +104,12 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
     # The proof CLI writes an artifact only after Lean accepts its proof terms.
     proof_output = Path(directory) / 'CheckedProofs.lean'
     proof_sources = [root.parent / 'tests/proofs' / (name + '.tla') for name in
-                     ('Leaves', 'ProofShapes', 'DefinitionScope', 'Arithmetic', 'LocalDefinition', 'LevelBinders')]
+                     ('Leaves', 'ProofShapes', 'DefinitionScope', 'Arithmetic', 'LocalDefinition', 'LevelBinders', 'Foundation')]
     proof_sources += sorted((root.parent / 'tests/proofs/upstream').glob('*.tla'))
     for proof_source in proof_sources:
         proof_fixture = proof_source.stem
         proved = subprocess.run([sys.executable, str(root.parent / 'prove.py'),
-                                 str(proof_source),
+                                 str(proof_source), '-I', str(root.parent / 'tests/corpus/tlaps'),
                                  '-o', str(proof_output)],
                                 capture_output=True, text=True, timeout=150)
         if proved.returncode:
