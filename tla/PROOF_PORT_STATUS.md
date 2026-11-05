@@ -294,3 +294,19 @@ Cantor and timeout-regression verification (2026-11-05):
   proved inference connecting powerset inclusion, subset and nonmembership.
 - Local tests: 25 pass. A new full compatibility audit was dispatched at
   bd5209f to measure all recent changes together. Full port remains incomplete.
+
+Arithmetic and update-normalization checkpoint (2026-11-05):
+- 4154d1b proves integer/natural exponent conversion and integer power typing.
+  Initial focused 42090687981 compiled the backend but typingexp_test exhausted
+  proof search; remainder and false-arithmetic checks passed.
+- 8d96cdb adds conditional normalization for nonnegative integer exponents.
+  Focused 42091220933 passed unchanged typingexp_test and rejected false
+  arithmetic. That run still failed record_except_explosion_test.
+- f16c031 adds checked unaffected updatePath projections and registers pre-order
+  projection simplification. Focused 42090885988 passed ordinary EXCEPT and
+  record equality plus false-record rejection, but the wide-record stress test
+  still exceeded the simplification step limit.
+- 8f848ff moves update/record domain simplification before value expansion.
+  Focused 42091840982 is pending. Do not claim the wide-record failure fixed.
+- Full audit 42090517540 at bd5209f remains active. Local 25-test suite passed
+  before the final simplifier registration changes. Full port remains incomplete.
