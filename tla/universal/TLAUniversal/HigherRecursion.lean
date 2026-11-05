@@ -4,6 +4,7 @@ public import TLAUniversal.Values
 
 @[expose] public noncomputable section
 namespace TLAUniversal
+open Classical
 universe u
 
 /-- A partial graph over an argument type that may contain operator parameters. -/
