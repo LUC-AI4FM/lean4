@@ -28,7 +28,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         code = compile_file(source, includes=[root.parent / 'tests' / 'corpus' / 'tlaps', root.parent / 'tests' / 'corpus' / 'community'])
         code += '\nopen TLAImported\n'
         if source.name == 'HigherRecursive.tla':
-            code += '\nexample (c : HigherRecursive.Constants) (b : Behavior) (n : Nat) : truth (HigherRecursive.BaseLaw c b n) := by\n  simp only [HigherRecursive.BaseLaw, truth_boolean]\n  apply recursiveOperator_base\n  intro g\n  simp only [truth, if_pos rfl, realBinary_add_integer]\n  rfl\n'
+            code += '\nexample (c : HigherRecursive.Constants) (b : Behavior) (n : Nat) : truth (HigherRecursive.BaseLaw c b n) := by\n  simp only [HigherRecursive.BaseLaw, truth_boolean]\n  apply higherRecursiveOperator_base\n  intro g\n  simp only [truth, if_pos rfl, realBinary_add_integer]\n  rfl\n'
         if source.name == 'ClosedImport.tla':
             helpers = [line.split()[1] for line in code.splitlines() if line.startswith('def «')]
             code += '\nexample (c : ClosedImport.Constants) (b : Behavior) (n : Nat) : truth (ClosedImport.Law c b n) := by\n  simp [' + ', '.join([*['ClosedImport.' + h for h in helpers], 'truth_boolean']) + ']\n'

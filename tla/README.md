@@ -85,7 +85,10 @@ leads-to, guarantees, fairness and flexible quantification.
 Recursive functions use choice of a fixed-point graph. Recursive operators use
 the fixing-graph semantics described by
 [Gonthier and Lamport](https://lamport.azurewebsites.net/pubs/recursive-ops.pdf).
-Mutually recursive value operators share one tagged fixing graph. Defining
+Mutually recursive value operators share one tagged fixing graph. Higher-order
+recursive operators use the same extension-independence condition over Lean
+argument types, so operator arguments remain functions rather than being
+encoded as ZFC values. Defining
 equations are not introduced as axioms; unfolding needs a proof.
 
 Tests include unchanged, pinned TLA+ project examples: DieHard, CoffeeCan,
@@ -102,7 +105,7 @@ All 61 exports of the ten pinned standard modules have reachable test fixtures.
 The full upstream example corpus is checked by the separate compatibility
 workflow; remaining failures are recorded rather than skipped. Source
 proof-script translation remains incomplete. Level-specific `NEW` declarations and real arithmetic have
-checked fixtures. Recursive operator-valued parameters are supported when recursive calls preserve them; changing them during recursion remains unsupported. Unsupported constructs fail with a
+checked fixtures. Operator-valued recursive parameters use class-level fixing graphs, including recursive calls that change an operator or capture arguments in a local operator. Unsupported constructs fail with a
 diagnostic. There are no added axioms or placeholder proofs.
 
 The concrete value representation chooses values for operations outside their

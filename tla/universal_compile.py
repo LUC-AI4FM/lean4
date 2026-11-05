@@ -8,12 +8,12 @@ import re
 from pathlib import Path
 import xml.etree.ElementTree as ET
 from compiler import CompileError, ident, lean_string
-from sany import parse_file, SanyError
+from sany import parse_file, SanyError, Symbol
 
 SEMANTIC_NAMES = set("""Value State Behavior Expression truth boolean integer integers toInt naturals interval real reals realUnary realBinary realDivide realPower realLess realLessEqual infinity realSubtract realNegate numberInterval
     enumerate image choose function apply domain update undefined intUnary intBinary intCompare
     tuple length sequences append prepend cartesian caseValue concatenate subsequence string strings
-    record recordSpace selectPath updatePath finite cardinality intPower recursiveOperator expressionLevel""".split())
+    record recordSpace selectPath updatePath finite cardinality intPower recursiveOperator higherRecursiveOperator expressionLevel""".split())
 
 def qualify(code):
     # Keep source identifiers and string literals intact while qualifying library names.
@@ -40,7 +40,12 @@ class RecursiveBinding:
     graph: str
     arity: int
     tag: int | None = None
-    operators: dict | None = None
+
+@dataclass
+class HigherRecursiveBinding:
+    graph: str
+    member: int
+    layouts: tuple
 
 @dataclass
 class LevelBinding:
@@ -203,14 +208,18 @@ class UniversalCompiler:
                     raise CompileError('operator arity mismatch')
                 values = [self.expr(a, env, b, n) for a in args]
                 return '(' + ' '.join([binding.name, *values]) + ')'
+            if isinstance(binding, HigherRecursiveBinding):
+                layout = binding.layouts[binding.member]
+                if len(args) != len(layout):
+                    raise CompileError('higher recursive operator arity mismatch')
+                values = [self.operator_expression(a, arity, env) if arity else self.expr(a, env, b, n)
+                          for a, arity in zip(args, layout)]
+                key = self.higher_key(values, binding.member, len(binding.layouts))
+                return f'({binding.graph} {key})'
             if isinstance(binding, RecursiveBinding):
                 if len(args) != binding.arity:
                     raise CompileError('recursive operator arity mismatch')
-                operators = binding.operators or {}
-                for position, expected in operators.items():
-                    if self.operator_identity(args[position], env) != expected:
-                        raise CompileError('recursive operator arguments must remain invariant')
-                actuals = [self.expr(a, env, b, n) for i, a in enumerate(args) if i not in operators]
+                actuals = [self.expr(a, env, b, n) for a in args]
                 key = actuals[0] if len(actuals) == 1 else f'(tuple [{", ".join(actuals)}])'
                 if binding.tag is not None:
                     key = f'(tuple [(integer {binding.tag}), {key}])'
@@ -516,6 +525,9 @@ class UniversalCompiler:
         binding = context.get(target.uid)
         if isinstance(binding, SyntaxBinding) and binding.node.tag == 'OpArgNode':
             return self.expand_binding(binding, args, caller, b, n)
+        if isinstance(binding, (RecursiveBinding, HigherRecursiveBinding)):
+            application_env = {**context, **caller, target.uid: binding}
+            return self.expr(self.app(target, args), application_env, b, n)
         if isinstance(binding, ExpressionBinding):
             if len(args) != binding.arity:
                 raise CompileError('operator argument arity mismatch')
@@ -543,26 +555,90 @@ class UniversalCompiler:
             return self.expr(target.body, extended, b, n)
         raise CompileError(f'unsupported operator argument target: {target.name}')
 
-    def operator_identity(self, argument, env):
+    @staticmethod
+    def higher_key(values, member, count):
+        key = '(' + ', '.join(values) + ')' if values else '_root_.PUnit.unit'
+        if count > 1:
+            if member < count - 1:
+                key = f'(_root_.Sum.inl {key})'
+            for _ in range(member):
+                key = f'(_root_.Sum.inr {key})'
+        return key
+
+    def operator_expression(self, argument, arity, env):
+        """Close a source operator over its lexical environment as a Lean expression."""
         if argument.tag != 'OpArgNode':
-            raise CompileError('expected an operator argument')
-        target = self.g.resolve(argument.find('argument')[0])
-        binding = env.get(target.uid)
-        if isinstance(binding, SyntaxBinding):
-            return self.operator_identity(binding.node, binding.env)
-        if isinstance(binding, ExpressionBinding):
-            return ('expression', binding.name, binding.arity)
-        if binding is not None:
-            return ('binding', repr(binding))
-        return ('symbol', target.uid)
+            raise CompileError('expected an operator-valued argument')
+        parameters, actuals, temporary = [], [], []
+        caller = dict(env)
+        try:
+            for _ in range(arity):
+                name = self.fresh()
+                uid = 'lean-expression-' + name
+                node = ET.Element('FormalParamNode')
+                ET.SubElement(node, 'arity').text = '0'
+                ET.SubElement(node, 'uniquename').text = name
+                symbol = Symbol(uid, node)
+                self.g.symbols[uid] = symbol
+                temporary.append(uid)
+                caller[uid] = ExpressionBinding(name)
+                parameters.append(f'({name} : Expression)')
+                actuals.append(self.app(symbol))
+            trace, time = self.fresh(), self.fresh()
+            body = self.operator_argument(argument, actuals, caller, env, trace, time)
+            return f'(fun {" ".join(parameters)} ({trace} : Behavior) ({time} : Nat) => {body})'
+        finally:
+            for uid in temporary:
+                del self.g.symbols[uid]
+
+    def higher_recursive(self, symbol, args, env, b, n, argument_env=None):
+        members = self.recursive_groups.get(symbol.uid, [symbol])
+        layouts = tuple(tuple(self.g.resolve(p).arity for p in member.node.findall('params/leibnizparam/FormalParamNodeRef'))
+                        for member in members)
+        member_index = next(i for i, member in enumerate(members) if member.uid == symbol.uid)
+        caller = env if argument_env is None else argument_env
+        values = [self.operator_expression(a, arity, caller) if arity else self.expr(a, caller, b, n)
+                  for a, arity in zip(args, layouts[member_index])]
+        key = self.higher_key(values, member_index, len(members))
+        types = []
+        for layout in layouts:
+            fields = ['(' + ' → '.join(['Expression'] * (arity + 1)) + ')' if arity else 'Value' for arity in layout]
+            types.append('(' + ' × '.join(fields) + ')' if fields else '_root_.PUnit')
+        ty = types[-1]
+        for member_type in reversed(types[:-1]):
+            ty = f'(_root_.Sum {member_type} {ty})'
+        point, graph = self.fresh(), self.fresh()
+        context = dict(env)
+        for i, member in enumerate(members):
+            context[member.uid] = HigherRecursiveBinding(graph, i, layouts)
+        branches = []
+        for i, member in enumerate(members):
+            refs = member.node.findall('params/leibnizparam/FormalParamNodeRef')
+            fields = [self.fresh() for _ in refs]
+            extended = dict(context)
+            for ref, name, arity in zip(refs, fields, layouts[i]):
+                extended[ref.findtext('UID')] = ExpressionBinding(name, arity) if arity else ValueBinding(name)
+            self.active.append(member.uid)
+            try:
+                body = self.expr(member.body, extended, b, n)
+            finally:
+                self.active.pop()
+            pattern = self.higher_key(fields, i, len(members))
+            if len(members) == 1:
+                branches.append(f'let {pattern} := {point}; {body}')
+            else:
+                branches.append(f'| {pattern} => {body}')
+        body = branches[0] if len(members) == 1 else f'match {point} with ' + ' '.join(branches)
+        return f'(higherRecursiveOperator (fun ({point} : {ty}) ({graph} : {ty} → Value) => {body}) {key})'
 
     def recursive(self, symbol, params, args, env, b, n, *, argument_env=None):
         members = self.recursive_groups.get(symbol.uid, [symbol])
+        if any(self.g.resolve(p).arity for member in members
+               for p in member.node.findall('params/leibnizparam/FormalParamNodeRef')):
+            return self.higher_recursive(symbol, args, env, b, n, argument_env)
         mutual = len(members) > 1
         caller = env if argument_env is None else argument_env
-        operators = {i: self.operator_identity(args[i], caller)
-                     for i, p in enumerate(params) if self.g.resolve(p).arity}
-        actuals = [self.expr(a, caller, b, n) for i, a in enumerate(args) if i not in operators]
+        actuals = [self.expr(a, caller, b, n) for a in args]
         key = actuals[0] if len(actuals) == 1 else f'(tuple [{", ".join(actuals)}])'
         if mutual:
             tag = next(i for i, member in enumerate(members) if member.uid == symbol.uid)
@@ -570,23 +646,14 @@ class UniversalCompiler:
         point, graph = self.fresh(), self.fresh()
         context = dict(env)
         for i, member in enumerate(members):
-            context[member.uid] = RecursiveBinding(graph, member.arity, i if mutual else None, operators)
+            context[member.uid] = RecursiveBinding(graph, member.arity, i if mutual else None)
         point_args = f'(apply {point} (integer 2))' if mutual else point
         bodies = []
         for member in members:
             member_params = member.node.findall('params/leibnizparam/FormalParamNodeRef')
-            layout = {i: self.g.resolve(p).arity for i, p in enumerate(member_params) if self.g.resolve(p).arity}
-            expected_layout = {i: self.g.resolve(p).arity for i, p in enumerate(params) if self.g.resolve(p).arity}
-            if layout != expected_layout:
-                raise CompileError('mutually recursive operator parameters must have matching layouts')
             extended = dict(context)
-            value_index = 0
             for i, parameter in enumerate(member_params):
-                if i in operators:
-                    extended[parameter.findtext('UID')] = SyntaxBinding(args[i], caller, tuple(self.active))
-                    continue
-                value_index += 1
-                value = point_args if len(member_params) - len(operators) == 1 else f'(apply {point_args} (integer {value_index}))'
+                value = point_args if len(member_params) == 1 else f'(apply {point_args} (integer {i + 1}))'
                 extended[parameter.findtext('UID')] = ValueBinding(value)
             self.active.append(member.uid)
             try:

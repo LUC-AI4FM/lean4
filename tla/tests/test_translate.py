@@ -93,4 +93,4 @@ class TranslationTests(unittest.TestCase):
     def test_recursive_operator_parameters(self):
         result = compile_file('tests/fixtures/HigherRecursive.tla')
         self.assertIn('def «Fold»', result)
-        self.assertIn('TLAUniversal.recursiveOperator', result)
+        self.assertIn('TLAUniversal.higherRecursiveOperator', result)
