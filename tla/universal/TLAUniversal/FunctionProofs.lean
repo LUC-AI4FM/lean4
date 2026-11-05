@@ -231,6 +231,22 @@ theorem record_unique_of_nodup (fields : List (String × Value))
       · exact False.elim (distinct.1 (List.mem_map.mpr ⟨a, ha, eq⟩))
       · exact ih distinct.2 a ha b hb eq
 
+theorem apply_record_lookup (fields : List (String × Value)) (key : String)
+    (distinct : (fields.map Prod.fst).Nodup) (member : key ∈ fields.map Prod.fst) :
+    apply (record fields) (string key) = (fields.lookup key).getD undefined := by
+  have present : (fields.lookup key).isSome := by
+    obtain ⟨field, hf, hk⟩ := List.mem_map.mp member
+    exact List.lookup_isSome_iff.mpr ⟨field, hf, by simp [hk]⟩
+  cases found : fields.lookup key with
+  | none => simp [found] at present
+  | some value =>
+    obtain ⟨before, after, decomposition, _⟩ := List.lookup_eq_some_iff.mp found
+    have entry : (key, value) ∈ fields := by simp [decomposition]
+    simp only [found, Option.getD_some]
+    apply apply_record fields key value entry
+    intro other ho eq
+    exact record_unique_of_nodup fields distinct other ho (key, value) entry eq
+
 theorem record_eq_iff (left right : List (String × Value))
     (hl : (left.map Prod.fst).Nodup)
     (hr : (right.map Prod.fst).Nodup) :
