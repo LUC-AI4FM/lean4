@@ -50,4 +50,39 @@ theorem higherRecursiveOperator_base {α : Type u}
   rw [result]
   exact (fixing graph.values (by intro y _; rfl) x hx).symm.trans (base graph.values)
 
+/-- On a well-founded dependency domain, the fixing-graph interpretation agrees
+with every solution of the defining equations. No recursive equation is assumed
+outside that domain. -/
+theorem higherRecursiveOperator_wellFounded {α : Type u}
+    (body : α → (α → Value) → Value) (relation : α → α → Prop)
+    (wellFounded : WellFounded relation) (valid : Set α) (solution : α → Value)
+    (equation : ∀ x ∈ valid, body x solution = solution x)
+    (depends : ∀ x ∈ valid, ∀ left right : α → Value,
+      (∀ y ∈ valid, relation y x → left y = right y) → body x left = body x right)
+    (x : α) (hx : x ∈ valid) : higherRecursiveOperator body x = solution x := by
+  have witness : ∃ graph : HigherGraph α, x ∈ graph.carrier ∧ higherFixes body graph := by
+    refine ⟨⟨valid, solution⟩, hx, ?_⟩
+    intro candidate agrees y hy
+    exact (depends y hy candidate solution (by
+      intro z hz _
+      exact agrees z hz)).trans (equation y hy)
+  obtain ⟨graph, contains, fixing, result⟩ := higherRecursiveOperator_witness body x witness
+  have agreement : ∀ y, y ∈ graph.carrier → y ∈ valid → graph.values y = solution y := by
+    intro y
+    induction y using wellFounded.induction with
+    | h y ih =>
+      intro hy hv
+      let candidate : α → Value := fun z => if z ∈ graph.carrier then graph.values z else solution z
+      have agrees : ∀ z ∈ graph.carrier, candidate z = graph.values z := by
+        intro z hz
+        simp only [candidate, if_pos hz]
+      have smaller : ∀ z ∈ valid, relation z y → candidate z = solution z := by
+        intro z hz rel
+        by_cases inside : z ∈ graph.carrier
+        · simpa only [candidate, if_pos inside] using ih z rel inside hz
+        · simp only [candidate, if_neg inside]
+      exact (fixing candidate agrees y hy).symm.trans
+        ((depends y hv candidate solution smaller).trans (equation y hv))
+  exact result.trans (agreement x contains hx)
+
 end TLAUniversal

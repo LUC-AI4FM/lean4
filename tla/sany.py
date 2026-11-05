@@ -221,6 +221,9 @@ def _parse_file(source, *, jar=None, includes=(), timeout=30):
         any(ref.tag in ('TheoremDefRef', 'AssumeDefRef') and
             graph.resolve(ref).node.find('params') is None for ref in app.find('operator'))
         for app in graph.document.iter('OpApplNode'))
+    missing_parameters |= any(ref.tag in ('TheoremDefRef', 'AssumeDefRef')
+                              for arg in graph.document.iter('OpArgNode')
+                              for ref in arg.find('argument'))
     if missing_parameters:
         adapter = Path(__file__).parent / 'java' / 'SemanticExport.java'
         fallback = ['java', '-Xmx512m', '-cp', str(jar), str(adapter), str(source),

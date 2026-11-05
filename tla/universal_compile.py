@@ -544,7 +544,7 @@ class UniversalCompiler:
             return '(' + ' '.join([name, *(self.expr(arg, caller, b, n) for arg in args)]) + ')'
         if target.node.tag == 'BuiltInKind' or self.operator_info(target)[2]:
             return self.expr(self.app(target, args), caller, b, n)
-        if target.node.tag == 'UserDefinedOpKind':
+        if target.node.tag in ('UserDefinedOpKind', 'TheoremDefNode', 'AssumeDef'):
             params = target.node.findall('params/leibnizparam/FormalParamNodeRef')
             if len(params) != len(args):
                 raise CompileError('defined operator argument arity mismatch')

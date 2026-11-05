@@ -27,6 +27,8 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         target = Path(directory) / source.with_suffix('.lean').name
         code = compile_file(source, includes=[root.parent / 'tests' / 'corpus' / 'tlaps', root.parent / 'tests' / 'corpus' / 'community'])
         code += '\nopen TLAImported\n'
+        if source.name == 'TheoremArgument.tla':
+            code += '\nexample (c : TheoremArgument.Constants) (b : Behavior) (n : Nat) : truth (TheoremArgument.Law c b n) := by\n  simp [TheoremArgument.Law, truth_boolean]\n'
         if source.name == 'HigherRecursive.tla':
             code += '\nexample (c : HigherRecursive.Constants) (b : Behavior) (n : Nat) : truth (HigherRecursive.BaseLaw c b n) := by\n  simp only [HigherRecursive.BaseLaw, truth_boolean]\n  apply higherRecursiveOperator_base\n  intro g\n  simp only [truth, if_pos rfl, realBinary_add_integer]\n  rfl\n'
             code += '\nexample (c : HigherRecursive.Constants) (b : Behavior) (n : Nat) : HigherRecursive.Zero c b n = integer 7 := by\n  unfold HigherRecursive.Zero\n  apply higherRecursiveOperator_base\n  intro g\n  simp [truth_boolean]\nexample (c : HigherRecursive.Constants) (b : Behavior) (n : Nat) : truth (HigherRecursive.ForwardedLaw c b n) := by\n  simp only [HigherRecursive.ForwardedLaw, HigherRecursive.Forwarded, truth_boolean]\n  apply recursiveOperator_base\n  intro g\n  simp [truth]\n'
