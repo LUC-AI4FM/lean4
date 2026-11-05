@@ -18,7 +18,8 @@ SEMANTIC_NAMES = set("""Value State Behavior Expression truth boolean integer in
 def qualify(code):
     # Keep source identifiers and string literals intact while qualifying library names.
     return re.sub(r'"(?:\\.|[^"\\])*"|«[^»]*»|[A-Za-z_][A-Za-z_0-9]*',
-                  lambda m: 'TLAUniversal.' + m[0] if m[0] in SEMANTIC_NAMES else m[0], code)
+                  lambda m: '_root_.TLAUniversal.' + m[0] if m[0] in SEMANTIC_NAMES else
+                  ('_root_.' + m[0] if m[0] in {'TLA', 'ZFSet', 'Nat', 'Int', 'Real', 'String'} else m[0]), code)
 
 @dataclass
 class ValueBinding:
@@ -232,7 +233,7 @@ class UniversalCompiler:
                     actuals.append(f'(fun ({trace} : Behavior) ({time} : Nat) => {body})')
                 return '(' + ' '.join([name, *actuals, 'c', f'({b})', f'({n})']) + ')'
         name, origin = operator_override or symbol.name, symbol.location
-        name = {'\\union': '\\cup', '\\intersect': '\\cap'}.get(name, name)
+        name = {'\\union': '\\cup', '\\intersect': '\\cap', '$NonRecursiveFcnSpec': '$FcnConstructor'}.get(name, name)
         body = symbol.node.find('body')
         if body is not None and len(body) == 1 and body[0].tag == 'SubstInNode':
             original = body[0].find('body')
@@ -541,17 +542,30 @@ class UniversalCompiler:
         return f'(recursiveOperator (fun ({point} {graph} : Value) => {body}) {key})'
 
     def compile(self):
+        definitions = self.g.definitions(include_imported=True)
+        occupied = {definition.name for definition in definitions}
+        def declaration_name(base):
+            while base in occupied:
+                base += '_'
+            occupied.add(base)
+            return base
+        constants_type = declaration_name('Constants')
+        assumptions_name = declaration_name('TLAProofAssumptions')
+        certificate_name = declaration_name('Certificate')
+        namespace = self.g.root.name
+        if namespace in {'TLA', 'TLAUniversal', 'Nat', 'Int', 'Real', 'String', 'List', 'Classical', 'ZFSet'}:
+            namespace = 'Source_' + namespace
         lines = ['module', 'import TLAUniversal', '', 'open TLAUniversal Classical',
-                 'set_option autoImplicit false', f'namespace {ident(self.g.root.name)}', 'noncomputable section', 'structure Constants where']
+                 'set_option autoImplicit false', f'namespace {ident(namespace)}', 'noncomputable section', f'structure {constants_type} where']
         for constant in self.g.constants():
-            ty = ' → '.join(['Value'] * (constant.arity + 1))
+            ty = ' → '.join(['_root_.TLAUniversal.Value'] * (constant.arity + 1))
             lines.append(f'  {ident(constant.name)} : {ty}')
-        for definition in self.g.definitions(include_imported=True):
+        for definition in definitions:
             parameters, environment = [], {}
             for ref in definition.node.findall('params/leibnizparam/FormalParamNodeRef'):
                 parameter = self.g.resolve(ref)
                 name = 'parameter_' + parameter.uid
-                ty = ' → '.join(['Expression'] * (parameter.arity + 1))
+                ty = ' → '.join(['_root_.TLAUniversal.Expression'] * (parameter.arity + 1))
                 parameters.append(f'({name} : {ty})')
                 environment[parameter.uid] = ExpressionBinding(name, parameter.arity)
             if parameters and definition.node.find('recursive') is not None:
@@ -563,21 +577,22 @@ class UniversalCompiler:
             signature = (' '.join(parameters) + ' ') if parameters else ''
             code = qualify(code)
             context, trace, index = 'c', 'b', 'n'
-            lines.extend([f'def {ident(definition.name)} {signature}({context} : Constants) ({trace} : Behavior) ({index} : Nat) : Value :=', '  ' + code])
+            lines.extend([f'def {ident(definition.name)} {signature}({context} : {constants_type}) ({trace} : _root_.TLAUniversal.Behavior) ({index} : _root_.Nat) : _root_.TLAUniversal.Value :=', '  ' + code])
             refs = definition.node.findall('params/leibnizparam/FormalParamNodeRef')
             self.emitted[definition.uid] = (ident(definition.name), [self.g.resolve(r).arity for r in refs])
         assumptions = [qualify(self.expr(s.body)) for s in self.g.claims('AssumeNode')]
         obligations = [qualify(self.expr(s.body)) for s in self.g.claims('TheoremNode')]
         if assumptions or obligations:
-            condition = ' ∧ '.join(f'TLAUniversal.truth {a}' for a in assumptions) or 'True'
-            lines += [f'def TLAProofAssumptions (c : Constants) (b : Behavior) (n : Nat) : Prop := {condition}']
-            for i, claim in enumerate(obligations):
-                lines += [f'def TLAProofClaim{i} (c : Constants) (b : Behavior) (n : Nat) : Prop := TLAUniversal.truth {claim}']
+            condition = ' ∧ '.join(f'_root_.TLAUniversal.truth {a}' for a in assumptions) or 'True'
+            lines += [f'def {assumptions_name} (c : {constants_type}) (b : _root_.TLAUniversal.Behavior) (n : _root_.Nat) : Prop := {condition}']
+            claim_names = [declaration_name(f'TLAProofClaim{i}') for i in range(len(obligations))]
+            for name, claim in zip(claim_names, obligations):
+                lines += [f'def {name} (c : {constants_type}) (b : _root_.TLAUniversal.Behavior) (n : _root_.Nat) : Prop := _root_.TLAUniversal.truth {claim}']
         if obligations:
-            lines += ['structure Certificate (c : Constants) : Prop where']
+            lines += [f'structure {certificate_name} (c : {constants_type}) : Prop where']
             for i in range(len(obligations)):
-                lines += [f'  obligation_{i} : ∀ (b : Behavior) (n : Nat), TLAProofAssumptions c b n → TLAProofClaim{i} c b n']
-        lines.extend(['end', f'end {ident(self.g.root.name)}', ''])
+                lines += [f'  obligation_{i} : ∀ (b : _root_.TLAUniversal.Behavior) (n : _root_.Nat), {assumptions_name} c b n → {claim_names[i]} c b n']
+        lines.extend(['end', f'end {ident(namespace)}', ''])
         return '\n'.join(lines)
 
 def compile_file(source, **kwargs):
