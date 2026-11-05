@@ -50,6 +50,14 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
             failures.append(fixture)
             print(result.stdout + result.stderr, flush=True)
         print(('FAIL ' if result.returncode else 'PASS ') + fixture, flush=True)
+    # SANY accepts proof hints without checking them. They must never become
+    # trusted Lean proofs or make a source certificate trivially inhabited.
+    target = Path(directory) / 'FalseClaim.lean'
+    code = compile_file(root.parent / 'tests' / 'fixtures' / 'FalseClaim.tla')
+    target.write_text(code + "\nexample (c : FalseClaim.Constants) : FalseClaim.Certificate c := by\n  constructor; intros; simp [FalseClaim.TLAProofClaim0, truth, ZFSet.zftrue_ne_zffalse]\n")
+    result = subprocess.run([lake, 'env', 'lean', str(target)], capture_output=True, text=True, timeout=120)
+    if result.returncode == 0 or 'unsolved goals' not in result.stdout:
+        raise RuntimeError('false source proof certificate was not rejected: ' + result.stdout + result.stderr)
     target = Path(directory) / 'Negative.lean'
     target.write_text('module\nimport TLAUniversal\nexample : TLAUniversal.truth (TLAUniversal.boolean False) := by simp [TLAUniversal.truth_boolean]\n')
     result = subprocess.run([lake, 'env', 'lean', str(target)], capture_output=True, text=True)

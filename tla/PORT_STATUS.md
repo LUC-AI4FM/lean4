@@ -125,3 +125,11 @@ collection lemmas and source proof tests; their verification is pending. TLC
 rejects cross-type equality when testing membership in a mixed set, so that
 case remains a Lean-only proof test; tuple and function reads are differential
 checks within TLC's supported domain.
+
+Run 41969868406 passed at b065c93: mixed-set membership, heterogeneous tuple
+indexing and function application are proved from generated source definitions.
+Local reference checks now include tuple/function positive and negative cases.
+The LOCAL INSTANCE audit exposed copied declaration locations in standard
+libraries; source-body provenance now resolves them, with Randomization and
+Toolbox fixtures queued. A source THEOREM FALSE / OBVIOUS certificate regression
+adds a direct check that source proof hints cannot manufacture a Lean proof.
