@@ -123,3 +123,22 @@ instantiation/level correctness beyond the captured regressions, and source
 syntax accepted by TLAPM but rejected by the pinned SANY frontend. Do not mark
 complete on the 200-case subset, on parser acceptance, or on theorem statements
 whose source proof steps were not reconstructed and checked.
+
+Continuation checkpoint (2026-11-05, function/choice reconstruction):
+- Main CI 42064015546 passed symbolic arithmetic, module USE obligations,
+  instantiation positives, and all 34 unchanged negative soundness fixtures.
+- The behavior-substitution fix initially regressed four large source imports.
+  793f894 factors instantiated bodies before free-behavior substitution, keeping
+  bound state coordinates independent. The complete 433-module source audit
+  42066760092 passed after this fix.
+- ae9ee41 adds checked function graph/range/extensionality/update lemmas and
+  eight unchanged upstream function proof fixtures. CI 42064844773 passed
+  seven; excapp4_test exhausted proof search on a nested EXCEPT update.
+- 020b0d0 adds apply_mem to forward proof search, checked CHOOSE case analysis,
+  two unchanged choice fixtures, and a false-choice regression. The tactic
+  derives a proved choice disjunction; it does not assume a witness exists.
+  A normalization-resistant marker prevents repeating the same choice split.
+- The 19 local frontend/proof-generation unit tests passed. Lean CI
+  42069870841 is running for 020b0d0; these latest changes are NOT yet verified
+  by the complete Lean suite. Earlier full proof audit coverage remains the
+  baseline until a new all-input run completes. Full port remains incomplete.
