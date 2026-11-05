@@ -327,3 +327,23 @@ Wide-record proof checkpoint (2026-11-05):
   six Lean-rejected and two translation-rejected. No encountered negative
   accepted. Wait for all 379 inputs before replacing the complete baseline.
 - Full TLAPS compatibility remains incomplete.
+
+Full audit and broader reconstruction checkpoint (2026-11-05):
+- Complete run 42090517540 at bd5209f accounts for 379/379 inputs: 164 checked,
+  72 translation-rejected, 55 timeout, 52 Lean-rejected, 36 no claims.
+  Reference positives: 152/200 checked, 32 timeout, 12 Lean-rejected, four
+  translation-rejected. No previously checked reference positive regressed.
+  All 34 negatives rejected or timed out (22 Lean, 10 timeout, two translation).
+  The complete per-input baseline is retained in tests/proofs/lean-baseline.json.
+- 42093328740 passed the wide-record and exponent proofs and false-record
+  rejection with successful parser preflight. Earlier parser timeouts are
+  not backend evidence.
+- fbcc625 adds the existing checked range-extension theorem to proof search;
+  unchanged broadcast decomposition is in focused run 42093846339 (pending).
+  54ab1a9 adds nested/assumed/unequal record fixtures; run 42093974037 pending.
+- 0cc2535 adds an explicit 1–600 second focused positive timeout, preserving
+  the 15-second negative limit and 60-second full-audit baseline. The unchanged
+  21-claim Enabled_test is being checked with 300 seconds in 42094215586.
+  This is a separate experiment, not a reclassification of audit timeouts.
+- Local 25-test suite passed before the workflow-only timeout changes.
+  Full port remains incomplete; backend, frontend and visibility work remains.
