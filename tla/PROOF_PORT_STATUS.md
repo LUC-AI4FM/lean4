@@ -4,6 +4,36 @@ Objective: unchanged TLAPS proof scripts produce proofs checked by Lean, with
 positive and negative reference tests, complete language/backend coverage and
 verified pushed changes. A leaf-only milestone is not completion.
 
+Current checkpoint (2026-11-05): full port remains incomplete.
+- Complete audit [42110411103](https://github.com/LUC-AI4FM/lean4/actions/runs/42110411103)
+  at 1537dae accounts for all 379 inputs: 158/200 reference-positive scripts
+  checked; 36 timeouts, 4 frontend rejections and 2 Lean rejections remain.
+  No previously checked reference-positive script regressed. None of the 34
+  expected-false inputs was accepted. A negative timeout/rejection does not
+  establish that its intended backend was exercised. The audit uses 60 seconds
+  per input; broadcast separately checks with the standard 120-second budget.
+- Main d1cee06 has green Linux/macOS CI including rebootstrap
+  ([42111924905](https://github.com/LUC-AI4FM/lean4/actions/runs/42111924905)).
+  All four universal proof shards and native/source checks passed
+  ([42108135925](https://github.com/LUC-AI4FM/lean4/actions/runs/42108135925)).
+- Active worktree: /private/tmp/lean4-tla-proof-followup, owned by this goal,
+  branch proof-compatibility-followup. Retained for concrete next integration;
+  main working copy remains the stable integration checkout. Heavy checks run
+  on public GitHub Actions; no NUC lease, helpers or paid hosts are in use.
+- Follow-up 81cd539 passed its full TLA suite (42119143324). It reconstructs
+  unchanged DuplicateEXCEPT and test3 through path normalization and a checked
+  Boolean-range lemma; Boolean inference is registered only for emitted source
+  using BOOLEAN to avoid broadening unrelated proof search. Nested sequential
+  EXCEPT (74c7e98) and its false counterpart pass focused run42123449006.
+- Active hypothesis: integer range normalization similarly loses useful
+  function-value witnesses. 9c385d9 adds a checked range lemma and an unchanged
+  domain-check fixture, with focused run42124521872 pending. Inspect that run
+  before claiming support. New rules must preserve broadcast performance and
+  negative rejection; no unsupported theorem becomes an axiom.
+- Next frontier: exact BY/ONLY/USE/HIDE fact visibility; nested ENABLED and
+  composition; larger temporal/library proofs; SANY frontend differences.
+  Frozen reference manifest and complete audit denominator remain unchanged.
+
 Baseline: 9dae0d4 imports specifications and theorem obligations but does not
 translate proof scripts. SANY already exports resolved proof trees. Heavy Lean
 verification uses the existing public GitHub Actions workflow; the Mac performs
