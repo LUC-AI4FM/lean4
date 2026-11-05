@@ -180,10 +180,12 @@ theorem mem_cartesian_cons (x first : Value) (rest : List Value) :
       ∃ head ∈ first, ∃ tail ∈ cartesian rest, prepend head tail = x := by
   simp only [cartesian, ZFSet.mem_sUnion, mem_image]
   constructor
-  · rintro ⟨_, ⟨head, hh, rfl⟩, tail, ht, eq⟩
+  · rintro ⟨_, ⟨head, hh, rfl⟩, member⟩
+    obtain ⟨tail, ht, eq⟩ := (mem_image _ _ _).mp member
     exact ⟨head, hh, tail, ht, eq⟩
   · rintro ⟨head, hh, tail, ht, eq⟩
-    exact ⟨image (cartesian rest) (prepend head), ⟨head, hh, rfl⟩, tail, ht, eq⟩
+    exact ⟨image (cartesian rest) (prepend head), ⟨head, hh, rfl⟩,
+      (mem_image _ _ _).mpr ⟨tail, ht, eq⟩⟩
 
 theorem mem_cartesian_nil (x : Value) : x ∈ cartesian [] ↔ x = tuple [] := by
   simp [cartesian, mem_enumerate]
