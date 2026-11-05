@@ -60,3 +60,9 @@ class TranslationTests(unittest.TestCase):
     def test_standard_module_shadowing_rejected(self):
         with self.assertRaises(TranslationError):
             translate('---- MODULE Integers ----\nFake == TRUE\n====')
+
+    def test_local_standard_instances_preserve_defining_module(self):
+        result = translate(Path('tests/fixtures/ToolDefinitions.tla').read_text())
+        self.assertIn('TLAUniversal.cardinality', result)
+        self.assertIn('def «Samples»', result)
+        self.assertIn('def «Position»', result)

@@ -72,11 +72,11 @@ hints, including `OBVIOUS` and TLAPS pragmas, do not supply trusted proofs.
 ## Source coverage
 
 The importer supports resolved module substitutions, LET, operator parameters,
-integer arithmetic, conditionals, CASE, mixed sets and tuples, bounded/unbounded
+integer and real arithmetic, conditionals, CASE, mixed sets and tuples, bounded/unbounded
 quantification and choice, tuple binders, Cartesian products, functions, records,
 nested EXCEPT, sequences, finite sets and cardinality. Temporal support includes
 priming, UNCHANGED, action frames, ENABLED, composition, always/eventually,
-leads-to, fairness and flexible quantification.
+leads-to, guarantees, fairness and flexible quantification.
 
 Recursive functions use choice of a fixed-point graph. Recursive operators use
 the fixing-graph semantics described by
@@ -85,14 +85,18 @@ Mutually recursive value operators share one tagged fixing graph. Defining
 equations are not introduced as axioms; unfolding needs a proof.
 
 Tests include unchanged, pinned TLA+ project examples: DieHard, CoffeeCan,
-DiningPhilosophers and Bakery. Provenance and licenses are in `tests/corpus`.
-TLC differential tests also check record and sequential EXCEPT behavior.
+DiningPhilosophers, Bakery, Consensus, Paxos, Voting, TwoPhase, Alternate,
+Majority and Prisoners. Provenance and licenses are in `tests/corpus`.
+TLC differential tests also check record, sequential EXCEPT, tuple and function
+behavior. Tool-specific modules use their published mathematical definitions;
+importing `Print`, `TLCSet`, or random operators does not execute TLC runtime
+side effects.
 
 ## Remaining work
 
-Higher-order recursive operators, real arithmetic, the complete
-standard-module library, some level-specific `NEW` declarations, and source
-proof-script translation remain incomplete. Unsupported constructs fail with a
+The complete standard-module library audit and source proof-script translation
+remain incomplete. Level-specific `NEW` declarations and real arithmetic have
+checked fixtures. SANY rejects higher-order recursive operator parameters. Unsupported constructs fail with a
 diagnostic. There are no added axioms or placeholder proofs.
 
 The concrete value representation chooses values for operations outside their

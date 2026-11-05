@@ -240,10 +240,13 @@ class UniversalCompiler:
         name, origin = operator_override or symbol.name, symbol.location
         name = {'\\union': '\\cup', '\\intersect': '\\cap', '$NonRecursiveFcnSpec': '$FcnConstructor'}.get(name, name)
         body = symbol.node.find('body')
-        if body is not None and len(body) == 1 and body[0].tag == 'SubstInNode':
-            original = body[0].find('body')
-            if original is not None and len(original):
-                origin = original[0].findtext('location/filename', origin)
+        if body is not None and len(body) == 1:
+            original = body[0]
+            while original.tag in ('SubstInNode', 'APSubstInNode'):
+                original = original.find('body')[0]
+            # LOCAL INSTANCE copies the declaration location into the importing
+            # module, while the expression retains its defining source location.
+            origin = original.findtext('location/filename', origin)
         standard = origin in ('Naturals', 'Integers', 'Reals', 'Sequences', 'FiniteSets')
         if standard:
             name = name.rsplit('!', 1)[-1]

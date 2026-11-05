@@ -117,3 +117,11 @@ claims and the original corpus. Added unchanged Consensus, Paxos, Voting,
 TwoPhase, Alternate, Majority and Prisoners modules, with pinned TLAPS theorem
 and CommunityModules dependencies. The expanded corpus is awaiting CI; imported
 library theorem statements remain obligations, not trusted source proofs.
+
+Run 41969344493 passed at 49b18fc: all eleven unchanged upstream example
+modules elaborate, as do real-time, TLC mathematical library, name collision,
+module-instantiated theorem, and level-specific claim fixtures. Added universal
+collection lemmas and source proof tests; their verification is pending. TLC
+rejects cross-type equality when testing membership in a mixed set, so that
+case remains a Lean-only proof test; tuple and function reads are differential
+checks within TLC's supported domain.
