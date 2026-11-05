@@ -41,6 +41,9 @@ theorem truth_boolean (p : Prop) : truth (boolean p) ↔ p := by
 
 theorem truth_true : truth ZFSet.zftrue := rfl
 
+theorem false_ne_true : ZFSet.zffalse ≠ ZFSet.zftrue :=
+  Ne.symm ZFSet.zftrue_ne_zffalse
+
 theorem not_truth_false : ¬ truth ZFSet.zffalse :=
   Ne.symm ZFSet.zftrue_ne_zffalse
 

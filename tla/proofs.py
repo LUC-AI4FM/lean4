@@ -345,7 +345,7 @@ def compile_proofs(source, **kwargs):
     lines = [f'namespace {exports["namespace"]}', '@[expose] public noncomputable section']
     # Re-run semantic normalization inside proof search after quantified
     # domain witnesses are introduced, not only before the search begins.
-    normalized = ('truth_boolean truth_true not_truth_false integer_eq_iff '
+    normalized = ('truth_boolean truth_true not_truth_false false_ne_true integer_eq_iff '
                   'mem_naturals mem_integers integer_mem_naturals integer_mem '
                   'realBinary_add_integer realBinary_mul_integer realNegate_integer '
                   'realSubtract_integer realLessEqual_integer realLess_integer '
