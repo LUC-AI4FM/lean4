@@ -36,6 +36,24 @@ class ProofTests(unittest.TestCase):
         code = compile_proofs(Path('tests/proofs/DefinitionScope.tla'))
         self.assertIn('«DefinitionScope».«A»', code)
 
+    def test_hidden_facts_leave_the_default_context(self):
+        code = compile_proofs(Path('tests/proofs/FactScope.tla'))
+        self.assertIn('structure TLAHiddenFact', code)
+        self.assertIn('clear step_', code)
+        self.assertIn('clear prior_0', code)
+        self.assertIn(':= hidden_step_', code)
+        self.assertIn(':= hidden_prior_0.val', code)
+        false_code = compile_proofs(Path('tests/proofs/FalseFactScope.tla'))
+        self.assertIn('clear step_', false_code)
+        self.assertNotIn(':= hidden_step_', false_code)
+
+    def test_generalization_is_not_attempted_under_state_hypotheses(self):
+        code = compile_proofs(Path('tests/proofs/upstream/test_decompose_naive_bcast.tla'),
+                              includes=[Path('tests/corpus/tlaps')])
+        # Only the four constant-context steps are generalized; steps proved
+        # after HAVE/CASE/PICK state facts cannot hold for a fresh behavior.
+        self.assertEqual(code.count('_general : ∀ (b :'), 4)
+
     def test_bounded_witness_annotations_are_proved(self):
         code = compile_proofs(Path('tests/proofs/BoundedWitness.tla'))
         self.assertIn('have witness_bound_', code)
@@ -61,10 +79,13 @@ class ProofTests(unittest.TestCase):
             compile_proofs(Path('tests/proofs/FalseHave.tla'))
 
     def test_state_generalization_requires_a_separate_lean_proof(self):
-        code = compile_proofs(Path('tests/proofs/FalseStateGeneralization.tla'))
+        code = compile_proofs(Path('tests/proofs/StateGeneralization.tla'))
         self.assertIn('_general : ∀ (b :', code)
         self.assertIn('intro b n', code)
         self.assertIn('| have step_', code)
+        # A step proved from a state-level premise is never generalized.
+        code = compile_proofs(Path('tests/proofs/FalseStateGeneralization.tla'))
+        self.assertNotIn('_general : ∀ (b :', code)
 
     def test_imported_declarations_are_proof_obligations(self):
         for source in ('ImportedLaw', 'FalseImportedLaw'):

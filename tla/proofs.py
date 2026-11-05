@@ -24,13 +24,46 @@ def proof_node(theorem, *, implicit=False):
 
 
 class Renderer:
-    def __init__(self, compiler, unfold, trace=False, claim=0):
+    def __init__(self, compiler, unfold, trace=False, claim=0, facts=None):
         self.compiler = compiler
         self.graph = compiler.g
         self.unfold = unfold
         self.trace = trace
         self.claim = claim
         self.leaves = 0
+        # Hypotheses about the current behavior/time (HAVE, CASE, PICK,
+        # state-level ASSUME premises) make a fresh-behavior generalization
+        # unprovable; attempting it only doubles proof search.
+        self.local_state = False
+        # Step/theorem definition UID -> [(hypothesis, certainly present)].
+        self.facts = dict(facts or {})
+        # Facts removed from the default context by HIDE, still citable by BY.
+        self.hidden = {}
+        self.uses_hidden = False
+
+    @staticmethod
+    def level(node):
+        return int(node.findtext('level') or 0) if node is not None else 0
+
+    def state_premises(self, node):
+        return node.tag == 'AssumeProveNode' and any(
+            assumption.tag != 'NewSymbNode' and self.level(assumption) >= 1
+            for assumption in node.find('assumes'))
+
+    @staticmethod
+    def fact_reference(fact):
+        if fact.tag != 'OpApplNode' or len(fact.find('operands')):
+            return None, None
+        operator = fact.find('operator')[0]
+        return operator.tag, operator.findtext('UID')
+
+    def reveal(self, uid, indent):
+        """Restore hidden hypotheses for a USE, or locally for a BY citation."""
+        lines = []
+        for name, certain in self.hidden.get(uid, []):
+            restore = f'have {name} := hidden_{name}.val'
+            lines.append(indent + (restore if certain else f'try {restore}'))
+        return lines
 
     def proposition(self, node, env):
         return '_root_.TLAUniversal.truth ' + qualify(self.compiler.expr(node, env))
@@ -62,7 +95,12 @@ class Renderer:
         simplifiers = ', '.join(dict.fromkeys(unfold))
         direct_simplifiers = ', '.join(dict.fromkeys(self.unfold + ['_root_.TLAUniversal.truth_boolean']))
         self.leaves += 1
-        tracing = ([indent + f'trace \"TLA claim {self.claim} leaf {self.leaves}\"',
+        cited = []
+        for fact in proof.findall('facts/*'):
+            kind, uid = self.fact_reference(fact)
+            if kind == 'TheoremDefRef':
+                cited += self.reveal(uid, indent)
+        tracing = cited + ([indent + f'trace \"TLA claim {self.claim} leaf {self.leaves}\"',
                     indent + 'trace_state'] if self.trace else [])
         return tracing + [indent + 'try (solve | trivial)',
                 indent + 'try (solve | simp only [' + direct_simplifiers + ']; apply _root_.TLAUniversal.record_mem_singletonSpace; decide)',
@@ -144,12 +182,13 @@ class Renderer:
             raise ProofError('unsupported proof node: ' + proof.tag)
         refs = [x for x in proof if x.tag not in ('location', 'level')]
         # Definition visibility is local to this proof, including nested proofs.
-        saved = self.unfold
-        self.unfold = list(saved)
+        saved = self.unfold, self.local_state, self.hidden
+        self.unfold = list(saved[0])
+        self.hidden = dict(saved[2])
         try:
             return self.steps(refs, dict(env), indent, self.goal_body(goal))
         finally:
-            self.unfold = saved
+            self.unfold, self.local_state, self.hidden = saved
 
     def steps(self, references, env, indent, goal):
         lines = []
@@ -172,11 +211,30 @@ class Renderer:
                             self.unfold = [x for x in self.unfold if x != emitted]
                         elif emitted not in self.unfold:
                             self.unfold.append(emitted)
+                # HIDE removes named facts from the default context for the
+                # rest of this scope. They are wrapped, not discarded, so a
+                # later USE or an explicit BY citation can restore them.
+                for fact in reference.findall('facts/*'):
+                    kind, uid = self.fact_reference(fact)
+                    if hiding:
+                        if kind != 'TheoremDefRef' or uid not in self.facts:
+                            raise ProofError('HIDE supports step and theorem names; unsupported fact: '
+                                             + (kind or fact.tag))
+                        if uid in self.hidden:
+                            continue
+                        self.uses_hidden = True
+                        for name, certain in self.facts[uid]:
+                            wrap = (f'have hidden_{name} : TLAHiddenFact _ := ⟨{name}⟩; clear {name}')
+                            lines.append(indent + (wrap if certain else f'try ({wrap})'))
+                        self.hidden[uid] = self.facts[uid]
+                    elif kind == 'TheoremDefRef' and uid in self.hidden:
+                        lines += self.reveal(uid, indent)
+                        del self.hidden[uid]
+                if hiding:
+                    continue
                 # USE facts are obligations, not assumptions. Reconstruct each
                 # before making it available to subsequent source steps.
                 for fact_index, fact in enumerate(reference.findall('facts/*')):
-                    if hiding:
-                        raise ProofError('HIDE facts requires scoped fact visibility')
                     lines.append(indent + f'have used_{index}_{fact_index} : '
                                  + self.proposition(fact, env) + ' := by')
                     lines += self.leaf(ET.Element('obvious'), indent + '  ')
@@ -188,12 +246,15 @@ class Renderer:
             name = self.graph.operator(body).name if body.tag == 'OpApplNode' else None
             args = list(body.find('operands')) if body.tag == 'OpApplNode' else []
             label = 'step_' + step.uid
+            definition_uid = step.node.findtext('definition/TheoremDefRef/UID')
             if name == '$Qed':
                 if index != len(references) - 1:
                     raise ProofError('QED must terminate its proof scope')
                 return lines + self.render(proof_node(step, implicit=True), env, indent, goal)
             if name == '$Take':
                 lines.append(indent + 'first | apply (_root_.TLAUniversal.truth_boolean _).2 | skip')
+                if self.level(goal) >= 1 and any(group.tag != 'unbound' for group in body.find('boundSymbols')):
+                    self.local_state = True
                 for group in body.find('boundSymbols'):
                     if group.find('tuple') is not None:
                         refs = group.findall('FormalParamNodeRef')
@@ -275,10 +336,18 @@ class Renderer:
                 fields.append('picked_fact_' + step.uid)
                 lines.append(indent + 'obtain ⟨' + ', '.join(fields) + '⟩ := '
                              f'(_root_.TLAUniversal.truth_boolean _).1 {label}')
+                if definition_uid:
+                    self.facts[definition_uid] = [('picked_fact_' + step.uid, True)]
+                if self.level(body) >= 1:
+                    self.local_state = True
                 continue
             if name == '$Pfcase':
+                if self.level(args[0]) >= 1:
+                    self.local_state = True
                 lines.append(indent + f'by_cases {label} : {self.proposition(args[0], env)}')
                 lines.append(indent + '·')
+                if definition_uid:
+                    self.facts[definition_uid] = [(label, True)]
                 case_env = dict(env)
                 later_env = dict(env)
                 definition = step.node.find('definition/TheoremDefRef/UID')
@@ -306,6 +375,10 @@ class Renderer:
                 lines.append(indent + f'  apply {label}')
                 lines += self.leaf(ET.Element('obvious'), indent + '  ')
                 lines.append(indent + 'intro have_' + step.uid)
+                if definition_uid:
+                    self.facts[definition_uid] = [('have_' + step.uid, True)]
+                if self.level(args[0]) >= 1:
+                    self.local_state = True
                 definition = step.node.find('definition/TheoremDefRef/UID')
                 if definition is not None:
                     env[definition.text] = ValueBinding(self.compiler.expr(args[0], env))
@@ -315,7 +388,10 @@ class Renderer:
                 if name == '$Suffices':
                     body = args[0]
                 lines.append(indent + f'suffices {label} : {self.proposition(body, env)} by')
+                outer = self.local_state
+                self.local_state = outer or self.level(body) >= 1
                 lines += self.render(proof_node(step, implicit=True), dict(env), indent + '  ', goal)
+                self.local_state = outer or self.state_premises(body)
                 goal = self.goal_body(body)
                 opened, env = self.open_statement(body, env, indent)
                 lines += opened
@@ -323,8 +399,14 @@ class Renderer:
             proposition = self.proposition(body, env)
             step_proof = proof_node(step, implicit=True)
             opened, child_env = self.open_statement(body, env, indent + '  ')
+            outer = self.local_state
+            self.local_state = outer or self.state_premises(body)
             proof_lines = opened + self.render(step_proof, child_env, indent + '  ', body)
-            if step.level in (1, 2):
+            self.local_state = outer
+            generalize = step.level in (1, 2) and not outer
+            if definition_uid:
+                self.facts[definition_uid] = [(label, True)] + ([(label + '_general', False)] if generalize else [])
+            if generalize:
                 # Generalization is attempted with a fresh behavior/time, but
                 # existing assumptions retain their original types. Lean must
                 # prove this stronger statement; a local premise cannot become
@@ -415,6 +497,9 @@ def compile_proofs(source, *, trace=False, **kwargs):
                  '_root_.TLAUniversal.function_range_of_values '
                  '_root_.TLAUniversal.record_eta')
     names = exports['proof_names']
+    hidden_definition = len(lines)
+    uses_hidden = False
+    theorem_facts = {}
     for index, theorem in enumerate(theorems):
         # Imported library declarations may omit a source proof. Reconstruct
         # their statements in Lean before exposing them to later claims; never
@@ -433,9 +518,18 @@ def compile_proofs(source, *, trace=False, **kwargs):
         for previous in range(index):
             lines.append(f'  have prior_{previous} := {names[previous]} c')
             unfold.append(exports['claims'][previous])
-        renderer = Renderer(compiler, unfold, trace=trace, claim=index)
+        renderer = Renderer(compiler, unfold, trace=trace, claim=index, facts=theorem_facts)
         opened, environment = renderer.open_statement(theorem.body, {}, '  ')
+        renderer.local_state = renderer.state_premises(theorem.body)
         lines += opened + renderer.render(proof, environment, goal=theorem.body)
+        uses_hidden = uses_hidden or renderer.uses_hidden
+        definition = theorem.node.findtext('definition/TheoremDefRef/UID')
+        if definition:
+            theorem_facts[definition] = [(f'prior_{index}', True)]
+    if uses_hidden:
+        # An opaque wrapper: simp, aesop and assumption do not look inside it.
+        lines[hidden_definition:hidden_definition] = [
+            'structure TLAHiddenFact (p : Prop) : Prop where', '  val : p']
     lines += [f'def {exports["certificate_proof"]} (c : {exports["constants"]}) : '
               f'{exports["certificate"]} c :=',
               '  ⟨' + ', '.join(name + ' c' for name in names) + '⟩',
