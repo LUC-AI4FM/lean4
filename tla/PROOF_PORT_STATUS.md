@@ -213,3 +213,19 @@ Continuation checkpoint (2026-11-05, reconstruction feedback):
 - Current local checks: all 23 frontend/proof-generation tests pass. A separate
   translation sweep covered all 60 then-existing positive fixtures. These are
   not substitutes for the Lean and full-corpus gates. Full port is incomplete.
+
+Boolean and record checkpoint (2026-11-05):
+- Focused run 42083675025 at 16baf51 passed the 30-field record, imported
+  declaration, Cantor1 and temporal-induction proofs and selected negative tests.
+- 7e6f33d adds a checked symmetric Boolean disequality rule. Focused run
+  42085341479 passed unchanged Peterson MutexQ, the record and temporal tests,
+  and rejection of FalseLeaf and FalseTemporalInduction.
+- 4a4a41d adds separation-membership normalization plus unchanged Cantor2 and
+  Cantor4 fixtures. Its focused run 42085864998 is pending; 23 local frontend
+  tests pass. This is a candidate repair, not verified Cantor coverage.
+- Full 379-input run 42083872494 at 16baf51 remains in progress. Completed
+  shard 0 accounts for 48 inputs (20 checked, 11 Lean-rejected, 9 translation-
+  rejected, 4 timeout, 4 no claims). It retains failures in Cantor variants,
+  record equality and large temporal proofs. No complete aggregate yet.
+- Full TLAPS compatibility remains incomplete. Continue from current diagnostics
+  and keep positive/negative gates; do not treat focused passes as full coverage.
