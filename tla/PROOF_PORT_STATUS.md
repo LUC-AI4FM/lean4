@@ -181,3 +181,13 @@ All four checkpoint artifacts were retained, covering 349/379 inputs:
 was observed among covered inputs; 30 inputs remain unaccounted for in this
 run. The next audit uses eight shards and a 45-minute job limit while keeping
 the same per-file limit, to account for every input without dropping cases.
+
+Eight-shard audit 42075998558 at 8efbef1 completed all 379/379 inputs.
+Results: 129 checked, 80 translation-rejected, 72 timed out, 62 Lean-rejected,
+36 no-claims. All 200 reference positives are accounted for: 118 checked,
+37 timed out, 35 Lean-rejected, 10 translation-rejected. All 34 negatives
+remain unproved: 19 timeouts, 13 Lean rejections, two translation rejections.
+No false acceptance occurred. Outcomes and provenance are committed in
+tests/proofs/lean-baseline.json. Later induction, generalized state facts,
+simplifier, diagonal-set, Cartesian-product, and record-type changes are not
+covered by this baseline and still require full Lean validation.
