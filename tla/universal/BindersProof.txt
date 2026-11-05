@@ -1,0 +1,22 @@
+
+example (c : Binders.Constants) (b : Behavior) (n : Nat) :
+    truth (Binders.All c b n) := by
+  simp only [Binders.All, truth_boolean, numberInterval_integer]
+  intro x hx y hy
+  obtain ⟨ix, rfl⟩ := ZFSet.mem_range.mp (ZFSet.mem_sep.mp hx).1
+  obtain ⟨iy, rfl⟩ := ZFSet.mem_range.mp (ZFSet.mem_sep.mp hy).1
+  have xbounds := (integer_mem_interval _ _ _).mp hx
+  have ybounds := (integer_mem_interval _ _ _).mp hy
+  simp only [realBinary_add_integer, realLessEqual_integer]
+  omega
+
+example (c : Binders.Constants) (b : Behavior) (n : Nat) :
+    truth (Binders.Member c b n) := by
+  simp only [Binders.Member, Binders.Sums, truth_boolean, numberInterval_integer]
+  apply ZFSet.mem_sUnion.mpr
+  refine ⟨_, (mem_image _ _ _).mpr ⟨integer 1, ?_, rfl⟩, ?_⟩
+  · exact (integer_mem_interval _ _ _).mpr ⟨by decide, by decide⟩
+  · apply (mem_image _ _ _).mpr
+    refine ⟨integer 4, ?_, ?_⟩
+    · exact (integer_mem_interval _ _ _).mpr ⟨by decide, by decide⟩
+    · exact realBinary_add_integer 1 4

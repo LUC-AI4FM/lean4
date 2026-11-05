@@ -34,6 +34,8 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
             code += "\nexample (c : SequenceOperations.Constants) (b : Behavior) (n : Nat) : truth (SequenceOperations.LengthLaw c b n) := by\n  simp only [SequenceOperations.LengthLaw, SequenceOperations.Length, SequenceOperations.S, truth_boolean, length_tuple]; rfl\nexample (c : SequenceOperations.Constants) (b : Behavior) (n : Nat) : truth (SequenceOperations.FirstLaw c b n) := by\n  simp only [SequenceOperations.FirstLaw, SequenceOperations.First, SequenceOperations.S, truth_boolean]\n  exact apply_tuple [integer 1, ZFSet.zftrue, string \"x\"] 0 (by decide)\n"
         if source.name == 'ToolDefinitions.tla':
             code += "\nexample (c : ToolDefinitions.Constants) (b : Behavior) (n : Nat) : ToolDefinitions.Printed c b n = integer 42 := rfl\nexample (c : ToolDefinitions.Constants) (b : Behavior) (n : Nat) : ToolDefinitions.Evaluated c b n = integer 42 := rfl\n"
+        if source.name == 'Binders.tla':
+            code += (root / 'BindersProof.txt').read_text()
         if source.name == 'Counter.tla':
             code += (root / 'CounterProof.txt').read_text()
         if source.name == 'Temporal.tla':

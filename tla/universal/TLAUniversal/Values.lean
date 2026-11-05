@@ -268,6 +268,15 @@ theorem realLessEqual_integer (a b : Int) :
   simp only [realLessEqual, truth_boolean, integer_mem_real, and_self, if_true, toReal_integer]
   norm_cast
 
+theorem numberInterval_integer (lo hi : Int) :
+    numberInterval (integer lo) (integer hi) = interval (integer lo) (integer hi) := by
+  apply ZFSet.ext
+  intro value
+  by_cases h : value ∈ integers
+  · obtain ⟨k, rfl⟩ := ZFSet.mem_range.mp h
+    simp [numberInterval, interval, realLessEqual_integer, integer_mem, toInt_integer]
+  · simp [numberInterval, interval, h]
+
 theorem realLess_real_infinity (r : Real) : truth (realLess (real r) infinity) := by
   simp [realLess, realLessEqual, truth_boolean, real_mem, infinity_not_real, real_ne_infinity]
 
