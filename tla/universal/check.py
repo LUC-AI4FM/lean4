@@ -15,7 +15,7 @@ from universal_compile import compile_file
 lake = os.environ.get('LAKE', 'lake')
 subprocess.run([lake, 'build'], check=True)
 fixtures = ['Counter.tla', 'fixtures/Collections.tla', 'fixtures/Records.tla',
-            'fixtures/Binders.tla', 'fixtures/Universal.tla', 'fixtures/Claims.tla', 'fixtures/Temporal.tla', 'fixtures/ValueForms.tla', 'fixtures/Strings.tla', 'fixtures/Finite.tla', 'fixtures/Recursive.tla', 'fixtures/StructuredClaims.tla', 'fixtures/Mutual.tla', 'fixtures/RealNumbers.tla', 'fixtures/StandardLibrary.tla', 'fixtures/Labels.tla', 'fixtures/HigherOrder.tla', 'fixtures/LevelClaims.tla', 'fixtures/Names.tla', 'fixtures/LibraryFunctions.tla', 'fixtures/Timed.tla', 'fixtures/ProofModule.tla', 'fixtures/ProofInstance.tla', 'fixtures/ValueLaws.tla', 'fixtures/ToolDefinitions.tla', 'fixtures/SequenceOperations.tla']
+            'fixtures/Binders.tla', 'fixtures/Universal.tla', 'fixtures/Claims.tla', 'fixtures/Temporal.tla', 'fixtures/ValueForms.tla', 'fixtures/Strings.tla', 'fixtures/Finite.tla', 'fixtures/Recursive.tla', 'fixtures/StructuredClaims.tla', 'fixtures/Mutual.tla', 'fixtures/RealNumbers.tla', 'fixtures/StandardLibrary.tla', 'fixtures/Labels.tla', 'fixtures/HigherOrder.tla', 'fixtures/LevelClaims.tla', 'fixtures/Names.tla', 'fixtures/LibraryFunctions.tla', 'fixtures/Timed.tla', 'fixtures/ProofModule.tla', 'fixtures/ProofInstance.tla', 'fixtures/ValueLaws.tla', 'fixtures/ToolDefinitions.tla', 'fixtures/SequenceOperations.tla', 'fixtures/NestedModules.tla']
 fixtures += [str(p.relative_to(root.parent / 'tests')) for p in sorted((root.parent / 'tests' / 'corpus').glob('*.tla'))]
 failures = []
 with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as directory:
@@ -23,6 +23,8 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
         source = root.parent / 'tests' / fixture
         target = Path(directory) / source.with_suffix('.lean').name
         code = compile_file(source, includes=[root.parent / 'tests' / 'corpus' / 'tlaps', root.parent / 'tests' / 'corpus' / 'community'])
+        if source.name == 'NestedModules.tla':
+            code += "\nexample (c : NestedModules.Constants) (b : Behavior) (n : Nat) : NestedModules.Answer c b n = integer 8 := by\n  simp only [NestedModules.Answer, NestedModules.«I!Value», intBinary_integer]; rfl\nexample (c : NestedModules.Constants) (b : Behavior) (n : Nat) : NestedModules.Next c b n = boolean (b (n+1) \"x\" = intBinary (fun a b => a+b) (b n \"x\") (integer 1)) := rfl\n"
         if source.name == 'SequenceOperations.tla':
             code += "\nexample (c : SequenceOperations.Constants) (b : Behavior) (n : Nat) : truth (SequenceOperations.LengthLaw c b n) := by\n  simp only [SequenceOperations.LengthLaw, SequenceOperations.Length, SequenceOperations.S, truth_boolean, length_tuple]; rfl\nexample (c : SequenceOperations.Constants) (b : Behavior) (n : Nat) : truth (SequenceOperations.FirstLaw c b n) := by\n  simp only [SequenceOperations.FirstLaw, SequenceOperations.First, SequenceOperations.S, truth_boolean]\n  exact apply_tuple [integer 1, ZFSet.zftrue, string \"x\"] 0 (by decide)\n"
         if source.name == 'ToolDefinitions.tla':

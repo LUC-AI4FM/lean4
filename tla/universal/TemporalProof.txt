@@ -17,5 +17,6 @@ example (c : Temporal.Constants) (b : Behavior) (n : Nat) :
 
 example (c : Temporal.Constants) (b : Behavior) (n : Nat) :
     truth (Temporal.Guarantee c b n) := by
-  simpa [Temporal.Guarantee, truth_boolean, truth] using
+  simp only [Temporal.Guarantee, truth_boolean]
+  simpa [truth] using
     (TLA.guarantees_true (fun _ _ => True) b n)
