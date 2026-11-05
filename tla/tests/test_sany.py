@@ -61,3 +61,11 @@ class GraphTests(unittest.TestCase):
         for xml in ['garbage', '<modules/>', '<!DOCTYPE modules><modules/>']:
             with self.subTest(xml=xml), self.assertRaises(SanyError):
                 Graph.from_xml(xml)
+
+class ProofGraphTests(unittest.TestCase):
+    def test_named_assumption_and_theorem(self):
+        graph = parse_file(Path('tests/fixtures/Claims.tla'), jar=JAR)
+        self.assertEqual(len(graph.claims('AssumeNode')), 1)
+        self.assertEqual(len(graph.claims('TheoremNode')), 1)
+        theorem = graph.claims('TheoremNode')[0]
+        self.assertEqual(graph.resolve(theorem.node.find('definition')[0]).name, 'Claim')

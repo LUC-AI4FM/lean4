@@ -27,6 +27,10 @@ class Symbol:
     @property
     def body(self):
         body = self.node.find('body')
+        if body is None and self.node.tag in ('AssumeDef', 'TheoremDefNode'):
+            expressions = [n for n in self.node if n.tag in ('OpApplNode', 'AssumeProveNode', 'LetInNode')]
+            if len(expressions) == 1:
+                return expressions[0]
         if body is None or len(body) != 1:
             raise SanyError(f'{self.name}: expected one operator body')
         return body[0]
@@ -75,7 +79,8 @@ class Graph:
         if uid not in self.symbols:
             raise SanyError(f'unresolved symbol UID: {uid}')
         symbol = self.symbols[uid]
-        if ref.tag != symbol.node.tag + 'Ref':
+        expected = 'TheoremDefRef' if symbol.node.tag == 'TheoremDefNode' else symbol.node.tag + 'Ref'
+        if ref.tag != expected:
             raise SanyError(f'symbol reference kind mismatch for {uid}')
         return symbol
 
@@ -92,6 +97,9 @@ class Graph:
     def variables(self):
         return [self.resolve(ref) for ref in self.root.node.findall('OpDeclNodeRef')
                 if self.resolve(ref).node.findtext('kind') == '3']
+
+    def claims(self, kind):
+        return [self.resolve(ref) for ref in self.root.node.findall(kind + 'Ref')]
 
     def constants(self):
         return [self.resolve(ref) for ref in self.root.node.findall('OpDeclNodeRef')

@@ -61,4 +61,41 @@ theorem strong_implies_weak (a : Action σ) (v : σ → α)
   rcases he with ⟨k, _, hk⟩
   intro m hm
   exact ⟨max k m, Nat.le_max_right _ _, hk _ (Nat.le_max_left _ _)⟩
+def compose (a b : Action σ) : Action σ := fun s t => ∃ mid, a s mid ∧ b mid t
+
+/-- Repetition of states with no skipped state and no infinitely postponed suffix. -/
+def expands (original expanded : Behavior σ) : Prop :=
+  ∃ index : Nat → Nat, index 0 = 0 ∧
+    (∀ n, index (n + 1) = index n ∨ index (n + 1) = index n + 1) ∧
+    (∀ k, ∃ n, index n = k) ∧ ∀ n, expanded n = original (index n)
+
+def stutteringEquivalent (left right : Behavior σ) : Prop :=
+  ∃ common, expands left common ∧ expands right common
+
+theorem expands_refl (b : Behavior σ) : expands b b := by
+  exact ⟨id, rfl, fun _ => Or.inr rfl, fun k => ⟨k, rfl⟩, fun _ => rfl⟩
+
+theorem stutteringEquivalent_refl (b : Behavior σ) : stutteringEquivalent b b :=
+  ⟨b, expands_refl b, expands_refl b⟩
+
+theorem stutteringEquivalent_head (b c : Behavior σ) (h : stutteringEquivalent b c) :
+    b 0 = c 0 := by
+  obtain ⟨common, ⟨i, hi, _, _, hbi⟩, ⟨j, hj, _, _, hcj⟩⟩ := h
+  have left := hbi 0
+  have right := hcj 0
+  rw [hi] at left
+  rw [hj] at right
+  exact left.symm.trans right
+
+/-- Flexible quantification closes existential hiding under finite stuttering. -/
+def existsFlexible (p : (Nat → α) → Formula σ) : Formula σ := fun b n =>
+  ∃ c, stutteringEquivalent (fun k => b (n + k)) c ∧ ∃ history, p history c 0
+
+def forallFlexible (p : (Nat → α) → Formula σ) : Formula σ :=
+  fun b n => ¬ existsFlexible (fun history c k => ¬ p history c k) b n
+
+theorem existsFlexible_intro (p : (Nat → α) → Formula σ) (b : Behavior σ)
+    (h : Nat → α) (hp : p h b 0) : existsFlexible p b 0 := by
+  refine ⟨b, ?_, h, hp⟩
+  simpa using stutteringEquivalent_refl b
 end TLA

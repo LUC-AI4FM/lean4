@@ -65,3 +65,13 @@ were restricted to Type 0, and one domain proof destructuring pattern failed.
 Generalized temporal definitions to universe-polymorphic state types and fixed
 that proof. Added universal source generation and heterogeneous/quantifier/operator
 fixtures; those are queued for CI, not yet claimed passing. Main typed lane passed.
+
+
+Proof-obligation and temporal checkpoint: named ASSUME/THEOREM graph references
+retain their formula bodies; generated Certificate structures require real Lean
+proofs, and a false certificate is rejected. Added action composition and
+stuttering-aware flexible quantification to the universe-polymorphic native core.
+Universal source renderer now includes temporal hiding and leads-to. Universal
+CI found only an over-expanding simp invocation in integer arithmetic's bridge
+lemma; replaced it with explicit guarded rewriting. Universal source tests still
+await a full passing run. All previous limitations remain until their gates pass.

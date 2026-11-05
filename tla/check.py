@@ -18,6 +18,7 @@ run(lake, 'build')
 run(sys.executable, '-m', 'unittest', 'discover', '-s', 'tests')
 run(lake, 'env', 'lean', 'tests/Native.lean')
 run(lake, 'env', 'lean', 'tests/Data.lean')
+run(lake, 'env', 'lean', 'tests/Temporal.lean')
 source = translate(Path('tests/Counter.tla').read_text())
 proof = Path('tests/CounterProof.txt').read_text()
 with tempfile.TemporaryDirectory(prefix='check-', dir='.') as directory:

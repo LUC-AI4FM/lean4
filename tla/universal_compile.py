@@ -14,6 +14,10 @@ class ValueBinding:
     code: str
 
 @dataclass
+class StateBinding:
+    key: str
+
+@dataclass
 class ExpressionBinding:
     name: str
     arity: int = 0
@@ -75,6 +79,10 @@ class UniversalCompiler:
         args = list(node.find('operands'))
         if symbol.uid in env:
             binding = env[symbol.uid]
+            if isinstance(binding, StateBinding):
+                if args:
+                    raise CompileError('flexible variable used as an operator')
+                return f'(({b}) ({n}) {json.dumps(binding.key)})'
             if isinstance(binding, ValueBinding):
                 if args:
                     raise CompileError('value used as an operator')
@@ -111,6 +119,8 @@ class UniversalCompiler:
         if standard:
             name = name.rsplit('!', 1)[-1]
         if symbol.node.tag != 'BuiltInKind' and not standard:
+            if symbol.node.tag in ('AssumeDef', 'TheoremDefNode'):
+                return self.expr(symbol.body, env, b, n)
             if symbol.node.tag != 'UserDefinedOpKind':
                 raise CompileError(f'unsupported universal symbol: {name}')
             if symbol.uid in self.active:
@@ -125,6 +135,34 @@ class UniversalCompiler:
                 return self.expr(symbol.body, extended, b, n)
             finally:
                 self.active.pop()
+        if name in ('$TemporalExists', '$TemporalForall'):
+            refs = node.findall('boundSymbols/unbound/FormalParamNodeRef')
+            if not refs:
+                raise CompileError('missing flexible variable')
+            def quantify(remaining, context, trace, index):
+                if not remaining:
+                    return self.expr(args[0], context, trace, index)
+                ref, *rest = remaining
+                history, sampled, time, keyvar = self.fresh(), self.fresh(), self.fresh(), self.fresh()
+                key = '$bound:' + ref.findtext('UID')
+                extended = dict(context); extended[ref.findtext('UID')] = StateBinding(key)
+                lifted = f'(fun t {keyvar} => if {keyvar} = {json.dumps(key)} then {history} t else {sampled} t {keyvar})'
+                inner = quantify(rest, extended, lifted, time)
+                fn = 'existsFlexible' if name == '$TemporalExists' else 'forallFlexible'
+                return f'(boolean (TLA.{fn} (fun ({history} : Nat → Value) ({sampled} : Behavior) {time} => truth {inner}) ({trace}) ({index})))'
+            return quantify(refs, env, b, n)
+        if name == '~>':
+            start, end = self.fresh(), self.fresh()
+            left = self.expr(args[0], env, b, start)
+            right = self.expr(args[1], env, b, end)
+            return f'(boolean (∀ {start} : Nat, ({n}) ≤ {start} → truth {left} → ∃ {end} : Nat, {start} ≤ {end} ∧ truth {right}))'
+        if name == '\\cdot':
+            middle, time = self.fresh(), self.fresh()
+            left_trace = f'(fun {time} => if {time} = ({n}) + 1 then {middle} else ({b}) {time})'
+            right_trace = f'(fun {time} => if {time} = ({n}) then {middle} else ({b}) {time})'
+            left = self.expr(args[0], env, left_trace, n)
+            right = self.expr(args[1], env, right_trace, n)
+            return f'(boolean (∃ {middle} : State, truth {left} ∧ truth {right}))'
         if name == "'":
             return self.expr(args[0], env, b, f'({n}) + 1')
         if name in ('[]', '<>'):
@@ -256,9 +294,6 @@ class UniversalCompiler:
         raise CompileError(f'unsupported universal operator {name!r} from {origin}')
 
     def compile(self):
-        for ref in self.g.root.node:
-            if ref.tag in ('AssumeNodeRef', 'TheoremNodeRef'):
-                raise CompileError('proof obligations are not implemented yet')
         lines = ['module', 'import TLAUniversal', '', 'open TLAUniversal Classical',
                  f'namespace {ident(self.g.root.name)}', 'noncomputable section', 'structure Constants where']
         for constant in self.g.constants():
@@ -272,6 +307,17 @@ class UniversalCompiler:
             trace = 'b' if '(b)' in code else '_b'
             index = 'n' if '(n)' in code else '_n'
             lines.extend([f'def {ident(definition.name)} ({context} : Constants) ({trace} : Behavior) ({index} : Nat) : Value :=', '  ' + code])
+        assumptions = [self.expr(s.body) for s in self.g.claims('AssumeNode')]
+        obligations = [self.expr(s.body) for s in self.g.claims('TheoremNode')]
+        if assumptions or obligations:
+            condition = ' ∧ '.join(f'truth {a}' for a in assumptions) or 'True'
+            lines += [f'def TLAProofAssumptions (c : Constants) (b : Behavior) (n : Nat) : Prop := {condition}']
+            for i, claim in enumerate(obligations):
+                lines += [f'def TLAProofClaim{i} (c : Constants) (b : Behavior) (n : Nat) : Prop := truth {claim}']
+        if obligations:
+            lines += ['structure Certificate (c : Constants) : Prop where']
+            for i in range(len(obligations)):
+                lines += [f'  obligation_{i} : ∀ (b : Behavior) (n : Nat), TLAProofAssumptions c b n → TLAProofClaim{i} c b n']
         lines.extend(['end', f'end {ident(self.g.root.name)}', ''])
         return '\n'.join(lines)
 

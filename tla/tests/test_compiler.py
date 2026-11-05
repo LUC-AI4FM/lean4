@@ -65,8 +65,16 @@ Spec == Init /\ [][Next]_x
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / 'FalseClaim.tla'
             path.write_text('---- MODULE FalseClaim ----\nA == TRUE\nTHEOREM FALSE\n====')
-            with self.assertRaises(CompileError):
-                compile_file(path)
+            code = compile_file(path)
+            self.assertIn('structure Certificate', code)
+            self.assertIn('TLAProofClaim0', code)
+            self.assertNotIn('axiom', code)
+            self.assertNotIn('sorry', code)
+            target = Path(d) / 'FalseClaim.lean'
+            target.write_text(code + '\nexample : FalseClaim.Certificate ⟨⟩ := by constructor; intro b n h; trivial\n')
+            result = subprocess.run([os.environ.get('LAKE', 'lake'), 'env', 'lean', str(target)], capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('error:', result.stdout)
 
     def test_records_and_nested_updates(self):
         self.check(Path('tests/fixtures/Records.tla'), r"""
@@ -95,4 +103,14 @@ example (c : Binders.Constants) (b : TLA.Behavior Binders.State) (n : Nat) :
 example (c : Binders.Constants) (b : TLA.Behavior Binders.State) (n : Nat) :
     Binders.Member c b n := by
   exact ⟨2, by simp [TLA.Data.Set.interval], 3, by simp [TLA.Data.Set.interval], rfl⟩
+""")
+
+    def test_assumptions_and_proof_certificate(self):
+        self.check(Path('tests/fixtures/Claims.tla'), r"""
+example (c : Claims.Constants) : Claims.Certificate c := by
+  constructor
+  intro b n h
+  simp [Claims.TLAProofAssumptions] at h
+  simp [Claims.TLAProofClaim0]
+  omega
 """)

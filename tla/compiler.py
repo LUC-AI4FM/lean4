@@ -2,6 +2,7 @@
 """Compile resolved SANY expressions to Lean; reject every unmapped construct."""
 from dataclasses import dataclass
 import json
+from types import SimpleNamespace
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from sany import parse_file, SanyError
@@ -174,6 +175,8 @@ class Compiler:
             name = name.rsplit('!', 1)[-1]
         builtin = op.node.tag == 'BuiltInKind'
         if not builtin and not standard:
+            if op.node.tag in ('AssumeDef', 'TheoremDefNode'):
+                return self.term(op.body, env, b, n)
             if op.node.tag != 'UserDefinedOpKind':
                 raise CompileError(f'unsupported symbol: {name}')
             if op.uid in self.active:
@@ -419,10 +422,7 @@ class Compiler:
         raise CompileError(f'unsupported resolved operator {name!r} from {op.location}')
 
     def compile(self):
-        for ref in self.g.root.node:
-            if ref.tag in ('AssumeNodeRef', 'TheoremNodeRef'):
-                raise CompileError('proof/assumption declarations require the pending obligation pipeline')
-        reserved = {'State', 'Constants'}
+        reserved = {'State', 'Constants', 'Certificate', 'TLAProofAssumptions'}
         if any(d.name in reserved for d in self.g.definitions()):
             raise CompileError('source name collides with generated State or Constants type')
         rendered = []
@@ -437,6 +437,14 @@ class Compiler:
             ET.SubElement(call, 'operands')
             value = self.term(call)
             rendered.append((definition, value))
+        assumptions = [self.term(s.body) for s in self.g.claims('AssumeNode')]
+        obligations = [self.term(s.body) for s in self.g.claims('TheoremNode')]
+        for term in [*assumptions, *obligations]:
+            term.ty.unify(PROP)
+        if assumptions or obligations:
+            text = '(' + ' ∧ '.join(a.code for a in assumptions) + ')' if assumptions else 'True'
+            rendered.append((SimpleNamespace(name='TLAProofAssumptions'), Term(text, PROP)))
+            rendered.extend((SimpleNamespace(name=f'TLAProofClaim{i}'), term) for i, term in enumerate(obligations))
         free = []
         records = {}
         def collect(ty):
@@ -477,6 +485,10 @@ class Compiler:
             code = term.code.replace(': State,', f': {state_type},')
             lines += [f'def {ident(definition.name)} ({context_name} : {constants_type}) ({trace_name} : TLA.Behavior {state_type}) ({index_name} : Nat) : {term.ty.lean()} :=',
                       '  ' + code]
+        if obligations:
+            lines += [f'structure Certificate (c : {constants_type}) : Prop where']
+            for i in range(len(obligations)):
+                lines += [f'  obligation_{i} : ∀ (b : TLA.Behavior {state_type}) (n : Nat), TLAProofAssumptions c b n → TLAProofClaim{i} c b n']
         lines += ['end', f'end {ident(self.g.root.name)}', '']
         return '\n'.join(lines)
 

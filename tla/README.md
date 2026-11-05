@@ -90,10 +90,11 @@ The generated data interpretation is currently **typed**. It is not yet a faithf
 universal model of all untyped TLA+ values. Heterogeneous collections, mixed
 function/record/sequence equality, unrestricted quantification and arbitrary
 recursive definitions require further semantic work. Tuple binders and multi-argument function constructors, operator-valued parameters/constants, temporal hiding,
-general standard modules, and proof/assumption obligations also remain incomplete.
+general standard modules, and translation of proof scripts also remain incomplete.
 Unsupported constructs are rejected, never replaced by axioms or placeholder
-proofs. Source ASSUME and THEOREM declarations are currently rejected so they
-cannot silently disappear from a translated module.
+proofs. Source ASSUME and THEOREM declarations become explicit assumptions and proof
+obligations. A generated `Certificate` requires a Lean proof of each theorem;
+source proof hints such as OBVIOUS are not trusted as proofs.
 
 Some operations outside their specified mathematical domains have total Lean
 values; source claims about such operations are not covered by a correspondence

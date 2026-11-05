@@ -152,7 +152,8 @@ def updatePath (value : Value) (keys : List Value) (replacement : Value) : Value
 
 theorem intBinary_integer (op : Int → Int → Int) (a b : Int) :
     intBinary op (integer a) (integer b) = integer (op a b) := by
-  simp [intBinary, integer_mem, toInt_integer]
+  unfold intBinary
+  rw [if_pos ⟨integer_mem a, integer_mem b⟩, toInt_integer, toInt_integer]
 
 /-- A native specification over the same untyped value universe as source specifications. -/
 def liftPredicate (p : State → Prop) : Expression := fun b n => boolean (p (b n))
