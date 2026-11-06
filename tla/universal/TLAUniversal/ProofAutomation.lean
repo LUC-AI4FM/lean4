@@ -2,6 +2,7 @@
 module
 public import TLAUniversal.Values
 public import TLAUniversal.InductionProofs
+public import TLAUniversal.FunctionProofs
 public import Lean
 
 open Lean Meta Elab Tactic
@@ -152,6 +153,9 @@ elab "tla_instantiate" : tactic => withMainContext do
     next := updated
   replaceMainGoal [next]
 
+public theorem TLAUniversal.self_eq_succ_iff (n : Nat) : n = n + 1 ↔ False := iff_false_intro (Nat.succ_ne_self n).symm
+public theorem TLAUniversal.succ_eq_self_iff (n : Nat) : n + 1 = n ↔ False := iff_false_intro (Nat.succ_ne_self n)
+
 /-- Construct a witness for `∃ s : State, P s`, as ENABLED and `\cdot`
 expansion need. Candidates are constant states built from `TRUE` and from
 every value `v` with `truth v` in context. Each candidate is checked by closing the instantiated goal
@@ -161,7 +165,8 @@ meta partial def TLAUniversal.stateWitness (depth : Nat) : TacticM Unit := withM
   if depth == 0 then throwError "state witness depth exhausted"
   evalTactic (← `(tactic| try simp only [TLAUniversal.truth_boolean, if_true, if_false, ite_true, ite_false] at *))
   evalTactic (← `(tactic| intros))
-  evalTactic (← `(tactic| try simp only [TLAUniversal.truth_boolean, if_true, if_false, ite_true, ite_false] at *))
+  try evalTactic (← `(tactic| simp only [TLAUniversal.truth_boolean, TLAUniversal.tuple_eq_iff, List.cons.injEq, TLAUniversal.self_eq_succ_iff, TLAUniversal.succ_eq_self_iff, ZFSet.ZFBool.mem_𝔹_iff, TLAUniversal.boolean_eq_true_iff, TLAUniversal.boolean_eq_false_iff, if_true, if_false, ite_true, ite_false, and_true, true_and, eq_self_iff_true, ZFSet.zftrue_ne_zffalse, TLAUniversal.false_ne_true] at *))
+  catch e => trace[debug] m!"norm error {e.toMessageData}"
   withMainContext do
   let goal ← getMainGoal
   let type ← whnfR (← instantiateMVars (← goal.getType))
@@ -176,14 +181,81 @@ meta partial def TLAUniversal.stateWitness (depth : Nat) : TacticM Unit := withM
     let t ← instantiateMVars declaration.type
     if t.isAppOfArity ``TLAUniversal.truth 1 && !t.appArg!.hasLooseBVars then
       unless values.contains t.appArg! do values := values.push t.appArg!
-  let candidates := values.map (fun v => Expr.lam `_ (mkConst ``String) v .default)
+  values := values.push (mkConst ``ZFSet.zffalse [levelZero])
+  -- Current states `b k` and variable names occurring in the goal give
+  -- stuttering and single-variable-update candidates.
+  let found ← IO.mkRef ((#[] : Array Expr), (#[] : Array String))
+  type.forEach fun e => do
+    match e with
+    | .lit (.strVal name) => found.modify fun (xs, ns) => (xs, if ns.contains name then ns else ns.push name)
+    | _ => pure ()
+  for declaration in ← getLCtx do
+    if declaration.isImplementationDetail then continue
+    if ← isDefEq declaration.type (mkConst ``TLAUniversal.Behavior) then
+      type.forEach fun e => do
+        if e.isApp && e.appFn! == declaration.toExpr && !e.hasLooseBVars then
+          found.modify fun (xs, ns) => (if xs.contains e then xs else xs.push e, ns)
+  let (states, names) ← found.get
+  let constant := values.map (fun v => Expr.lam `_ (mkConst ``String) v .default)
+  let mut updates : Array Expr := #[]
+  for state in states do
+    updates := updates.push state
+    for name in names do
+      for value in values do
+        if updates.size < 48 then
+          let update ← withLocalDeclD `v (mkConst ``String) fun v => do
+            let condition ← mkEq v (mkStrLit name)
+            let body ← mkAppM ``ite #[condition, value, mkApp state v]
+            mkLambdaFVars #[v] body
+          updates := updates.push update
+  -- Equation-driven candidates: from `s "v" = e` conjuncts in the goal,
+  -- assign each variable its first required value, starting from each
+  -- equation in turn so that every disjunct gets a chance.
+  let equations ← withLocalDeclD `s (mkConst ``TLAUniversal.State) fun s => do
+    let body := Expr.headBeta (mkApp predicate s)
+    let collected ← IO.mkRef (#[] : Array (String × Expr))
+    body.forEach fun e => do
+      if e.isAppOfArity ``Eq 3 then
+        let lhs := e.appFn!.appArg!
+        let rhs := e.appArg!
+        if lhs.isApp && lhs.appFn! == s then
+          if let .lit (.strVal name) := lhs.appArg! then
+            if !rhs.hasLooseBVars && !rhs.containsFVar s.fvarId! then
+              collected.modify (·.push (name, rhs))
+    collected.get
+  let fallback : Expr → Expr := fun v =>
+    match states[0]? with
+    | some state => mkApp state v
+    | none => mkConst ``ZFSet.zftrue [levelZero]
+  let mut assigned : Array Expr := #[]
+  for start in [0:equations.size] do
+    if assigned.size ≥ 16 then break
+    let mut chosen : Array (String × Expr) := #[]
+    for offset in [0:equations.size] do
+      let (name, value) := equations[(start + offset) % equations.size]!
+      unless chosen.any (·.1 == name) do chosen := chosen.push (name, value)
+    let candidate ← withLocalDeclD `v (mkConst ``String) fun v => do
+      let mut body := fallback v
+      for (name, value) in chosen.reverse do
+        body ← mkAppM ``ite #[← mkEq v (mkStrLit name), value, body]
+      mkLambdaFVars #[v] body
+    assigned := assigned.push candidate
+  -- States already in context (for example from a destructed ENABLED).
+  let mut inContext : Array Expr := #[]
+  for declaration in ← getLCtx do
+    if declaration.isImplementationDetail then continue
+    if ← isDefEq declaration.type (mkConst ``TLAUniversal.State) then
+      inContext := inContext.push declaration.toExpr
+  let candidates := inContext ++ constant ++ assigned ++ updates
+  trace[debug] m!"state witness goal {type} equations {equations.size} candidates {candidates.size}"
   for candidate in candidates do
     let saved ← saveState
     try
       let proof ← mkFreshExprSyntheticOpaqueMVar (Expr.headBeta (mkApp predicate candidate))
       goal.assign (mkAppN (mkConst ``Exists.intro [← getLevel domain]) #[domain, predicate, candidate, proof])
       replaceMainGoal [proof.mvarId!]
-      evalTactic (← `(tactic| simp_all [TLAUniversal.truth_true]))
+      evalTactic (← `(tactic| try casesm* _ ∧ _))
+      evalTactic (← `(tactic| first | (solve | simp_all [ZFSet.ZFBool.mem_𝔹_iff, TLAUniversal.truth_true, TLAUniversal.tuple_eq_iff, ZFSet.zftrue_ne_zffalse, TLAUniversal.false_ne_true, TLAUniversal.boolean_eq_true_iff, TLAUniversal.boolean_eq_false_iff, TLAUniversal.truth_boolean]) | simp_all [TLAUniversal.truth_true, TLAUniversal.tuple_eq_iff] | skip))
       if (← getUnsolvedGoals).isEmpty then return
       TLAUniversal.stateWitness (depth - 1)
       if (← getUnsolvedGoals).isEmpty then return

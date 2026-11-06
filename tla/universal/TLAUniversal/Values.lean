@@ -41,6 +41,14 @@ theorem truth_boolean (p : Prop) : truth (boolean p) ↔ p := by
 
 theorem truth_true : truth ZFSet.zftrue := rfl
 
+theorem boolean_eq_true_iff (p : Prop) : boolean p = ZFSet.zftrue ↔ p := truth_boolean p
+
+theorem boolean_eq_false_iff (p : Prop) : boolean p = ZFSet.zffalse ↔ ¬ p := by
+  simp only [boolean]
+  split_ifs with h
+  · simp [h, ZFSet.zftrue_ne_zffalse]
+  · simp [h]
+
 theorem false_ne_true : ZFSet.zffalse ≠ ZFSet.zftrue :=
   Ne.symm ZFSet.zftrue_ne_zffalse
 
