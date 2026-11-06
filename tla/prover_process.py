@@ -7,7 +7,7 @@ import subprocess
 
 def run_prover(command, *, cwd, timeout):
     process = subprocess.Popen(command, cwd=cwd, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, text=True,
+                               stderr=subprocess.PIPE, text=True, errors='replace',
                                start_new_session=(os.name == 'posix'))
     try:
         stdout, stderr = process.communicate(timeout=timeout)

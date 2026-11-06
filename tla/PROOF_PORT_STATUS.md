@@ -4,6 +4,44 @@ Objective: unchanged TLAPS proof scripts produce proofs checked by Lean, with
 positive and negative reference tests, complete language/backend coverage and
 verified pushed changes. A leaf-only milestone is not completion.
 
+Current checkpoint (2026-11-06, TLAPS proof contexts): full port remains incomplete.
+- Audit [42155101138](https://github.com/LUC-AI4FM/lean4/actions/runs/42155101138)
+  at 1a3d2b9: 163/200 reference-positive scripts check (was 162). 26 time out
+  at the 60 s audit budget, 7 are now rejected by Lean quickly instead of
+  timing out (PCalBoundedChannel, SimpleMutex, PTCommit, PTwoPhase,
+  two_phase/TwoPhase, ExpandENABLED_LET, NestedENABLED_from_AutoUSE), and 4
+  are SANY frontend rejections. No regressions; no expected-false input
+  accepted. test_decompose_naive_bcast now checks (17 s locally).
+- Leaf contexts follow TLAPS: a source leaf sees an earlier step or theorem
+  only if its BY cites it or a USE in scope made it usable; named module
+  ASSUME/AXIOM facts are split into separate hypotheses and kept only when
+  cited or USEd (unnamed ones stay). Module-level USE/HIDE (DEF and facts)
+  apply to later theorems in source order. Earlier theorems are instantiated
+  with the constant-level assumptions before those are split. Removing
+  hypotheses is always sound; fixtures CitedStep/FalseUncitedStep,
+  ModuleContext/FalseUncitedAssumption cover it.
+- Search: bounded aesop first tries simp_all with a 20000-step simp budget
+  (broadcast 65 s -> 17 s). Nat/Int membership is oriented `v = integer k`
+  so simp_all substitutes it, and `∃ k : Nat, z = k` reduces to `0 ≤ z`
+  (NaturalSubtraction/FalseNaturalSubtraction).
+- Leibniz: for each operator with expression arguments the generated file
+  attempts `p b n = q b n → Op p c b n = Op q c b n`, proved by Lean through
+  definitional unfolding; `tla_try` (ProofAutomation) keeps it only if Lean
+  accepts it, so nothing unproved is added (Leibniz fixture).
+- Triage of the remaining 37 (local, 400k heartbeats per theorem): they fail
+  for missing reasoning, not budget. Liveness/PTL with fairness (SimpleEventually*,
+  SimpleExampleWF, FOLTL, EWD840 liveness); ENABLED witnesses over primed
+  NEW variables (enabled_cdot tests); imported library theorems whose
+  statements need induction (NaturalsInduction, WellFoundedInduction,
+  SequenceTheorems, used by SimpleEventuallyInt and others); larger invariant
+  steps with set/function/record reasoning (Paxos, ByzPaxos, Bakery,
+  Allocator, TwoPhase family, Peterson, BoundedBuffer, GraphTheorem); Euclid's
+  NextProperty arithmetic step. Paxos also hits an `unknown free variable`
+  elaboration error in claim 2, a translation defect to fix.
+- Next: a checked PTL/WF decision procedure; Lean proofs of the standard
+  TLAPS library theorems (induction) so imported statements are available;
+  ENABLED witness construction; the Paxos free-variable defect.
+
 Current checkpoint (2026-11-05, Claude takeover): full port remains incomplete.
 - Master 3af6e68 integrates the former proof-compatibility-followup branch
   (fast-forward). Branch TLA suite [42129772420](https://github.com/LUC-AI4FM/lean4/actions/runs/42129772420)
