@@ -24,7 +24,7 @@ def proof_node(theorem, *, implicit=False):
 
 
 class Renderer:
-    def __init__(self, compiler, unfold, trace=False, claim=0, facts=None):
+    def __init__(self, compiler, unfold, trace=False, claim=0, facts=None, assumptions=(), used=()):
         self.compiler = compiler
         self.graph = compiler.g
         self.unfold = unfold
@@ -43,7 +43,9 @@ class Renderer:
         # Assertion steps in scope, and those made usable by USE. As in TLAPS,
         # a source leaf sees an earlier step only when it cites or USEs it.
         self.scope_steps = []
-        self.used_steps = set()
+        self.used_steps = set(used)
+        # Named module assumptions are usable only when cited or USEd.
+        self.assumptions = list(assumptions)
 
     @staticmethod
     def level(node):
@@ -103,8 +105,9 @@ class Renderer:
         citations = set()
         for fact in proof.findall('facts/*'):
             kind, uid = self.fact_reference(fact)
-            if kind == 'TheoremDefRef':
+            if kind in ('TheoremDefRef', 'AssumeDefRef'):
                 citations.add(uid)
+            if kind == 'TheoremDefRef':
                 cited += self.reveal(uid, indent)
         if restrict:
             # Removing facts can only make Lean's search harder, never
@@ -114,6 +117,9 @@ class Renderer:
                     continue
                 for name, certain in self.facts.get(uid, []):
                     cited.append(indent + (f'clear {name}' if certain else f'try clear {name}'))
+            for uid, name in self.assumptions:
+                if uid and uid not in citations and uid not in self.used_steps:
+                    cited.append(indent + f'clear {name}')
         tracing = cited + ([indent + f'trace \"TLA claim {self.claim} leaf {self.leaves}\"',
                     indent + 'trace_state'] if self.trace else [])
         return tracing + [indent + 'try (solve | trivial)',
@@ -247,7 +253,7 @@ class Renderer:
                     elif kind == 'TheoremDefRef' and uid in self.hidden:
                         lines += self.reveal(uid, indent)
                         del self.hidden[uid]
-                    if kind == 'TheoremDefRef' and not hiding:
+                    if kind in ('TheoremDefRef', 'AssumeDefRef') and not hiding:
                         self.used_steps.add(uid)
                 if hiding:
                     continue
@@ -520,6 +526,35 @@ def compile_proofs(source, *, trace=False, **kwargs):
     hidden_definition = len(lines)
     uses_hidden = False
     theorem_facts = {}
+    # Module-level USE/HIDE apply to later theorems in source order.
+    module_context = {}
+    module_unfold, module_used = [], set()
+    for child in graph.root.node:
+        if child.tag == 'TheoremNodeRef':
+            module_context[child.findtext('UID')] = (list(module_unfold), set(module_used))
+        if child.tag != 'UseOrHideNode':
+            continue
+        hiding = child.find('hide') is not None
+        for definition in child.findall('defs/*'):
+            symbol = graph.resolve(definition)
+            if symbol.uid in compiler.emitted:
+                emitted = compiler.emitted[symbol.uid][0]
+                if hiding:
+                    module_unfold = [x for x in module_unfold if x != emitted]
+                elif emitted not in module_unfold:
+                    module_unfold.append(emitted)
+        for fact in child.findall('facts/*'):
+            kind, uid = Renderer.fact_reference(fact)
+            if kind in ('TheoremDefRef', 'AssumeDefRef'):
+                (module_used.discard if hiding else module_used.add)(uid)
+    assumptions = [(symbol.node.findtext('definition/AssumeDefRef/UID'), f'assume_{i}')
+                   for i, symbol in enumerate(graph.claims('AssumeNode'))]
+    if len(assumptions) == 1:
+        split = ['  have assume_0 := source_assumptions', '  clear source_assumptions']
+    elif assumptions:
+        split = ['  obtain ⟨' + ', '.join(name for _, name in assumptions) + '⟩ := source_assumptions']
+    else:
+        split = []
     for index, theorem in enumerate(theorems):
         # Imported library declarations may omit a source proof. Reconstruct
         # their statements in Lean before exposing them to later claims; never
@@ -532,13 +567,19 @@ def compile_proofs(source, *, trace=False, **kwargs):
                   f'(b : _root_.TLAUniversal.Behavior) (n : _root_.Nat) '
                   f'(source_assumptions : {exports["assumptions"]} c b n) : '
                   f'{exports["claims"][index]} c b n := by', '  classical',
-                  '  have set_not_universal := _root_.TLAUniversal.not_universal']
+                  '  have set_not_universal := _root_.TLAUniversal.not_universal', *split]
+        context_unfold, context_used = module_context.get(theorem.uid, ([], set()))
+        if str(theorem.uid).startswith('module_use_'):
+            # A module-level USE fact is itself an obligation over the whole module context.
+            context_used = {uid for uid, _ in assumptions if uid}
+        unfold += context_unfold
         # Only already checked theorems enter the context. A BY reference is
         # never converted to an assumed proposition merely because SANY resolved it.
         for previous in range(index):
             lines.append(f'  have prior_{previous} := {names[previous]} c')
             unfold.append(exports['claims'][previous])
-        renderer = Renderer(compiler, unfold, trace=trace, claim=index, facts=theorem_facts)
+        renderer = Renderer(compiler, unfold, trace=trace, claim=index, facts=theorem_facts,
+                            assumptions=assumptions, used=context_used)
         opened, environment = renderer.open_statement(theorem.body, {}, '  ')
         renderer.local_state = renderer.state_premises(theorem.body)
         lines += opened + renderer.render(proof, environment, goal=theorem.body)

@@ -53,6 +53,14 @@ class ProofTests(unittest.TestCase):
         code = compile_proofs(Path('tests/proofs/CitedStep.tla'))
         self.assertEqual(code.count('clear step_'), 1)
 
+    def test_module_use_and_assumption_citations(self):
+        code = compile_proofs(Path('tests/proofs/ModuleContext.tla'))
+        self.assertIn('«ModuleContext».«D»', code.split('theorem TLACheckedProof0')[1])
+        third = code.split('theorem TLACheckedProof2')[1].split('theorem ')[0]
+        self.assertNotIn('clear assume_0', third)
+        code = compile_proofs(Path('tests/proofs/FalseUncitedAssumption.tla'))
+        self.assertIn('clear assume_0', code)
+
     def test_generalization_is_not_attempted_under_state_hypotheses(self):
         code = compile_proofs(Path('tests/proofs/upstream/test_decompose_naive_bcast.tla'),
                               includes=[Path('tests/corpus/tlaps')])
