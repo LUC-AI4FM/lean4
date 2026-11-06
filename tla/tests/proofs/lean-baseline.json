@@ -1,13 +1,13 @@
 {
-  "run": "https://github.com/LUC-AI4FM/lean4/actions/runs/42172068941",
-  "commit": "879e27fe5d77bc9df320773ed66ca2f5af76bf0f",
+  "run": "https://github.com/LUC-AI4FM/lean4/actions/runs/42190606858",
+  "commit": "035ef9b0ec72e5022ebc9c6f04dc61ce33a584da",
   "reference_commit": "d1760ab9a1a3e7e76f81172166a955167cd163f2",
-  "note": "All inputs accounted for. 163/200 reference-positive scripts checked; 28 time out at the 60-second audit budget, 5 are rejected by Lean and 4 by the SANY frontend. No expected-false input accepted. Full port incomplete; see PROOF_PORT_STATUS.md and TEMPORAL_DESIGN.md.",
+  "note": "All inputs accounted for. 166/200 reference-positive scripts checked; 26 time out at the 60-second audit budget, 4 are rejected by Lean and 4 by the SANY frontend. No expected-false input accepted. Full port incomplete; see PROOF_PORT_STATUS.md and TEMPORAL_DESIGN.md.",
   "counts": {
     "translation_rejected": 72,
-    "timeout": 47,
+    "timeout": 43,
     "lean_rejected": 49,
-    "checked": 175,
+    "checked": 179,
     "no_claims": 36
   },
   "results": [
@@ -15,14 +15,14 @@
       "source": "doc/fm2012/Peterson.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 4,
+      "claims": 2,
       "status": "translation_rejected"
     },
     {
       "source": "doc/presentations/2010-ifm/Euclid.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 9,
+      "claims": 7,
       "status": "translation_rejected"
     },
     {
@@ -36,14 +36,14 @@
       "source": "doc/presentations/2010-ifm/tutoriel-Peterson/Peterson.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 7,
+      "claims": 5,
       "status": "translation_rejected"
     },
     {
       "source": "doc/presentations/2011-augsburg/Euclid.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 8,
+      "claims": 6,
       "status": "translation_rejected"
     },
     {
@@ -57,35 +57,35 @@
       "source": "doc/tutorial-CEA14/Basics.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 8,
+      "claims": 6,
       "status": "translation_rejected"
     },
     {
       "source": "doc/tutorial-CEA14/exercise_Euclid.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "translation_rejected"
     },
     {
       "source": "doc/vstte12/Peterson.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "translation_rejected"
     },
     {
       "source": "doc/vstte12/RawPeterson.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "translation_rejected"
     },
     {
       "source": "doc/web/content/Documentation/Publications/Peterson.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 4,
+      "claims": 2,
       "status": "translation_rejected"
     },
     {
@@ -99,168 +99,168 @@
       "source": "examples/Allocator.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 14,
+      "claims": 12,
       "status": "timeout"
     },
     {
       "source": "examples/AtomicBakery.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 4,
+      "claims": 2,
       "status": "timeout"
     },
     {
       "source": "examples/AtomicBakeryWithoutSMT.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 18,
+      "claims": 16,
       "status": "timeout"
     },
     {
       "source": "examples/Bakery.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "timeout"
     },
     {
       "source": "examples/BubbleSort.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 11,
+      "claims": 9,
       "status": "timeout"
     },
     {
       "source": "examples/ByzPaxos/BPConProof.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 91,
+      "claims": 29,
       "status": "timeout"
     },
     {
       "source": "examples/ByzPaxos/Consensus.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 75,
+      "claims": 7,
       "status": "timeout"
     },
     {
       "source": "examples/ByzPaxos/PConProof.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 7,
+      "claims": 5,
       "status": "translation_rejected"
     },
     {
       "source": "examples/ByzPaxos/VoteProof.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 140,
+      "claims": 31,
       "status": "translation_rejected"
     },
     {
       "source": "examples/Channel/BoundedBuffer.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 9,
+      "claims": 7,
       "status": "timeout"
     },
     {
       "source": "examples/Channel/PCalBoundedChannel.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 4,
+      "claims": 2,
       "status": "lean_rejected"
     },
     {
       "source": "examples/Dekker/Dekker.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 6,
+      "claims": 4,
       "status": "translation_rejected"
     },
     {
       "source": "examples/EWD840.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 5,
+      "claims": 3,
       "status": "timeout"
     },
     {
       "source": "examples/Euclid.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 5,
+      "claims": 3,
       "status": "timeout"
     },
     {
       "source": "examples/GraphTheorem.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 155,
+      "claims": 18,
       "status": "timeout"
     },
     {
       "source": "examples/Peterson.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 4,
+      "claims": 2,
       "status": "timeout"
     },
     {
       "source": "examples/SimpleEventually.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 4,
+      "claims": 2,
       "status": "timeout"
     },
     {
       "source": "examples/SimpleEventuallyInt.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 16,
+      "claims": 2,
       "status": "timeout"
     },
     {
       "source": "examples/SimpleMutex.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 8,
+      "claims": 6,
       "status": "lean_rejected"
     },
     {
       "source": "examples/SumAndMax.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 5,
+      "claims": 3,
       "status": "timeout"
     },
     {
       "source": "examples/TPCommit/PTCommit.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "timeout"
     },
     {
       "source": "examples/TPCommit/PTwoPhase.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 5,
+      "claims": 3,
       "status": "timeout"
     },
     {
       "source": "examples/TPCommit/TCommit.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "timeout"
     },
     {
       "source": "examples/TPCommit/TwoPhase.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 4,
+      "claims": 2,
       "status": "timeout"
     },
     {
@@ -344,7 +344,7 @@
       "source": "examples/paxos/Paxos.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 10,
+      "claims": 9,
       "status": "timeout"
     },
     {
@@ -358,28 +358,28 @@
       "source": "examples/two_phase/TwoPhase.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 4,
+      "claims": 2,
       "status": "lean_rejected"
     },
     {
       "source": "examples_draft/FOLTL.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 114,
+      "claims": 9,
       "status": "timeout"
     },
     {
       "source": "examples_draft/OneBitMutex.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 5,
+      "claims": 3,
       "status": "timeout"
     },
     {
       "source": "examples_draft/SimpleExampleWF.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 16,
+      "claims": 2,
       "status": "timeout"
     },
     {
@@ -405,14 +405,14 @@
       "source": "library/FiniteSetTheorems.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 68,
+      "claims": 30,
       "status": "translation_rejected"
     },
     {
       "source": "library/FiniteSetTheorems_proofs.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 152,
+      "claims": 54,
       "status": "translation_rejected"
     },
     {
@@ -433,7 +433,7 @@
       "source": "library/NaturalsInduction_proofs.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 15,
+      "claims": 13,
       "status": "timeout"
     },
     {
@@ -468,14 +468,14 @@
       "source": "library/WellFoundedInduction.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 38,
+      "claims": 25,
       "status": "translation_rejected"
     },
     {
       "source": "library/WellFoundedInduction_proofs.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 40,
+      "claims": 29,
       "status": "timeout"
     },
     {
@@ -509,8 +509,8 @@
       "source": "lsp/test/test_obl_expand.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 70,
-      "status": "timeout"
+      "claims": 2,
+      "status": "lean_rejected"
     },
     {
       "source": "lsp/test/test_proof_steps.tla",
@@ -529,7 +529,7 @@
       "source": "test/bugs/constantfcn_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 5,
+      "claims": 3,
       "status": "translation_rejected"
     },
     {
@@ -542,28 +542,28 @@
       "source": "test/bugs/everythingisafcn_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/bugs/excappbad_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/bugs/hidedef_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/bugs/hidedefpred_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
@@ -584,7 +584,7 @@
       "source": "test/bugs/noteqfalse_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
@@ -598,14 +598,14 @@
       "source": "test/bugs/sndord_bis_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 5,
+      "claims": 3,
       "status": "translation_rejected"
     },
     {
       "source": "test/bugs/sndord_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 5,
+      "claims": 3,
       "status": "translation_rejected"
     },
     {
@@ -640,7 +640,7 @@
       "source": "test/fast/basic/cvc3_false_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
@@ -654,14 +654,14 @@
       "source": "test/fast/basic/isa_false_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/fast/basic/isa_true_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
@@ -675,28 +675,28 @@
       "source": "test/fast/basic/smt_arith_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/fast/basic/smt_false_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/fast/basic/smt_rlimit_bad_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/fast/basic/smt_rlimit_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 4,
+      "claims": 2,
       "status": "checked"
     },
     {
@@ -710,35 +710,35 @@
       "source": "test/fast/basic/true_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/fast/basic/z3_arith_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/fast/basic/z3_false_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/fast/basic/zen_false_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/fast/basic/zen_true_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
@@ -752,63 +752,63 @@
       "source": "test/fast/enabled_cdot/ENABLED_INSTANCE_nullary_op_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
-      "status": "lean_rejected"
+      "claims": 1,
+      "status": "checked"
     },
     {
       "source": "test/fast/enabled_cdot/ENABLED_INSTANCE_nullary_op_two_vars_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/fast/enabled_cdot/ENABLED_INSTANCE_op_with_args_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/fast/enabled_cdot/ENABLEDaxioms_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 12,
+      "claims": 10,
       "status": "timeout"
     },
     {
       "source": "test/fast/enabled_cdot/Enabled_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 21,
-      "status": "timeout"
+      "claims": 19,
+      "status": "lean_rejected"
     },
     {
       "source": "test/fast/enabled_cdot/ExpandENABLED_LET_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
-      "status": "lean_rejected"
+      "claims": 1,
+      "status": "checked"
     },
     {
       "source": "test/fast/enabled_cdot/ExpandOnlyCdot_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/fast/enabled_cdot/ExpandOnlyENABLED_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/fast/enabled_cdot/Fairness_INSTANCE_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 11,
+      "claims": 9,
       "status": "timeout"
     },
     {
@@ -828,7 +828,7 @@
       "source": "test/fast/enabled_cdot/Level_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 4,
+      "claims": 2,
       "status": "lean_rejected"
     },
     {
@@ -842,15 +842,15 @@
       "source": "test/fast/enabled_cdot/NestedENABLED_from_AutoUSE_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
-      "status": "lean_rejected"
+      "claims": 1,
+      "status": "checked"
     },
     {
       "source": "test/fast/enabled_cdot/NestedENABLED_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 5,
-      "status": "timeout"
+      "claims": 3,
+      "status": "checked"
     },
     {
       "source": "test/fast/fingerprint/FingerprintVariablesParameters_test.tla",
@@ -981,7 +981,7 @@
       "source": "test/fast/language/SubrefLL_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 46,
+      "claims": 44,
       "status": "translation_rejected"
     },
     {
@@ -1002,28 +1002,28 @@
       "source": "test/fast/language/nary_fcnapp_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/fast/language/parse_function_comma_args.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 7,
+      "claims": 5,
       "status": "checked"
     },
     {
       "source": "test/fast/language/unary_fcnapp_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/fast/regression/MiniProducerConsumer_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 6,
+      "claims": 4,
       "status": "timeout"
     },
     {
@@ -1062,7 +1062,7 @@
       "source": "test/fast/regression/consensus/consensus_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 71,
+      "claims": 3,
       "status": "translation_rejected"
     },
     {
@@ -1076,7 +1076,7 @@
       "source": "test/fast/regression/higher_order_statement_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 4,
+      "claims": 2,
       "status": "translation_rejected"
     },
     {
@@ -1097,28 +1097,28 @@
       "source": "test/fast/regression/setEuclid_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 10,
+      "claims": 8,
       "status": "translation_rejected"
     },
     {
       "source": "test/fast/regression/smt_domain_check_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/fast/regression/z3_fingerprint_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/medium/regression/select_bug_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 5,
+      "claims": 3,
       "status": "translation_rejected"
     },
     {
@@ -1132,14 +1132,14 @@
       "source": "test/medium/regression/snapshot/GFX_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 20,
+      "claims": 19,
       "status": "translation_rejected"
     },
     {
       "source": "test/medium/regression/snapshot/SnapShot_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 17,
+      "claims": 16,
       "status": "translation_rejected"
     },
     {
@@ -1153,28 +1153,28 @@
       "source": "test/regression_tests/fingerprint_13_12_07_test-disabled.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 4,
+      "claims": 2,
       "status": "lean_rejected"
     },
     {
       "source": "test/regression_tests/function_except_tuple_soundness_gh201_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/regression_tests/nat_comparison_soundness_gh200_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/regression_tests/record_except_explosion_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
@@ -1286,7 +1286,7 @@
       "source": "test/sany/equivalence/14_BasicPTLProofTest.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
@@ -1307,7 +1307,7 @@
       "source": "test/sany/equivalence/17_ActionOperatorTest.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
@@ -1433,7 +1433,7 @@
       "source": "test/soundness_tests/case_time_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
@@ -1447,7 +1447,7 @@
       "source": "test/soundness_tests/have_time_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
@@ -1494,28 +1494,28 @@
       "source": "test/soundness_tests/issue300_negative_exponent_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "timeout"
     },
     {
       "source": "test/soundness_tests/issue304_case_first_arm_smt_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue304_case_swap_smt_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue304_case_symbolic_guards_smt_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
@@ -1529,21 +1529,21 @@
       "source": "test/soundness_tests/issue309_enabled_binder_isa_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "timeout"
     },
     {
       "source": "test/soundness_tests/issue309_enabled_binder_smt_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "timeout"
     },
     {
       "source": "test/soundness_tests/issue309_enabled_binder_zenon_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "timeout"
     },
     {
@@ -1565,76 +1565,76 @@
       "expected_false": true,
       "reference_positive": false,
       "claims": 1,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue310_hash_collision_ptl_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue310_hash_collision_smt_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue310_hash_collision_zenon_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue320_instantiated_actplus_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue51_len_domain_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue51_recursive_function_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 4,
+      "claims": 2,
       "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue69_instantiated_fairness_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 6,
+      "claims": 4,
       "status": "timeout"
     },
     {
       "source": "test/soundness_tests/issue69_instantiated_strong_fairness_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "timeout"
     },
     {
       "source": "test/soundness_tests/issue71_quantifier_bound_level_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/pick_temporal_goal_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
@@ -1648,91 +1648,91 @@
       "source": "test/soundness_tests/recordeq_swap_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/use_time_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/variable_capture_stest.tla",
       "expected_false": true,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "lean_rejected"
     },
     {
       "source": "test/unit/a_lang/binary_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/bounded_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/constant_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/ditto_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/extends_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/hidedef_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/letchain_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/letconstant_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/letfunction_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/letsndord_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
@@ -1746,574 +1746,574 @@
       "source": "test/unit/a_lang/nusedef_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/nusefact_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/nusesndord_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/predarg_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 4,
+      "claims": 2,
       "status": "translation_rejected"
     },
     {
       "source": "test/unit/a_lang/prime_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/secondord_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/sndordthm_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 4,
+      "claims": 2,
       "status": "translation_rejected"
     },
     {
       "source": "test/unit/a_lang/tempop_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/unary_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/usedef_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/usefact_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/userops_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/usethm_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 4,
+      "claims": 2,
       "status": "translation_rejected"
     },
     {
       "source": "test/unit/a_lang/variable_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/witness_bounded_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/a_lang/witness_test.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/b_logic/critical_bounded_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/b_logic/critical_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/b_logic/existential_bounded_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/b_logic/existential_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/b_logic/notfalse_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/b_logic/predicate_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/b_logic/props_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/b_logic/true_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/b_logic/universal_bounded_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/b_logic/universal_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/c_sets/cap_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/c_sets/cup_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/c_sets/empty_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/c_sets/pair_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/c_sets/power_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/c_sets/setext_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/c_sets/setminus_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/c_sets/setof_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/c_sets/setst_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/c_sets/singleton_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/c_sets/subset_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/c_sets/union_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/d_funcs/arrow_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/d_funcs/domain_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/d_funcs/excapp1_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/d_funcs/excapp2_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/d_funcs/excapp3_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/d_funcs/excapp4_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/d_funcs/excdom_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/d_funcs/fcnapp_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/d_funcs/funext_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/e_arith/intlit0_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/e_arith/intlit1_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/e_arith/intlitminus1_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/e_arith/nat_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/e_arith/range_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/e_arith/typingexp_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/e_arith/typingminus_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/e_arith/typingplus_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/e_arith/typingquotient_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/e_arith/typingremainder_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/e_arith/typingtimes_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/e_arith/typinguminus_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/f_data/boolcar_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/f_data/booldistinct_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/f_data/boolean_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/f_data/string_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/f_data/stringdistinct_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/g_tuples/productset_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/g_tuples/tupleapp_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/g_tuples/tupledom_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/g_tuples/tupleext_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/h_records/recorddom_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/h_records/recorddot_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/h_records/recordeq_difffields_smt_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/h_records/recordeq_fieldorder_smt_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/h_records/recordeq_hyp_smt_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/h_records/recordeq_if_smt_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/h_records/recordeq_neq_smt_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/h_records/recordeq_nested_smt_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/h_records/recordeq_single_smt_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/h_records/recordeq_smt_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/h_records/recordeq_three_smt_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/h_records/recordext_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/h_records/rectset_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
       "source": "test/unit/i_sequences/sequences_test.tla",
       "expected_false": false,
       "reference_positive": true,
-      "claims": 3,
+      "claims": 1,
       "status": "checked"
     },
     {
@@ -2625,7 +2625,7 @@
       "source": "zenon/regression/peterson/Peterson.tla",
       "expected_false": false,
       "reference_positive": false,
-      "claims": 7,
+      "claims": 5,
       "status": "translation_rejected"
     },
     {

@@ -4,6 +4,32 @@ Objective: unchanged TLAPS proof scripts produce proofs checked by Lean, with
 positive and negative reference tests, complete language/backend coverage and
 verified pushed changes. A leaf-only milestone is not completion.
 
+Current checkpoint (2026-11-06, imported-theorem pruning and ENABLED witnesses):
+- Audit [42190606858](https://github.com/LUC-AI4FM/lean4/actions/runs/42190606858)
+  at 035ef9b: 166/200 reference-positive scripts check (was 163). Newly
+  checked: ExpandENABLED_LET_test, NestedENABLED_from_AutoUSE_test,
+  NestedENABLED_test (and the non-reference ENABLED_INSTANCE_nullary_op_test).
+  26 time out, 4 Lean rejections (Enabled_test now fails fast on 2 of 19
+  claims), 4 SANY rejections. No regressions, no expected-false acceptance.
+- Library theorems: an imported theorem is an obligation only when a root
+  step, a root USE or another required import cites it (TLAPS trusts all
+  imports; the port proves those it uses). With that, NatInduction as cited
+  by SimpleEventuallyInt checks through tla_natural_induction; the remaining
+  library-dependent inputs (SimpleEventuallyInt, SimpleExampleWF, FOLTL,
+  NaturalsInduction_proofs, WellFoundedInduction_proofs,
+  SequenceTheorems_proofs) fail on liveness or on their own large proofs,
+  not on the induction statements. FalseImportedLaw now cites the false
+  imported theorem.
+- ENABLED: tla_state_witness (ProofAutomation) proves `∃ s : State, P s` by
+  trying states in context, constant states, the current state with one
+  variable updated, and states assigned from the goal's `s "v" = e`
+  equations; each candidate must close the goal or it is discarded. Citing
+  AutoUSE unfolds the root definitions. Fixtures EnabledWitness, EnabledUpdate,
+  EnabledNext and FalseEnabledWitness, FalseEnabledNext.
+- `boolean p = TRUE/FALSE` simplify to `p`/`¬p`; SimpleEventually's
+  TypeCorrect lemma now checks. Its liveness theorem needs the PTL/WF rule
+  set in TEMPORAL_DESIGN.md, which is not built yet.
+
 Current checkpoint (2026-11-06, instantiation and Leibniz normal forms):
 - Audit [42172068941](https://github.com/LUC-AI4FM/lean4/actions/runs/42172068941)
   at 879e27f: 163/200 reference-positive scripts check; 28 time out, 5 Lean
