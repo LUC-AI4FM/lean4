@@ -118,8 +118,42 @@ class Graph:
         return [self.resolve(ref) for ref in self.root.node.findall(kind + 'Ref')]
 
     def proof_claims(self):
-        """Module USE facts also require proofs, even without a THEOREM."""
+        """Module USE facts also require proofs, even without a THEOREM.
+
+        An imported theorem becomes an obligation only when a root theorem,
+        a root USE, or another required imported theorem cites it. An
+        uncited imported statement is never available as a fact, so leaving
+        it out cannot make any proof depend on it."""
         claims = self.claims('TheoremNode')
+        root = [t for t in claims if not t.location or t.location == self.root.name]
+        def cited(node, own):
+            found, stack, visited = set(), [node], set()
+            while stack:
+                current = stack.pop()
+                for element in current.iter():
+                    if element.tag == 'TheoremDefRef':
+                        found.add(element.findtext('UID'))
+                    elif element.tag == 'TheoremNodeRef':
+                        uid = element.findtext('UID')
+                        if uid not in visited and uid in self.symbols:
+                            visited.add(uid)
+                            stack.append(self.symbols[uid].node)
+            return found - {own}
+        definitions = {t.node.findtext('definition/TheoremDefRef/UID'): t for t in claims}
+        needed = set()
+        frontier = set()
+        for theorem in root:
+            frontier |= cited(theorem.node, theorem.node.findtext('definition/TheoremDefRef/UID'))
+        for directive in self.root.node.findall('UseOrHideNode'):
+            frontier |= cited(directive, None)
+        while frontier:
+            uid = frontier.pop()
+            if uid in needed or uid not in definitions:
+                continue
+            needed.add(uid)
+            theorem = definitions[uid]
+            frontier |= cited(theorem.node, uid)
+        claims = [t for t in claims if t in root or t.node.findtext('definition/TheoremDefRef/UID') in needed]
         for index, directive in enumerate(self.root.node.findall('UseOrHideNode')):
             if directive.find('hide') is not None:
                 continue

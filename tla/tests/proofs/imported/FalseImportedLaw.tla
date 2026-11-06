@@ -1,4 +1,4 @@
 ---- MODULE FalseImportedLaw ----
 EXTENDS FalseProofLibrary
-THEOREM TRUE OBVIOUS
+THEOREM FALSE BY Invalid
 ====
