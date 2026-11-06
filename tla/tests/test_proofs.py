@@ -47,6 +47,12 @@ class ProofTests(unittest.TestCase):
         self.assertIn('clear step_', false_code)
         self.assertNotIn(':= hidden_step_', false_code)
 
+    def test_leaves_see_only_cited_or_used_steps(self):
+        code = compile_proofs(Path('tests/proofs/FalseUncitedStep.tla'))
+        self.assertIn('clear step_', code)
+        code = compile_proofs(Path('tests/proofs/CitedStep.tla'))
+        self.assertEqual(code.count('clear step_'), 1)
+
     def test_generalization_is_not_attempted_under_state_hypotheses(self):
         code = compile_proofs(Path('tests/proofs/upstream/test_decompose_naive_bcast.tla'),
                               includes=[Path('tests/corpus/tlaps')])

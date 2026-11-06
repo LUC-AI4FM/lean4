@@ -40,6 +40,10 @@ class Renderer:
         # Facts removed from the default context by HIDE, still citable by BY.
         self.hidden = {}
         self.uses_hidden = False
+        # Assertion steps in scope, and those made usable by USE. As in TLAPS,
+        # a source leaf sees an earlier step only when it cites or USEs it.
+        self.scope_steps = []
+        self.used_steps = set()
 
     @staticmethod
     def level(node):
@@ -68,7 +72,7 @@ class Renderer:
     def proposition(self, node, env):
         return '_root_.TLAUniversal.truth ' + qualify(self.compiler.expr(node, env))
 
-    def leaf(self, proof, indent):
+    def leaf(self, proof, indent, restrict=False):
         unfold = list(self.unfold) + [
             '_root_.eq_self_iff_true',
             '_root_.not_true_eq_false',
@@ -96,17 +100,27 @@ class Renderer:
         direct_simplifiers = ', '.join(dict.fromkeys(self.unfold + ['_root_.TLAUniversal.truth_boolean']))
         self.leaves += 1
         cited = []
+        citations = set()
         for fact in proof.findall('facts/*'):
             kind, uid = self.fact_reference(fact)
             if kind == 'TheoremDefRef':
+                citations.add(uid)
                 cited += self.reveal(uid, indent)
+        if restrict:
+            # Removing facts can only make Lean's search harder, never
+            # unsound; it matches TLAPS's cited-facts proof context.
+            for uid in self.scope_steps:
+                if uid in citations or uid in self.used_steps or uid in self.hidden:
+                    continue
+                for name, certain in self.facts.get(uid, []):
+                    cited.append(indent + (f'clear {name}' if certain else f'try clear {name}'))
         tracing = cited + ([indent + f'trace \"TLA claim {self.claim} leaf {self.leaves}\"',
                     indent + 'trace_state'] if self.trace else [])
         return tracing + [indent + 'try (solve | trivial)',
                 indent + 'try (solve | simp only [' + direct_simplifiers + ']; apply _root_.TLAUniversal.record_mem_singletonSpace; decide)',
                 indent + 'try (solve | simp (config := { maxSteps := 10000 }) [' + simplifiers + '])',
                 indent + 'all_goals simp only [' + simplifiers + '] at *',
-                indent + 'all_goals first | (solve | exact _root_.TLAUniversal.record_two_ne_iff _ _ _ _ _ _ (by decide)) | (solve | intro fair; exact _root_.TLA.strong_implies_weak _ _ _ _ fair) | (solve | rintro ⟨fair, available⟩; apply _root_.TLA.weak_fairness_continuously_enabled _ _ _ _ fair; simpa [_root_.TLA.always, _root_.TLA.state, _root_.TLA.enabled, _root_.TLA.angle, _root_.TLA.unchanged, _root_.TLA.action] using available) | (solve | apply _root_.TLAUniversal.diagonal_ne <;> assumption) | omega | (solve | norm_num) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by omega), norm (by tla_choice))) | (solve | aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_natural_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))']
+                indent + 'all_goals first | (solve | exact _root_.TLAUniversal.record_two_ne_iff _ _ _ _ _ _ (by decide)) | (solve | intro fair; exact _root_.TLA.strong_implies_weak _ _ _ _ fair) | (solve | rintro ⟨fair, available⟩; apply _root_.TLA.weak_fairness_continuously_enabled _ _ _ _ fair; simpa [_root_.TLA.always, _root_.TLA.state, _root_.TLA.enabled, _root_.TLA.angle, _root_.TLA.unchanged, _root_.TLA.action] using available) | (solve | apply _root_.TLAUniversal.diagonal_ne <;> assumption) | omega | (solve | norm_num) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by omega), norm (by tla_choice))) | (solve | aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50 }) (simp_config := { maxSteps := 20000 }) (add safe (by omega), norm (by tla_choice))) | (solve | aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_natural_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))']
 
     def open_statement(self, node, env, indent):
         env = dict(env)
@@ -177,18 +191,20 @@ class Renderer:
 
     def render(self, proof, env, indent='  ', goal=None):
         if proof.tag in ('obvious', 'by'):
-            return self.leaf(proof, indent)
+            return self.leaf(proof, indent, restrict=True)
         if proof.tag != 'steps':
             raise ProofError('unsupported proof node: ' + proof.tag)
         refs = [x for x in proof if x.tag not in ('location', 'level')]
         # Definition visibility is local to this proof, including nested proofs.
-        saved = self.unfold, self.local_state, self.hidden
+        saved = self.unfold, self.local_state, self.hidden, self.scope_steps, self.used_steps
         self.unfold = list(saved[0])
         self.hidden = dict(saved[2])
+        self.scope_steps = list(saved[3])
+        self.used_steps = set(saved[4])
         try:
             return self.steps(refs, dict(env), indent, self.goal_body(goal))
         finally:
-            self.unfold, self.local_state, self.hidden = saved
+            self.unfold, self.local_state, self.hidden, self.scope_steps, self.used_steps = saved
 
     def steps(self, references, env, indent, goal):
         lines = []
@@ -220,6 +236,7 @@ class Renderer:
                         if kind != 'TheoremDefRef' or uid not in self.facts:
                             raise ProofError('HIDE supports step and theorem names; unsupported fact: '
                                              + (kind or fact.tag))
+                        self.used_steps.discard(uid)
                         if uid in self.hidden:
                             continue
                         self.uses_hidden = True
@@ -230,6 +247,8 @@ class Renderer:
                     elif kind == 'TheoremDefRef' and uid in self.hidden:
                         lines += self.reveal(uid, indent)
                         del self.hidden[uid]
+                    if kind == 'TheoremDefRef' and not hiding:
+                        self.used_steps.add(uid)
                 if hiding:
                     continue
                 # USE facts are obligations, not assumptions. Reconstruct each
@@ -406,6 +425,7 @@ class Renderer:
             generalize = step.level in (1, 2) and not outer
             if definition_uid:
                 self.facts[definition_uid] = [(label, True)] + ([(label + '_general', False)] if generalize else [])
+                self.scope_steps.append(definition_uid)
             if generalize:
                 # Generalization is attempted with a fresh behavior/time, but
                 # existing assumptions retain their original types. Lean must
