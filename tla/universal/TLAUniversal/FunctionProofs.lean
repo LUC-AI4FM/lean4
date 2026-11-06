@@ -97,6 +97,16 @@ theorem update_other (f x y z : Value) (hz : z ∈ domain f) (hne : z ≠ x) :
     apply (update f x y) z = apply f z := by
   simp [update, apply_function _ _ _ hz, hne]
 
+/-- EXCEPT read at an argument in the domain, as a conditional. -/
+theorem apply_update_eq (f x y z : Value) (hz : z ∈ domain f) :
+    apply (update f x y) z = if z = x then y else apply f z := by
+  simp only [update]
+  rw [apply_function _ _ _ hz]
+
+/-- The domain of a function in `[D -> E]` is `D`. -/
+theorem domain_of_mem_funs {D E f : Value} (hf : f ∈ ZFSet.funs D E) : domain f = D :=
+  domain_isFunc (ZFSet.mem_funs.mp hf)
+
 theorem domain_updatePath_cons (value key replacement : Value) (rest : List Value) :
     domain (updatePath value (key :: rest) replacement) = domain value := by
   simp only [updatePath, domain_update]
@@ -120,6 +130,21 @@ theorem update_isFunc {D E f key value : Value}
   split_ifs
   · exact hv
   · exact apply_mem hf hx
+
+/-- A single-key EXCEPT read at any argument of a function in `[D -> E]`,
+as a conditional: the form TLAPS's SMT encoding gives `[f EXCEPT ![x] = v][y]`. -/
+theorem apply_updatePath_single_eq {D E f : Value} (key replacement y : Value)
+    (hf : f ∈ ZFSet.funs D E) (hy : y ∈ D) :
+    apply (updatePath f [key] replacement) y = if y = key then replacement else apply f y := by
+  have hd : domain f = D := domain_isFunc (ZFSet.mem_funs.mp hf)
+  simp only [updatePath, update]
+  rw [apply_function _ _ _ (hd ▸ hy)]
+
+theorem updatePath_single_mem_funs {D E f : Value} (key replacement : Value)
+    (hf : f ∈ ZFSet.funs D E) (hv : replacement ∈ E) :
+    updatePath f [key] replacement ∈ ZFSet.funs D E := by
+  simp only [updatePath]
+  exact ZFSet.mem_funs.mpr (update_isFunc (ZFSet.mem_funs.mp hf) hv)
 
 theorem singleton_range_isFunc {D E f value : Value}
     (hf : ZFSet.IsFunc D (enumerate [value]) f) (hv : value ∈ E) :
