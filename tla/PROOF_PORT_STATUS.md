@@ -5,9 +5,12 @@ positive and negative reference tests, complete language/backend coverage and
 verified pushed changes. A leaf-only milestone is not completion.
 
 Current checkpoint (2026-11-06, WF1 leads-to and NatInduction of temporal claims):
-- Audit: AUDIT_PENDING. Locally SimpleEventuallyInt now checks (about 25 s);
-  SimpleEventually, WeakFairnessRank and the PTL/ENABLED negatives are
-  unchanged.
+- Audit [42284300327](https://github.com/LUC-AI4FM/lean4/actions/runs/42284300327)
+  at 5a2e602: 169/200 reference-positive scripts check (was 168). Newly
+  checked: SimpleEventuallyInt. 26 time out, 1 Lean rejection
+  (PCalBoundedChannel), 4 SANY rejections. No regressions, no expected-false
+  input accepted. Euclid, PTwoPhase and two_phase/TwoPhase moved from fast
+  rejection back to timeout.
 - `PTL.wf_leads` (Temporal.lean): the WF1 rule `P ~> Q` with `P` holding
   at a start time, persisting unless `Q`, enabling the action and every fair
   step from `P` reaching `Q`. `tla_wf_rank` now first discharges hypotheses

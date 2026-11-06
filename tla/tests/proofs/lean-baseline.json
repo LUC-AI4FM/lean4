@@ -1,13 +1,13 @@
 {
-  "run": "https://github.com/LUC-AI4FM/lean4/actions/runs/42255991519",
-  "commit": "1d5dd459c77d640c5f0e8c7e2063bdbc391fa654",
+  "run": "https://github.com/LUC-AI4FM/lean4/actions/runs/42284300327",
+  "commit": "5a2e602153b967e2175dd7309cac0c4465f794e3",
   "reference_commit": "d1760ab9a1a3e7e76f81172166a955167cd163f2",
-  "note": "All inputs accounted for. 168/200 reference-positive scripts checked; 24 time out at the 60-second audit budget, 4 are rejected by Lean and 4 by the SANY frontend. No expected-false input accepted. Full port incomplete; see PROOF_PORT_STATUS.md and TEMPORAL_DESIGN.md.",
+  "note": "All inputs accounted for. 169/200 reference-positive scripts checked; 26 time out at the 60-second audit budget, 1 is rejected by Lean and 4 by the SANY frontend. No expected-false input accepted. Full port incomplete; see PROOF_PORT_STATUS.md and TEMPORAL_DESIGN.md.",
   "counts": {
     "translation_rejected": 72,
-    "timeout": 41,
-    "lean_rejected": 49,
-    "checked": 181,
+    "timeout": 43,
+    "lean_rejected": 46,
+    "checked": 182,
     "no_claims": 36
   },
   "results": [
@@ -191,7 +191,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "lean_rejected"
+      "status": "timeout"
     },
     {
       "source": "examples/GraphTheorem.tla",
@@ -219,7 +219,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 2,
-      "status": "timeout"
+      "status": "checked"
     },
     {
       "source": "examples/SimpleMutex.tla",
@@ -247,7 +247,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "lean_rejected"
+      "status": "timeout"
     },
     {
       "source": "examples/TPCommit/TCommit.tla",
@@ -359,7 +359,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 2,
-      "status": "lean_rejected"
+      "status": "timeout"
     },
     {
       "source": "examples_draft/FOLTL.tla",
@@ -1558,14 +1558,14 @@
       "expected_false": true,
       "reference_positive": false,
       "claims": 1,
-      "status": "lean_rejected"
+      "status": "timeout"
     },
     {
       "source": "test/soundness_tests/issue310_bound_var_capture_stest.tla",
       "expected_false": true,
       "reference_positive": false,
       "claims": 1,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/soundness_tests/issue310_hash_collision_ptl_stest.tla",
