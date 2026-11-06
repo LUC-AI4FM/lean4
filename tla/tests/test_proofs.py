@@ -61,6 +61,11 @@ class ProofTests(unittest.TestCase):
         code = compile_proofs(Path('tests/proofs/FalseUncitedAssumption.tla'))
         self.assertIn('clear assume_0', code)
 
+    def test_leibniz_congruence_lemmas_are_checked_optionally(self):
+        code = compile_proofs(Path('tests/proofs/Leibniz.tla'))
+        self.assertIn('tla_try @[local aesop unsafe 30% apply] theorem tla_leibniz_', code)
+        self.assertIn('show ', code)
+
     def test_generalization_is_not_attempted_under_state_hypotheses(self):
         code = compile_proofs(Path('tests/proofs/upstream/test_decompose_naive_bcast.tla'),
                               includes=[Path('tests/corpus/tlaps')])

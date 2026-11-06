@@ -37,6 +37,8 @@ class Renderer:
         self.local_state = False
         # Step/theorem definition UID -> [(hypothesis, certainly present)].
         self.facts = dict(facts or {})
+        # Earlier theorems are, like steps, usable only when cited or USEd.
+        self.prior_theorems = list(self.facts)
         # Facts removed from the default context by HIDE, still citable by BY.
         self.hidden = {}
         self.uses_hidden = False
@@ -112,7 +114,7 @@ class Renderer:
         if restrict:
             # Removing facts can only make Lean's search harder, never
             # unsound; it matches TLAPS's cited-facts proof context.
-            for uid in self.scope_steps:
+            for uid in self.prior_theorems + self.scope_steps:
                 if uid in citations or uid in self.used_steps or uid in self.hidden:
                     continue
                 for name, certain in self.facts.get(uid, []):
@@ -522,6 +524,26 @@ def compile_proofs(source, *, trace=False, **kwargs):
                  '_root_.TLAUniversal.record_isFunc_of_domain '
                  '_root_.TLAUniversal.function_range_of_values '
                  '_root_.TLAUniversal.record_eta')
+    # TLA+ operators are Leibniz: equal arguments give equal results. For
+    # operators that evaluate their arguments in the current state, Lean
+    # checks the congruence lemma by unfolding; tla_try drops any operator
+    # for which it does not hold, so no unproved fact is ever added.
+    for symbol in graph.definitions(include_imported=True):
+        entry = compiler.emitted.get(symbol.uid)
+        if not entry or not entry[1] or any(entry[1]) or (symbol.level or 0) > 1:
+            continue
+        name, arities = entry
+        k = len(arities)
+        ps = [f'p{i}' for i in range(k)]
+        qs = [f'q{i}' for i in range(k)]
+        hyps = ' '.join(f'(h{i} : p{i} b n = q{i} b n)' for i in range(k))
+        const = lambda xs: ' '.join(f'(fun _ _ => {x} b n)' for x in xs)
+        lines += [f'tla_try @[local aesop unsafe 30% apply] theorem tla_leibniz_{symbol.uid} '
+                  f'({" ".join(ps + qs)} : _root_.TLAUniversal.Expression) (c : {exports["constants"]}) '
+                  f'(b : _root_.TLAUniversal.Behavior) (n : _root_.Nat) {hyps} : '
+                  f'{name} {" ".join(ps)} c b n = {name} {" ".join(qs)} c b n := by',
+                  f'  show {name} {const(ps)} c b n = {name} {const(qs)} c b n',
+                  '  rw [' + ', '.join(f'h{i}' for i in range(k)) + ']']
     names = exports['proof_names']
     hidden_definition = len(lines)
     uses_hidden = False
@@ -567,7 +589,7 @@ def compile_proofs(source, *, trace=False, **kwargs):
                   f'(b : _root_.TLAUniversal.Behavior) (n : _root_.Nat) '
                   f'(source_assumptions : {exports["assumptions"]} c b n) : '
                   f'{exports["claims"][index]} c b n := by', '  classical',
-                  '  have set_not_universal := _root_.TLAUniversal.not_universal', *split]
+                  '  have set_not_universal := _root_.TLAUniversal.not_universal']
         context_unfold, context_used = module_context.get(theorem.uid, ([], set()))
         if str(theorem.uid).startswith('module_use_'):
             # A module-level USE fact is itself an obligation over the whole module context.
@@ -575,9 +597,15 @@ def compile_proofs(source, *, trace=False, **kwargs):
         unfold += context_unfold
         # Only already checked theorems enter the context. A BY reference is
         # never converted to an assumed proposition merely because SANY resolved it.
+        # ASSUME is constant-level, so the module assumptions discharge an
+        # earlier theorem's premise at every behavior and time.
         for previous in range(index):
-            lines.append(f'  have prior_{previous} := {names[previous]} c')
+            lines.append(f'  have prior_{previous} := by first '
+                         f'| exact (fun b n => {names[previous]} c b n source_assumptions : '
+                         f'∀ (b : _root_.TLAUniversal.Behavior) (n : _root_.Nat), {exports["claims"][previous]} c b n) '
+                         f'| exact {names[previous]} c')
             unfold.append(exports['claims'][previous])
+        lines += split
         renderer = Renderer(compiler, unfold, trace=trace, claim=index, facts=theorem_facts,
                             assumptions=assumptions, used=context_used)
         opened, environment = renderer.open_statement(theorem.body, {}, '  ')

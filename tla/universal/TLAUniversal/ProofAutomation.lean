@@ -89,3 +89,17 @@ elab "tla_natural_induction" : tactic => withMainContext do
         evalTactic (← `(tactic| refine TLAUniversal.natural_induction _ ?_ ?_))
         return
   throwError "expected a quantifier over TLA naturals"
+
+/-- Elaborate a declaration only if Lean accepts it; otherwise leave the
+environment unchanged. Used for optional Leibniz congruence lemmas whose
+statements are true only for operators that evaluate their arguments in
+the current state. A rejected attempt never adds a declaration. -/
+elab "tla_try " cmd:command : command => do
+  let saved ← get
+  modify fun state => { state with messages := {} }
+  Lean.Elab.Command.elabCommand (← `(command| set_option Elab.async false in $cmd))
+  let after ← get
+  if after.messages.hasErrors then
+    set saved
+  else
+    set { after with messages := saved.messages }

@@ -109,7 +109,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
     # The proof CLI writes an artifact only after Lean accepts its proof terms.
     proof_output = Path(directory) / 'CheckedProofs.lean'
     proof_sources = [root.parent / 'tests/proofs' / (name + '.tla') for name in
-                     ('Fairness', 'FunctionRange', 'RecordEquality', 'imported/ImportedLaw', 'TemporalInduction', 'StateGeneralization', 'NaturalInduction', 'CaseReferences', 'Leaves', 'ProofShapes', 'DefinitionScope', 'Arithmetic', 'LocalDefinition', 'LevelBinders', 'Foundation', 'BoundedWitness', 'TupleBinders', 'SymbolicArithmetic', 'InstanceBinding', 'ModuleUse', 'FactScope', 'CitedStep', 'ModuleContext')]
+                     ('Fairness', 'FunctionRange', 'RecordEquality', 'imported/ImportedLaw', 'TemporalInduction', 'StateGeneralization', 'NaturalInduction', 'CaseReferences', 'Leaves', 'ProofShapes', 'DefinitionScope', 'Arithmetic', 'LocalDefinition', 'LevelBinders', 'Foundation', 'BoundedWitness', 'TupleBinders', 'SymbolicArithmetic', 'InstanceBinding', 'ModuleUse', 'FactScope', 'CitedStep', 'ModuleContext', 'Leibniz')]
     proof_sources += sorted((root.parent / 'tests/proofs/upstream').glob('*.tla'))
     for proof_source in proof_sources[proof_shard::proof_shards]:
         proof_fixture = proof_source.stem
