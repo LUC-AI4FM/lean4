@@ -4,6 +4,29 @@ Objective: unchanged TLAPS proof scripts produce proofs checked by Lean, with
 positive and negative reference tests, complete language/backend coverage and
 verified pushed changes. A leaf-only milestone is not completion.
 
+Current checkpoint (2026-11-06, instantiation and Leibniz normal forms):
+- Audit [42172068941](https://github.com/LUC-AI4FM/lean4/actions/runs/42172068941)
+  at 879e27f: 163/200 reference-positive scripts check; 28 time out, 5 Lean
+  rejections, 4 SANY rejections. No regressions, no expected-false input
+  accepted. PTCommit and PTwoPhase moved from fast rejection to timeout.
+- Paxos "unknown free variable": not a reconstruction defect. It is a crash
+  in Aesop's builtin applyHyps rule on goals whose metavariables span
+  Iff-constructor subgoals (minimal reproduction: from
+  `∀ x ∈ Q, ∀ y ∈ Q, x ∩ y ≠ ∅` prove `∀ z ∈ Q, z ≠ ∅`). The final search
+  now carries `tla_instantiate` (ProofAutomation) as a safe rule; it
+  instantiates bounded universal hypotheses with in-context membership
+  facts, so the branch closes before applyHyps runs. Paxos QuorumNonEmpty
+  now checks; Paxos still fails later invariant steps
+  (BoundedInstance/FalseBoundedInstance fixtures).
+- Euclid: the arithmetic step needed substitution of state equations inside
+  operator arguments. Checked normal-form lemmas
+  `Op p c b n = Op (fun _ _ => p b n) c b n` (kept only if Lean proves them
+  by rfl) fix NextProperty. Euclid still fails Correctness: the
+  `InductiveInvariant => ResultCorrect` step's generalized attempt costs
+  ~38 s before the specific one succeeds, and the file exceeds 60 s.
+- Library induction theorems, PTL/fairness and ENABLED witnesses: design in
+  TEMPORAL_DESIGN.md; not implemented.
+
 Current checkpoint (2026-11-06, TLAPS proof contexts): full port remains incomplete.
 - Audit [42155101138](https://github.com/LUC-AI4FM/lean4/actions/runs/42155101138)
   at 1a3d2b9: 163/200 reference-positive scripts check (was 162). 26 time out

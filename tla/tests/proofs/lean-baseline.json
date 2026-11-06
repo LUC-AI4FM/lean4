@@ -1,12 +1,12 @@
 {
-  "run": "https://github.com/LUC-AI4FM/lean4/actions/runs/42155101138",
-  "commit": "1a3d2b96de3b26605ff2ad30b40227f1bf91dda3",
+  "run": "https://github.com/LUC-AI4FM/lean4/actions/runs/42172068941",
+  "commit": "879e27fe5d77bc9df320773ed66ca2f5af76bf0f",
   "reference_commit": "d1760ab9a1a3e7e76f81172166a955167cd163f2",
-  "note": "All inputs accounted for. 163/200 reference-positive scripts checked; 26 time out at the 60-second audit budget, 7 are rejected by Lean (proof search cannot close a leaf) and 4 are rejected by the SANY frontend. No expected-false input accepted. lsp/test/Euclid/Euclid.tla (not reference-positive) was recorded as translation_rejected because Lean truncated a diagnostic mid-character; prover_process now decodes with replacement. Full port incomplete.",
+  "note": "All inputs accounted for. 163/200 reference-positive scripts checked; 28 time out at the 60-second audit budget, 5 are rejected by Lean and 4 by the SANY frontend. No expected-false input accepted. Full port incomplete; see PROOF_PORT_STATUS.md and TEMPORAL_DESIGN.md.",
   "counts": {
-    "translation_rejected": 73,
-    "timeout": 40,
-    "lean_rejected": 55,
+    "translation_rejected": 72,
+    "timeout": 47,
+    "lean_rejected": 49,
     "checked": 175,
     "no_claims": 36
   },
@@ -121,7 +121,7 @@
       "expected_false": false,
       "reference_positive": false,
       "claims": 3,
-      "status": "lean_rejected"
+      "status": "timeout"
     },
     {
       "source": "examples/BubbleSort.tla",
@@ -240,14 +240,14 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "lean_rejected"
+      "status": "timeout"
     },
     {
       "source": "examples/TPCommit/PTwoPhase.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 5,
-      "status": "lean_rejected"
+      "status": "timeout"
     },
     {
       "source": "examples/TPCommit/TCommit.tla",
@@ -483,7 +483,7 @@
       "expected_false": false,
       "reference_positive": false,
       "claims": 5,
-      "status": "translation_rejected"
+      "status": "timeout"
     },
     {
       "source": "lsp/test/Euclid/GCD.tla",
@@ -1558,14 +1558,14 @@
       "expected_false": true,
       "reference_positive": false,
       "claims": 1,
-      "status": "lean_rejected"
+      "status": "timeout"
     },
     {
       "source": "test/soundness_tests/issue310_bound_var_capture_stest.tla",
       "expected_false": true,
       "reference_positive": false,
       "claims": 1,
-      "status": "lean_rejected"
+      "status": "timeout"
     },
     {
       "source": "test/soundness_tests/issue310_hash_collision_ptl_stest.tla",
@@ -1621,7 +1621,7 @@
       "expected_false": true,
       "reference_positive": false,
       "claims": 3,
-      "status": "lean_rejected"
+      "status": "timeout"
     },
     {
       "source": "test/soundness_tests/issue71_quantifier_bound_level_stest.tla",
