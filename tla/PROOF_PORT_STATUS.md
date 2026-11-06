@@ -4,6 +4,34 @@ Objective: unchanged TLAPS proof scripts produce proofs checked by Lean, with
 positive and negative reference tests, complete language/backend coverage and
 verified pushed changes. A leaf-only milestone is not completion.
 
+Current checkpoint (2026-11-06, PTL invariant/WF rules and EXCEPT steps):
+- Audit [42255991519](https://github.com/LUC-AI4FM/lean4/actions/runs/42255991519)
+  at 1d5dd45: 168/200 reference-positive scripts check (was 166). Newly
+  checked: SimpleEventually (liveness under WF) and TPCommit/TCommit.
+  24 time out, 4 Lean rejections, 4 SANY rejections. No regressions, no
+  expected-false input accepted.
+- PTL: `TLAUniversal.PTL` (Temporal.lean) proves `persist`, `wf_rank` (WF1
+  with one persistent rank, from infinitely many fair steps) and
+  `eventually_from`. For leaves citing PTL, `tla_ptl_invariant` (pointwise,
+  then temporal induction) and `tla_wf_rank` choose rule instances; each
+  premise is a single-time Lean obligation over the instantiated facts,
+  first with `truth _` atoms generalized, then with definitions unfolded.
+  Fixtures PTLInvariant, WeakFairnessRank; must-fail FalsePTLInvariant,
+  FalseWeakFairnessRank (WF on the wrong action), FalseEventuallyAlways.
+- TwoPhase family: TCommit's invariant step lacked a rule for reading an
+  EXCEPT update at an arbitrary argument. `apply_update_eq`
+  (`[f EXCEPT ![x] = v][z] = IF z = x THEN v ELSE f[z]` for `z` in the
+  domain) with `tla_except_step` (case split, next-state substitution,
+  conditional reads, bounded instantiation) closes it in about 3 s, no
+  budget increase. Fixtures ExceptStep/FalseExceptStep. PTCommit,
+  PTwoPhase and both TwoPhase files still fail on larger message-set steps.
+- `tla_guard` turns recursion/heartbeat exceptions in the leaf search into
+  ordinary failures, so a failed generalized attempt falls back to the
+  specific one. Euclid now fails fast: its `<1>3` step proves only at the
+  theorem's own time, so the PTL QED cannot box it.
+- Remaining liveness inputs (SimpleEventuallyInt, SimpleExampleWF, FOLTL)
+  need leads-to chaining, lattice rules or general `[]<>`/`<>[]` reasoning.
+
 Current checkpoint (2026-11-06, imported-theorem pruning and ENABLED witnesses):
 - Audit [42190606858](https://github.com/LUC-AI4FM/lean4/actions/runs/42190606858)
   at 035ef9b: 166/200 reference-positive scripts check (was 163). Newly
