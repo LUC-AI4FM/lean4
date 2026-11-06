@@ -41,6 +41,10 @@ theorem strongFairness_fair {σ α} (a : TLA.Action σ) (v : σ → α) (b : TLA
       (fun k => TLA.angle a v (b k) (b (k + 1))) :=
   TLA.strong_implies_weak a v b n h
 
+/-- Fairness from time `n` holds from every later time. -/
+theorem Fair.mono {n t : Nat} {en step : Nat → Prop} (fair : Fair n en step) (ht : n ≤ t) :
+    Fair t en step := fun ⟨k, hk, h⟩ m hm => fair ⟨k, Nat.le_trans ht hk, h⟩ m (Nat.le_trans ht hm)
+
 /-- The WF1 rule with one persistent rank, proved by contradiction.
 
 Assume `Q` never holds from time `t ≥ n` on. Then the action is enabled
@@ -68,6 +72,44 @@ theorem wf_rank (en step P Q : Nat → Prop) (n t : Nat) (fair : Fair n en step)
     persists k (by omega) (never k (by omega)) (never (k + 1) (by omega)) hp
   obtain ⟨i, hi, si⟩ := steps (j + 1) (by omega)
   exact done i (by omega) (never i (by omega)) (never (i + 1) (by omega)) (always i hi) si
+
+/-- The WF1 leads-to rule: `P ~> Q` under fairness when `P` persists until
+`Q`, enables the action and every fair step from `P` reaches `Q`. Combined
+with a starting time where `P` holds it yields `<>Q`. Proved by
+contradiction: without `Q`, `P` holds forever, so the action is
+continuously enabled and fairness supplies a step into `Q`. -/
+theorem wf_leads (en step P Q : Nat → Prop) (n t : Nat) (fair : Fair n en step) (ht : n ≤ t)
+    (start : P t)
+    (persists : ∀ k, t ≤ k → ¬ Q k → ¬ Q (k + 1) → P k → P (k + 1))
+    (enabled : ∀ k, t ≤ k → ¬ Q k → P k → en k)
+    (progress : ∀ k, t ≤ k → ¬ Q k → P k → step k → Q (k + 1)) :
+    ∃ k, t ≤ k ∧ Q k := by
+  classical
+  apply Classical.byContradiction
+  intro absent
+  have never : ∀ k, t ≤ k → ¬ Q k := fun k hk hq => absent ⟨k, hk, hq⟩
+  have always := persist P t start fun k hk hp =>
+    persists k hk (never k hk) (never (k + 1) (by omega)) hp
+  obtain ⟨j, hj, sj⟩ := fair ⟨t, ht, fun m hm => enabled m hm (never m hm) (always m hm)⟩ t ht
+  exact never (j + 1) (by omega) (progress j hj (never j hj) (always j hj) sj)
+
+/-- Fairness with the action enabled from time `n` on: steps occur
+infinitely often (`[]ENABLED A /\ WF(A) => []<><<A>>`). -/
+theorem fair_infinitely (en step : Nat → Prop) (n : Nat) (fair : Fair n en step)
+    (enabled : ∀ k, n ≤ k → en k) : ∀ m, n ≤ m → ∃ j, m ≤ j ∧ step j :=
+  fair ⟨n, Nat.le_refl n, enabled⟩
+
+/-- Until/escape: if `P` persists unless `Q` occurs next, then from time `m`
+either `P` fails now, `P` holds forever, or `Q` eventually holds. -/
+theorem until_cases (P Q : Nat → Prop) (m : Nat)
+    (step : ∀ j, m ≤ j → P j → ¬ Q (j + 1) → P (j + 1)) :
+    ¬ P m ∨ (∀ j, m ≤ j → P j) ∨ ∃ j, m ≤ j ∧ Q j := by
+  classical
+  by_cases hq : ∃ j, m ≤ j ∧ Q j
+  · exact Or.inr (Or.inr hq)
+  by_cases hp : P m
+  · refine Or.inr (Or.inl (persist P m hp fun k hk h => step k hk h fun q => hq ⟨k + 1, by omega, q⟩))
+  · exact Or.inl hp
 
 /-- Eventualities can be used from the time they occur. -/
 theorem eventually_from (R Q : Nat → Prop) (n : Nat) (h : ∃ k, n ≤ k ∧ R k)

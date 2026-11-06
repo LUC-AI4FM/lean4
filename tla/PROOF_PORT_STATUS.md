@@ -4,6 +4,37 @@ Objective: unchanged TLAPS proof scripts produce proofs checked by Lean, with
 positive and negative reference tests, complete language/backend coverage and
 verified pushed changes. A leaf-only milestone is not completion.
 
+Current checkpoint (2026-11-06, WF1 leads-to and NatInduction of temporal claims):
+- Audit: AUDIT_PENDING. Locally SimpleEventuallyInt now checks (about 25 s);
+  SimpleEventually, WeakFairnessRank and the PTL/ENABLED negatives are
+  unchanged.
+- `PTL.wf_leads` (Temporal.lean): the WF1 rule `P ~> Q` with `P` holding
+  at a start time, persisting unless `Q`, enabling the action and every fair
+  step from `P` reaching `Q`. `tla_wf_rank` now first discharges hypotheses
+  `A => <>P` whose antecedents are in context, then tries `wf_leads` with
+  `P` itself from each eventuality. `Fair.mono` moves fairness to a later
+  start (the old rank-from-eventuality path passed fairness at the wrong time).
+- Steps cited by a `BY PTL` leaf are attempted in fresh-behavior form at any
+  depth (previously only `<1>`/`<2>`), since PTL uses them at every time.
+- `tla_state_witness` reduces `if n = n + 1`/`if True` with any decidability
+  instance and names the numbers behind `Nat`/`Int` membership hypotheses,
+  so `ENABLED <<x' = x + 1>>_x` from `x \in Nat` closes in under a second.
+- `tla_natural_induction <;> (assumption | simp_all)` runs before the heavy
+  search; NatInduction over a hidden temporal predicate closes at once.
+- `closes` treats an error logged by a nested `by` block as failure and never
+  exceeds the enclosing heartbeat budget.
+- Fixtures LeadsTo and must-fail FalseLeadsTo (the same proof without WF).
+- Also proved, not yet wired into generated proofs: `PTL.until_cases`
+  (`~P \/ []P \/ <>Q` when `P` persists unless `Q`), `PTL.fair_infinitely`
+  and a saturation tactic `tla_ptl_saturate`. With them every SimpleExampleWF
+  leaf except `<3>3`'s `WF_x(Next) => []<><<Next>>_x` checks locally; that
+  step's enabledness premise is not proved yet, so they stay off until it is
+  and until they have their own fixtures.
+- Remaining as before: Euclid (`<1>3` holds only at the theorem's time; the
+  PTL QED cannot box it), the four TwoPhase files, FOLTL (STL6, LATTICE,
+  Barcan need general `<>[]` reasoning and FS/WF induction), and the rest of
+  the list below.
+
 Current checkpoint (2026-11-06, PTL invariant/WF rules and EXCEPT steps):
 - Audit [42255991519](https://github.com/LUC-AI4FM/lean4/actions/runs/42255991519)
   at 1d5dd45: 168/200 reference-positive scripts check (was 166). Newly

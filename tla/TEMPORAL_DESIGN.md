@@ -86,7 +86,11 @@ assumed: an unmatched claim stays an obligation.
   definition unfolded. Each attempt has its own heartbeat budget.
 - Generated only for leaves whose BY cites `PTL`.
 
-Not covered: leads-to chaining, lattice/well-founded rules, multiple ranks,
+Added later the same day: `wf_leads` (WF1 leads-to from an eventuality,
+used by `tla_wf_rank`), `Fair.mono`, `until_cases`, `fair_infinitely`; see
+PROOF_PORT_STATUS.md. SimpleEventuallyInt checks.
+
+Not covered: lattice/well-founded rules, multiple ranks,
 general `[]<>`/`<>[]` reasoning (FOLTL, SimpleExampleWF, SimpleEventuallyInt
 still fail). Negative fixtures: FalseWeakFairnessRank (WF on the wrong
 action), FalseEventuallyAlways (`<>[]` vs `[]<>`), FalsePTLInvariant.

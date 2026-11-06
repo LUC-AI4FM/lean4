@@ -48,6 +48,9 @@ class Renderer:
         self.used_steps = set(used)
         # Named module assumptions are usable only when cited or USEd.
         self.assumptions = list(assumptions)
+        # Steps cited by a `BY PTL` leaf. PTL uses facts at every time, so
+        # such a step is also attempted in fresh-behavior form at any depth.
+        self.ptl_cited = set()
 
     @staticmethod
     def level(node):
@@ -72,6 +75,33 @@ class Renderer:
             restore = f'have {name} := hidden_{name}.val'
             lines.append(indent + (restore if certain else f'try {restore}'))
         return lines
+
+    def ptl_citations(self, proof):
+        """Step UIDs that some `BY ... PTL` leaf below `proof` cites."""
+        found = set()
+        if proof.tag == 'by':
+            names = set()
+            uids = set()
+            for fact in proof.findall('facts/*'):
+                kind, uid = self.fact_reference(fact)
+                if kind == 'TheoremDefRef':
+                    uids.add(uid)
+                elif fact.tag == 'OpApplNode' and not len(fact.find('operands')):
+                    try:
+                        names.add(self.graph.operator(fact).name)
+                    except Exception:
+                        pass
+            if 'PTL' in names:
+                found |= uids
+        elif proof.tag == 'steps':
+            for reference in proof:
+                if reference.tag == 'TheoremNodeRef':
+                    step = self.graph.resolve(reference)
+                    try:
+                        found |= self.ptl_citations(proof_node(step, implicit=True))
+                    except ProofError:
+                        pass
+        return found
 
     def proposition(self, node, env):
         return '_root_.TLAUniversal.truth ' + qualify(self.compiler.expr(node, env))
@@ -149,7 +179,7 @@ class Renderer:
                 indent + 'try (solve | simp only [' + direct_simplifiers + ']; apply _root_.TLAUniversal.record_mem_singletonSpace; decide)',
                 indent + 'try (solve | simp (config := { maxSteps := 10000 }) [' + simplifiers + '])',
                 indent + 'all_goals simp only [' + simplifiers + '] at *',
-                indent + 'all_goals tla_guard first | ' + fairness + '(solve | exact _root_.TLAUniversal.record_two_ne_iff _ _ _ _ _ _ (by decide)) | (solve | intro fair; exact _root_.TLA.strong_implies_weak _ _ _ _ fair) | (solve | rintro ⟨fair, available⟩; apply _root_.TLA.weak_fairness_continuously_enabled _ _ _ _ fair; simpa [_root_.TLA.always, _root_.TLA.state, _root_.TLA.enabled, _root_.TLA.angle, _root_.TLA.unchanged, _root_.TLA.action] using available) | (solve | apply _root_.TLAUniversal.diagonal_ne <;> assumption) | omega | (solve | norm_num) | (solve | tla_state_witness) | (solve | tla_except_step) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by omega), norm (by tla_choice))) | (solve | aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50 }) (simp_config := { maxSteps := 20000 }) (add safe (by omega), norm (by tla_choice))) | (solve | aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_natural_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), safe (by tla_instantiate), unsafe 50% (by tla_state_witness), norm (by tla_choice))']
+                indent + 'all_goals tla_guard first | ' + fairness + '(solve | exact _root_.TLAUniversal.record_two_ne_iff _ _ _ _ _ _ (by decide)) | (solve | intro fair; exact _root_.TLA.strong_implies_weak _ _ _ _ fair) | (solve | rintro ⟨fair, available⟩; apply _root_.TLA.weak_fairness_continuously_enabled _ _ _ _ fair; simpa [_root_.TLA.always, _root_.TLA.state, _root_.TLA.enabled, _root_.TLA.angle, _root_.TLA.unchanged, _root_.TLA.action] using available) | (solve | apply _root_.TLAUniversal.diagonal_ne <;> assumption) | omega | (solve | norm_num) | (solve | tla_natural_induction <;> (first | assumption | simp_all)) | (solve | tla_state_witness) | (solve | tla_except_step) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by omega), norm (by tla_choice))) | (solve | aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50 }) (simp_config := { maxSteps := 20000 }) (add safe (by omega), norm (by tla_choice))) | (solve | aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_natural_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), safe (by tla_instantiate), unsafe 50% (by tla_state_witness), norm (by tla_choice))']
 
     def open_statement(self, node, env, indent):
         env = dict(env)
@@ -451,7 +481,7 @@ class Renderer:
             self.local_state = outer or self.state_premises(body)
             proof_lines = opened + self.render(step_proof, child_env, indent + '  ', body)
             self.local_state = outer
-            generalize = step.level in (1, 2) and not outer
+            generalize = (step.level in (1, 2) or definition_uid in self.ptl_cited) and not outer
             if definition_uid:
                 self.facts[definition_uid] = [(label, True)] + ([(label + '_general', False)] if generalize else [])
                 self.scope_steps.append(definition_uid)
@@ -652,6 +682,7 @@ def compile_proofs(source, *, trace=False, **kwargs):
                             assumptions=assumptions, used=context_used)
         opened, environment = renderer.open_statement(theorem.body, {}, '  ')
         renderer.local_state = renderer.state_premises(theorem.body)
+        renderer.ptl_cited = renderer.ptl_citations(proof)
         lines += opened + renderer.render(proof, environment, goal=theorem.body)
         uses_hidden = uses_hidden or renderer.uses_hidden
         definition = theorem.node.findtext('definition/TheoremDefRef/UID')

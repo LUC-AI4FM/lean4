@@ -154,6 +154,10 @@ elab "tla_instantiate" : tactic => withMainContext do
     next := updated
   replaceMainGoal [next]
 
+public theorem TLAUniversal.mem_naturals_eq (v : Value) : v ∈ naturals ↔ ∃ k : Nat, v = integer k := by
+  rw [TLAUniversal.mem_naturals]; exact exists_congr fun _ => eq_comm
+public theorem TLAUniversal.mem_integers_eq (v : Value) : v ∈ integers ↔ ∃ k : Int, v = integer k := by
+  rw [TLAUniversal.mem_integers]; exact exists_congr fun _ => eq_comm
 public theorem TLAUniversal.self_eq_succ_iff (n : Nat) : n = n + 1 ↔ False := iff_false_intro (Nat.succ_ne_self n).symm
 public theorem TLAUniversal.succ_eq_self_iff (n : Nat) : n + 1 = n ↔ False := iff_false_intro (Nat.succ_ne_self n)
 
@@ -164,8 +168,12 @@ every value `v` with `truth v` in context. Each candidate is checked by closing 
 discarded, so the result is an ordinary Lean proof. -/
 meta partial def TLAUniversal.stateWitness (depth : Nat) : TacticM Unit := withMainContext do
   if depth == 0 then throwError "state witness depth exhausted"
-  evalTactic (← `(tactic| try simp only [TLAUniversal.truth_boolean, if_true, if_false, ite_true, ite_false] at *))
+  evalTactic (← `(tactic| try simp only [TLAUniversal.truth_boolean, if_true, if_false, ite_true, ite_false, TLAUniversal.self_eq_succ_iff, TLAUniversal.succ_eq_self_iff, ↓reduceIte] at *))
   evalTactic (← `(tactic| intros))
+  -- Name the numbers behind `Nat`/`Int` membership hypotheses so that the
+  -- candidate check can compute with them.
+  evalTactic (← `(tactic| try simp only [TLAUniversal.mem_naturals_eq, TLAUniversal.mem_integers_eq] at *))
+  evalTactic (← `(tactic| try casesm* _ ∧ _, ∃ _, _))
   try evalTactic (← `(tactic| simp only [TLAUniversal.truth_boolean, TLAUniversal.tuple_eq_iff, List.cons.injEq, TLAUniversal.self_eq_succ_iff, TLAUniversal.succ_eq_self_iff, ZFSet.ZFBool.mem_𝔹_iff, TLAUniversal.boolean_eq_true_iff, TLAUniversal.boolean_eq_false_iff, if_true, if_false, ite_true, ite_false, and_true, true_and, eq_self_iff_true, ZFSet.zftrue_ne_zffalse, TLAUniversal.false_ne_true] at *))
   catch e => trace[debug] m!"norm error {e.toMessageData}"
   withMainContext do
@@ -364,20 +372,33 @@ meta def TLAUniversal.closes (budget : Nat) (tactic : TacticM Unit) : TacticM Bo
   let saved ← saveState
   let goals ← getGoals
   let main ← getMainGoal
+  let log ← Core.getMessageLog
   tryCatchRuntimeEx
     (do
       setGoals [main]
+      Core.resetMessageLog
       let start ← IO.getNumHeartbeats
+      -- Never exceed what is left of the enclosing budget.
       withTheReader Core.Context
-        (fun ctx => { ctx with initHeartbeats := start, maxHeartbeats := budget * 1000 * 1000 }) tactic
-      if (← getUnsolvedGoals).isEmpty then
+        (fun ctx =>
+          let own := budget * 1000 * 1000
+          let left := if ctx.maxHeartbeats == 0 then own
+            else ctx.initHeartbeats + ctx.maxHeartbeats - min start (ctx.initHeartbeats + ctx.maxHeartbeats)
+          { ctx with initHeartbeats := start, maxHeartbeats := max 1 (min own left) }) tactic
+      -- An error logged by a nested `by` block (for example unsolved goals)
+      -- is a failure even though no exception was thrown.
+      let produced ← Core.getMessageLog
+      if (← getUnsolvedGoals).isEmpty && !produced.hasErrors then
+        Core.setMessageLog (log ++ produced)
         setGoals goals.tail
         return true
       saved.restore
+      Core.setMessageLog log
       return false)
     (fun e => do
       trace[debug] m!"closes failed: {e.toMessageData}"
       saved.restore
+      Core.setMessageLog log
       return false)
 
 /-- Replace every `truth e` in the goal and hypotheses by a propositional
@@ -493,6 +514,43 @@ meta def TLAUniversal.rankCandidates (behavior : Expr) : TacticM (Array Expr) :=
       unless result.contains candidate do result := result.push candidate
   return result
 
+/-- Hypotheses `A₁ → … → <>R` whose antecedents are already in context
+(up to conjunction) become eventualities `<>R`. Each added fact is an
+application of an existing hypothesis to existing proofs. -/
+meta def TLAUniversal.dischargeEventualities : TacticM Unit := withMainContext do
+  let mut goal ← getMainGoal
+  let context ← getLCtx
+  for declaration in context do
+    if declaration.isImplementationDetail then continue
+    let mut termType ← instantiateMVars declaration.type
+    unless termType.isArrow do continue
+    let mut term := declaration.toExpr
+    let mut complete := true
+    while termType.isArrow do
+      match ← TLAUniversal.findProof context termType.bindingDomain! with
+      | some proof =>
+        term := mkApp term proof
+        termType := termType.bindingBody!
+      | none => complete := false; break
+    if complete && (TLAUniversal.matchEventually termType).isSome then
+      let (_, g) ← goal.note declaration.userName term
+      goal := g
+  replaceMainGoal [goal]
+
+/-- A `Fair` proof from the weak (preferred) or strong fairness hypothesis. -/
+meta def TLAUniversal.fairnessProof : TacticM (Option Expr) := withMainContext do
+  let mut fair : Option Expr := none
+  for declaration in ← getLCtx do
+    if declaration.isImplementationDetail then continue
+    let type ← instantiateMVars declaration.type
+    if type.isAppOfArity ``TLA.weakFairness 6 then
+      let a := type.getAppArgs
+      fair := some (← mkAppM ``TLAUniversal.PTL.weakFairness_fair #[a[2]!, a[3]!, a[4]!, a[5]!, declaration.toExpr])
+    else if type.isAppOfArity ``TLA.strongFairness 6 && fair.isNone then
+      let a := type.getAppArgs
+      fair := some (← mkAppM ``TLAUniversal.PTL.strongFairness_fair #[a[2]!, a[3]!, a[4]!, a[5]!, declaration.toExpr])
+  return fair
+
 meta def TLAUniversal.wfRank (unfold : Array Ident) : TacticM Unit := withMainContext do
   evalTactic (← `(tactic| intros))
   evalTactic (← `(tactic| try simp only [TLAUniversal.truth_boolean] at *))
@@ -519,6 +577,7 @@ meta def TLAUniversal.wfRank (unfold : Array Ident) : TacticM Unit := withMainCo
     | throwError "goal is not an eventuality"
   TLAUniversal.currentFacts behavior time
   evalTactic (← `(tactic| try casesm* _ ∧ _))
+  TLAUniversal.dischargeEventualities
   withMainContext do
   let candidates := #[Expr.lam `k (mkConst ``Nat) (mkConst ``True) .default] ++ (← TLAUniversal.rankCandidates behavior)
   -- Starting times: the goal's time, then each eventuality hypothesis.
@@ -527,6 +586,30 @@ meta def TLAUniversal.wfRank (unfold : Array Ident) : TacticM Unit := withMainCo
     if declaration.isImplementationDetail then continue
     if (TLAUniversal.matchEventually (← instantiateMVars declaration.type)).isSome then
       eventualities := eventualities.push declaration.fvarId
+  -- WF1 leads-to (`wf_leads`): from `<>P`, with `P` itself as the
+  -- persistent premise. Tried before the rank rule.
+  let leads (h : FVarId) : TacticM Unit := withMainContext do
+    let some (_, predicate) := TLAUniversal.matchEventually (← instantiateMVars (← h.getType))
+      | throwError "not an eventuality"
+    let some fairProof ← TLAUniversal.fairnessProof | throwError "no fairness hypothesis"
+    let fairStx ← Term.exprToSyntax fairProof
+    let rankStx ← Term.exprToSyntax predicate
+    let hStx ← Term.exprToSyntax (mkFVar h)
+    evalTactic (← `(tactic| refine TLAUniversal.PTL.eventually_from _ _ _ $hStx ?_))
+    evalTactic (← `(tactic| intro start start_le start_holds))
+    evalTactic (← `(tactic| refine TLAUniversal.PTL.wf_leads _ _ $rankStx _ _ start $fairStx (by omega) start_holds ?_ ?_ ?_))
+    for g in ← getGoals do
+      setGoals [g]
+      TLAUniversal.closeRankPremise behavior unfold
+    unless (← getUnsolvedGoals).isEmpty do throwError "premises remain"
+  for h in eventualities do
+    let saved ← saveState
+    try
+      leads h
+      return
+    catch e =>
+      trace[debug] m!"wf_leads attempt failed: {e.toMessageData}"
+      saved.restore
   let attempt (start : Option FVarId) (rank : Expr) : TacticM Unit := withMainContext do
     let mut fair : Option Expr := none
     for declaration in ← getLCtx do
@@ -548,7 +631,7 @@ meta def TLAUniversal.wfRank (unfold : Array Ident) : TacticM Unit := withMainCo
       let hStx ← Term.exprToSyntax (mkFVar h)
       evalTactic (← `(tactic| refine TLAUniversal.PTL.eventually_from _ _ _ $hStx ?_))
       evalTactic (← `(tactic| intro start start_le start_holds))
-      evalTactic (← `(tactic| refine TLAUniversal.PTL.wf_rank _ _ $rankStx _ _ start $fairStx (by omega) ?_ ?_ ?_ ?_))
+      evalTactic (← `(tactic| refine TLAUniversal.PTL.wf_rank _ _ $rankStx _ _ start (TLAUniversal.PTL.Fair.mono $fairStx (by omega)) (Nat.le_refl _) ?_ ?_ ?_ ?_))
     let goals ← getGoals
     trace[debug] m!"rank {rank} premises {goals.length}"
     for g in goals do
@@ -624,6 +707,215 @@ syntax (name := tlaPtlInvariant) "tla_ptl_invariant" " [" ident,* "]" : tactic
 elab_rules : tactic
   | `(tactic| tla_ptl_invariant [$ids,*]) =>
     tryCatchRuntimeEx (TLAUniversal.ptlInvariant ids.getElems) fun _ => throwError "tla_ptl_invariant: resource limit"
+
+/-! ### First-order temporal saturation (`BY PTL` leaves)
+
+`tla_ptl_saturate [defs]` handles PTL obligations that are not a single
+invariant or WF1 step: it reasons about the times named in the context like
+an SMT solver instantiating quantifiers. Times are the `Nat` variables in
+context (and their successors). Facts `∀ m, lo ≤ m → P m` are instantiated
+at every time provably `≥ lo`, `∀ b n` facts at every time, implications are
+applied to antecedents already in context, existentials and conjunctions are
+destructed and, when nothing new follows, a disjunction is split. Three
+checked rules supply what instantiation cannot: `PTL.fair_infinitely` (an
+action enabled from now on is taken infinitely often under fairness),
+`PTL.until_cases` (from now, `P` fails, `P` holds forever, or `Q` occurs,
+when `P` persists unless `Q`) and `PTL.wf_leads`. Every step is an
+application of a hypothesis or of these theorems; a branch that does not
+close fails the tactic. -/
+
+/-- The `Nat` variables in context. -/
+meta def TLAUniversal.contextTimes : TacticM (Array Expr) := withMainContext do
+  let mut times := #[]
+  for d in ← getLCtx do
+    if d.isImplementationDetail then continue
+    if (← instantiateMVars d.type).isConstOf ``Nat then times := times.push d.toExpr
+  return times
+
+/-- Apply `term : A₁ → … → B` to antecedents found in `context`. Returns the
+applied term, its type and whether every antecedent was discharged. -/
+meta def TLAUniversal.applyKnown (context : LocalContext) (term : Expr) : MetaM (Expr × Expr × Bool) := do
+  let mut term := term
+  let mut ty := (← instantiateMVars (← inferType term)).headBeta
+  while ty.isArrow do
+    match ← TLAUniversal.findProof context ty.bindingDomain! with
+    | some p =>
+      term := mkApp term p
+      ty := ty.bindingBody!
+    | none => return (term, ty, false)
+  return (term, ty, true)
+
+/-- One instantiation round; true if a new fact was added. -/
+meta def TLAUniversal.saturateRound (behavior : Expr) : TacticM Bool := withMainContext do
+  let context ← getLCtx
+  let times ← TLAUniversal.contextTimes
+  let mut all := times
+  for t in times do all := all.push (← mkAppM ``HAdd.hAdd #[t, mkNatLit 1])
+  let mut found : Array (Name × Expr × Expr) := #[]
+  for d in context do
+    if d.isImplementationDetail then continue
+    let type ← instantiateMVars d.type
+    let mut instances : Array Expr := #[]
+    if ← TLAUniversal.isGeneralFact type then
+      for t in times do instances := instances.push (mkApp2 d.toExpr behavior t)
+    else if let some lo := TLAUniversal.futureBound type then
+      -- Successor times only for facts without case splits.
+      let disjunctive := (type.find? fun x => x.isAppOfArity ``Or 2).isSome
+      for t in (if disjunctive then times else all) do
+        if let some le ← TLAUniversal.proveLe lo t then
+          instances := instances.push (mkApp2 d.toExpr t le)
+    else if type.isArrow then
+      instances := instances.push d.toExpr
+    for inst in instances do
+      let (term, ty, complete) ← TLAUniversal.applyKnown context inst
+      unless complete do continue
+      if term == d.toExpr then continue
+      if (← TLAUniversal.findProof context ty).isSome then continue
+      if found.any (·.2.2 == ty) then continue
+      found := found.push (d.userName, term, ty)
+  if found.isEmpty then return false
+  let mut goal ← getMainGoal
+  for (name, term, ty) in found do
+    let (_, g) ← goal.note name term (some ty)
+    goal := g
+  replaceMainGoal [goal]
+  return true
+
+/-- Close the main goal directly, or an eventuality goal with a context time
+as witness; with `deep`, also with every definition unfolded. -/
+meta def TLAUniversal.closeHere (unfold : Array Ident) (deep : Bool) : TacticM Bool := withMainContext do
+  let mut lemmas : Array (TSyntax ``Lean.Parser.Tactic.simpLemma) := #[]
+  for i in unfold ++ #[mkIdent ``TLAUniversal.truth_boolean, mkIdent ``TLA.enabled, mkIdent ``TLA.angle,
+      mkIdent ``TLA.unchanged, mkIdent ``TLA.square] do
+    lemmas := lemmas.push (← `(Lean.Parser.Tactic.simpLemma| $i:ident))
+  if ← TLAUniversal.closes 20 (evalTactic (← `(tactic| first | assumption | simp_all))) then return true
+  if deep then
+    if ← TLAUniversal.closes 100 (evalTactic (← `(tactic| ((try simp only [$lemmas,*] at *); simp_all)))) then
+      return true
+  let type := (← instantiateMVars (← (← getMainGoal).getType)).cleanupAnnotations
+  if (TLAUniversal.matchEventually type).isSome then
+    for t in ← TLAUniversal.contextTimes do
+      let tStx ← Term.exprToSyntax t
+      if ← TLAUniversal.closes 5 (evalTactic (← `(tactic| (refine ⟨$tStx, ?_⟩; constructor; omega; assumption)))) then
+        return true
+      if deep then
+        if ← TLAUniversal.closes 20 (evalTactic (← `(tactic| (refine ⟨$tStx, ?_⟩; constructor; omega; simp_all)))) then
+          return true
+        if ← TLAUniversal.closes 60 (evalTactic (← `(tactic| (refine ⟨$tStx, ?_⟩; constructor; omega; (try simp only [$lemmas,*] at *); simp_all)))) then
+          return true
+  return false
+
+/-- Disjunction components of `e`. -/
+meta partial def TLAUniversal.disjuncts (e : Expr) : Array Expr :=
+  if e.isAppOfArity ``Or 2 then
+    TLAUniversal.disjuncts e.appFn!.appArg! ++ TLAUniversal.disjuncts e.appArg!
+  else #[e]
+
+/-- `P` from `∀ j, m ≤ j → P j`. -/
+meta def TLAUniversal.futurePredicate (e : Expr) : Option (Expr × Expr) :=
+  match e with
+  | .forallE name d (.forallE _ _ body _) bi =>
+    match TLAUniversal.futureBound e with
+    | some lo => if body.hasLooseBVar 0 then none else some (lo, .lam name d (body.lowerLooseBVars 1 1) bi)
+    | none => none
+  | _ => none
+
+/-- Apply `PTL.until_cases` to a goal `¬P m ∨ [](P) ∨ <>Q` (any order). -/
+meta def TLAUniversal.untilRule (behavior : Expr) (unfold : Array Ident) : TacticM Unit := withMainContext do
+  let type := (← instantiateMVars (← (← getMainGoal).getType)).cleanupAnnotations
+  let parts := TLAUniversal.disjuncts type
+  let mut always := none
+  let mut eventually := none
+  for part in parts do
+    if let some x := TLAUniversal.futurePredicate part then always := some x
+    if let some x := TLAUniversal.matchEventually part then eventually := some x
+  let some (m, p) := always | throwError "no [] disjunct"
+  let some (m', q) := eventually | throwError "no <> disjunct"
+  unless m == m' do throwError "disjuncts start at different times"
+  let pStx ← Term.exprToSyntax p
+  let qStx ← Term.exprToSyntax q
+  let mStx ← Term.exprToSyntax m
+  evalTactic (← `(tactic| refine (fun escape => ?_) (TLAUniversal.PTL.until_cases $pStx $qStx $mStx ?_)))
+  let goals ← getGoals
+  let some main := goals[0]? | throwError "until_cases failed"
+  let some step := goals[1]? | throwError "until_cases failed"
+  setGoals [step]
+  TLAUniversal.closeRankPremise behavior unfold
+  setGoals [main]
+  unless ← TLAUniversal.closes 20 (evalTactic (← `(tactic| first | tauto | simp_all))) do
+    throwError "until_cases does not match the goal"
+
+meta partial def TLAUniversal.saturate (behavior : Expr) (unfold : Array Ident) (fuel : Nat) : TacticM Unit := do
+  trace[debug] m!"saturate fuel {fuel}"
+  evalTactic (← `(tactic| intros))
+  evalTactic (← `(tactic| try simp only [TLAUniversal.truth_boolean] at *))
+  evalTactic (← `(tactic| try casesm* _ ∧ _, ∃ _, _))
+  -- Case analysis may rebuild the context; find the behavior again.
+  let behavior ← withMainContext do
+    if (← getLCtx).contains behavior.fvarId! then pure behavior else TLAUniversal.currentBehavior
+  if ← TLAUniversal.closeHere unfold false then return
+  if ← TLAUniversal.closes 100 (TLAUniversal.untilRule behavior unfold) then return
+  if fuel == 0 then
+    if ← TLAUniversal.closeHere unfold true then return
+    throwError "saturation exhausted"
+  -- Split a disjunction first, so that each branch instantiates only
+  -- what its own case needs.
+  -- The most recent disjunction: it concerns the newest times.
+  let disjunction ← withMainContext do
+    let mut found := none
+    for d in ← getLCtx do
+      if d.isImplementationDetail then continue
+      if (← instantiateMVars d.type).isAppOfArity ``Or 2 then found := some d.fvarId
+    return found
+  if let some h := disjunction then
+    let goals ← (← getMainGoal).cases h
+    let rest ← getGoals
+    for g in goals do
+      setGoals [g.mvarId]
+      TLAUniversal.saturate behavior unfold fuel
+    setGoals rest.tail
+    return
+  unless ← TLAUniversal.saturateRound behavior do
+    if ← TLAUniversal.closeHere unfold true then return
+    trace[debug] m!"saturation stuck at {← getMainGoal}"
+    throwError "saturation: nothing new"
+  TLAUniversal.saturate behavior unfold (fuel - 1)
+
+meta def TLAUniversal.ptlSaturate (unfold : Array Ident) : TacticM Unit := withMainContext do
+  evalTactic (← `(tactic| try simp only [TLAUniversal.truth_boolean]))
+  TLAUniversal.introPremises
+  evalTactic (← `(tactic| try simp only [TLAUniversal.truth_boolean] at *))
+  evalTactic (← `(tactic| try casesm* _ ∧ _, ∃ _, _))
+  let behavior ← TLAUniversal.currentBehavior
+  -- Fairness with the action enabled from its time on gives `[]<><<A>>`.
+  withMainContext do
+  for d in ← getLCtx do
+    if d.isImplementationDetail then continue
+    let type ← instantiateMVars d.type
+    unless type.isAppOfArity ``TLA.weakFairness 6 || type.isAppOfArity ``TLA.strongFairness 6 do continue
+    let a := type.getAppArgs
+    let fair ← if type.isAppOfArity ``TLA.weakFairness 6 then
+        mkAppM ``TLAUniversal.PTL.weakFairness_fair #[a[2]!, a[3]!, a[4]!, a[5]!, d.toExpr]
+      else mkAppM ``TLAUniversal.PTL.strongFairness_fair #[a[2]!, a[3]!, a[4]!, a[5]!, d.toExpr]
+    let fairStx ← Term.exprToSyntax fair
+    let saved ← saveState
+    try
+      evalTactic (← `(tactic| have infinitely := TLAUniversal.PTL.fair_infinitely _ _ _ $fairStx ?_))
+      let goals ← getGoals
+      let some enabled := goals[0]? | throwError "fairness"
+      setGoals [enabled]
+      TLAUniversal.closeRankPremise behavior unfold
+      setGoals goals.tail
+      unless (← getUnsolvedGoals).length == goals.length - 1 do throwError "enabledness not proved"
+    catch e =>
+      trace[debug] m!"fairness not continuously enabled: {e.toMessageData}"
+      saved.restore
+  TLAUniversal.saturate behavior unfold 4
+
+syntax (name := tlaPtlSaturate) "tla_ptl_saturate" " [" ident,* "]" : tactic
+elab_rules : tactic
+  | `(tactic| tla_ptl_saturate [$ids,*]) =>
+    unless ← TLAUniversal.closes 600 (TLAUniversal.ptlSaturate ids.getElems) do throwError "tla_ptl_saturate: no proof within budget"
 
 /-- Prove `z ∈ domain f` from `z ∈ D` and `f ∈ [D -> E]` in context. -/
 macro "tla_domain" : tactic =>
