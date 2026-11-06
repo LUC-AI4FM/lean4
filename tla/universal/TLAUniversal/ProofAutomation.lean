@@ -103,3 +103,51 @@ elab "tla_try " cmd:command : command => do
     set saved
   else
     set { after with messages := saved.messages }
+
+/-- Instantiate bounded universal hypotheses `∀ x, x ∈ S → P x` with the
+membership facts already in context (`t ∈ S`), as SMT trigger instantiation
+does for TLAPS. Each instance is an application of existing hypotheses, so
+nothing unproved is added. Fails when no new instance is found, which keeps
+it usable as an aesop rule. -/
+elab "tla_instantiate" : tactic => withMainContext do
+  let goal ← getMainGoal
+  let context ← getLCtx
+  let mut seen : Array Expr := #[]
+  for declaration in context do
+    unless declaration.isImplementationDetail do
+      seen := seen.push (← instantiateMVars declaration.type)
+  let members := context.foldl (init := #[]) fun acc declaration =>
+    if declaration.isImplementationDetail then acc else acc.push declaration
+  let mut facts : Array (Expr × Expr) := #[]
+  for declaration in context do
+    if declaration.isImplementationDetail || facts.size ≥ 32 then continue
+    let type ← instantiateMVars declaration.type
+    unless type.isForall do continue
+    for member in members do
+      if facts.size ≥ 32 then break
+      if member.fvarId == declaration.fvarId then continue
+      let state ← saveState
+      try
+        let (arguments, _, body) ← forallMetaTelescopeReducing type (some 2)
+        if arguments.size != 2 then
+          state.restore
+          continue
+        if ← isDefEq (← inferType arguments[1]!) member.type then
+          let term ← instantiateMVars (mkApp2 declaration.toExpr arguments[0]! member.toExpr)
+          let termType ← instantiateMVars (← inferType term)
+          let _ := body
+          if !term.hasExprMVar && !termType.hasExprMVar && !seen.contains termType &&
+              !(facts.any fun (_, t) => t == termType) then
+            state.restore
+            facts := facts.push (term, termType)
+            continue
+        state.restore
+      catch _ =>
+        state.restore
+  if facts.isEmpty then
+    throwError "no new bounded instance"
+  let mut next := goal
+  for (term, termType) in facts do
+    let (_, updated) ← next.note `instance term (some termType)
+    next := updated
+  replaceMainGoal [next]
