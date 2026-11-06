@@ -151,3 +151,46 @@ elab "tla_instantiate" : tactic => withMainContext do
     let (_, updated) ← next.note `instance term (some termType)
     next := updated
   replaceMainGoal [next]
+
+/-- Construct a witness for `∃ s : State, P s`, as ENABLED and `\cdot`
+expansion need. Candidates are constant states built from `TRUE` and from
+every value `v` with `truth v` in context. Each candidate is checked by closing the instantiated goal
+(recursively for nested existentials); a candidate that does not close it is
+discarded, so the result is an ordinary Lean proof. -/
+meta partial def TLAUniversal.stateWitness (depth : Nat) : TacticM Unit := withMainContext do
+  if depth == 0 then throwError "state witness depth exhausted"
+  evalTactic (← `(tactic| try simp only [TLAUniversal.truth_boolean, if_true, if_false, ite_true, ite_false] at *))
+  evalTactic (← `(tactic| intros))
+  evalTactic (← `(tactic| try simp only [TLAUniversal.truth_boolean, if_true, if_false, ite_true, ite_false] at *))
+  withMainContext do
+  let goal ← getMainGoal
+  let type ← whnfR (← instantiateMVars (← goal.getType))
+  unless type.isAppOfArity ``Exists 2 do throwError "not an existential"
+  let domain := type.appFn!.appArg!
+  unless ← isDefEq domain (mkConst ``TLAUniversal.State) do
+    throwError "not an existential over states"
+  let predicate := type.appArg!
+  let mut values : Array Expr := #[mkConst ``ZFSet.zftrue [levelZero]]
+  for declaration in ← getLCtx do
+    if declaration.isImplementationDetail then continue
+    let t ← instantiateMVars declaration.type
+    if t.isAppOfArity ``TLAUniversal.truth 1 && !t.appArg!.hasLooseBVars then
+      unless values.contains t.appArg! do values := values.push t.appArg!
+  let candidates := values.map (fun v => Expr.lam `_ (mkConst ``String) v .default)
+  for candidate in candidates do
+    let saved ← saveState
+    try
+      let proof ← mkFreshExprSyntheticOpaqueMVar (Expr.headBeta (mkApp predicate candidate))
+      goal.assign (mkAppN (mkConst ``Exists.intro [← getLevel domain]) #[domain, predicate, candidate, proof])
+      replaceMainGoal [proof.mvarId!]
+      evalTactic (← `(tactic| simp_all [TLAUniversal.truth_true]))
+      if (← getUnsolvedGoals).isEmpty then return
+      TLAUniversal.stateWitness (depth - 1)
+      if (← getUnsolvedGoals).isEmpty then return
+      saved.restore
+    catch e =>
+      saved.restore
+      trace[debug] m!"state witness candidate failed: {e.toMessageData}"
+  throwError "no state witness"
+
+elab "tla_state_witness" : tactic => TLAUniversal.stateWitness 12

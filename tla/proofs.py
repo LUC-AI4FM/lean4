@@ -96,6 +96,18 @@ class Renderer:
             '_root_.TLAUniversal.mem_enumerate',
             '_root_.ZFSet.mem_sep',
         ]
+        # TLAPS's AutoUSE expands the definitions the obligation mentions.
+        # Unfolding every emitted root definition is the same expansion.
+        for fact in proof.findall('facts/*'):
+            if fact.tag == 'OpApplNode' and not len(fact.find('operands')):
+                try:
+                    named = self.graph.operator(fact).name
+                except Exception:
+                    named = None
+                if named == 'AutoUSE':
+                    for symbol in self.graph.definitions():
+                        if symbol.uid in self.compiler.emitted:
+                            unfold.append(self.compiler.emitted[symbol.uid][0])
         for reference in proof.findall('defs/*'):
             symbol = self.graph.resolve(reference)
             if symbol.uid in self.compiler.emitted:
@@ -128,7 +140,7 @@ class Renderer:
                 indent + 'try (solve | simp only [' + direct_simplifiers + ']; apply _root_.TLAUniversal.record_mem_singletonSpace; decide)',
                 indent + 'try (solve | simp (config := { maxSteps := 10000 }) [' + simplifiers + '])',
                 indent + 'all_goals simp only [' + simplifiers + '] at *',
-                indent + 'all_goals first | (solve | exact _root_.TLAUniversal.record_two_ne_iff _ _ _ _ _ _ (by decide)) | (solve | intro fair; exact _root_.TLA.strong_implies_weak _ _ _ _ fair) | (solve | rintro ⟨fair, available⟩; apply _root_.TLA.weak_fairness_continuously_enabled _ _ _ _ fair; simpa [_root_.TLA.always, _root_.TLA.state, _root_.TLA.enabled, _root_.TLA.angle, _root_.TLA.unchanged, _root_.TLA.action] using available) | (solve | apply _root_.TLAUniversal.diagonal_ne <;> assumption) | omega | (solve | norm_num) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by omega), norm (by tla_choice))) | (solve | aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50 }) (simp_config := { maxSteps := 20000 }) (add safe (by omega), norm (by tla_choice))) | (solve | aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_natural_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), safe (by tla_instantiate), norm (by tla_choice))']
+                indent + 'all_goals first | (solve | exact _root_.TLAUniversal.record_two_ne_iff _ _ _ _ _ _ (by decide)) | (solve | intro fair; exact _root_.TLA.strong_implies_weak _ _ _ _ fair) | (solve | rintro ⟨fair, available⟩; apply _root_.TLA.weak_fairness_continuously_enabled _ _ _ _ fair; simpa [_root_.TLA.always, _root_.TLA.state, _root_.TLA.enabled, _root_.TLA.angle, _root_.TLA.unchanged, _root_.TLA.action] using available) | (solve | apply _root_.TLAUniversal.diagonal_ne <;> assumption) | omega | (solve | norm_num) | (solve | tla_state_witness) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by omega), norm (by tla_choice))) | (solve | aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50 }) (simp_config := { maxSteps := 20000 }) (add safe (by omega), norm (by tla_choice))) | (solve | aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_natural_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), safe (by tla_instantiate), norm (by tla_choice))']
 
     def open_statement(self, node, env, indent):
         env = dict(env)
