@@ -469,7 +469,7 @@ def compile_proofs(source, *, trace=False, **kwargs):
     # Re-run semantic normalization inside proof search after quantified
     # domain witnesses are introduced, not only before the search begins.
     normalized = ('truth_boolean truth_true not_truth_false false_ne_true integer_eq_iff '
-                  'mem_naturals mem_integers integer_mem_naturals integer_mem '
+                  'integer_mem_naturals integer_mem '
                   'realBinary_add_integer realBinary_mul_integer realNegate_integer '
                   'realSubtract_integer realLessEqual_integer realLess_integer realPower_integer_nonnegative '
                   'intBinary_integer numberInterval_integer integer_mem_interval '
@@ -478,6 +478,20 @@ def compile_proofs(source, *, trace=False, **kwargs):
                   'domain_tuple apply_tuple_at tuple_eq_iff length_tuple '
                   'prepend_tuple mem_cartesian_cons mem_cartesian_nil '
                   'string_eq_iff string_mem domain_record apply_record_lookup record_isFunc_iff record_eq_iff record_two_eq_iff mem_recordSpace mem_recordSpace_two mem_interval_iff mem_union_enumerate').split()
+    # Membership in Nat/Int names the value as `v = integer k`, so simp_all
+    # substitutes it everywhere; existential naturals reduce to `0 ≤ z`.
+    lines += [
+        'theorem tla_mem_naturals_eq (v : _root_.TLAUniversal.Value) : v ∈ _root_.TLAUniversal.naturals ↔ '
+        '∃ k : _root_.Nat, v = _root_.TLAUniversal.integer k := by',
+        '  rw [_root_.TLAUniversal.mem_naturals]; exact exists_congr fun _ => eq_comm',
+        'theorem tla_mem_integers_eq (v : _root_.TLAUniversal.Value) : v ∈ _root_.TLAUniversal.integers ↔ '
+        '∃ k : _root_.Int, v = _root_.TLAUniversal.integer k := by',
+        '  rw [_root_.TLAUniversal.mem_integers]; exact exists_congr fun _ => eq_comm',
+        'theorem tla_exists_nat_eq (z : _root_.Int) : (∃ k : _root_.Nat, z = (k : _root_.Int)) ↔ 0 ≤ z :=',
+        '  ⟨fun ⟨k, h⟩ => h ▸ Int.natCast_nonneg k, fun h => ⟨z.toNat, (Int.toNat_of_nonneg h).symm⟩⟩',
+        "theorem tla_exists_nat_eq' (z : _root_.Int) : (∃ k : _root_.Nat, (k : _root_.Int) = z) ↔ 0 ≤ z :=",
+        '  ⟨fun ⟨k, h⟩ => h ▸ Int.natCast_nonneg k, fun h => ⟨z.toNat, Int.toNat_of_nonneg h⟩⟩',
+        "attribute [local simp] tla_mem_naturals_eq tla_mem_integers_eq tla_exists_nat_eq tla_exists_nat_eq'"]
     lines.append('attribute [local simp] ' + ' '.join(
         '_root_.TLAUniversal.' + name for name in normalized)
         + ' _root_.ZFSet.zftrue_ne_zffalse _root_.ZFSet.pair_inj _root_.not_and_or _root_.List.lookup_cons')
@@ -496,8 +510,8 @@ def compile_proofs(source, *, trace=False, **kwargs):
         lines += [
             'private theorem tla_integer_function_apply {D f x : _root_.TLAUniversal.Value} '
             '(hf : _root_.ZFSet.IsFunc D _root_.TLAUniversal.integers f) (hx : x ∈ D) : '
-            '∃ n : _root_.Int, _root_.TLAUniversal.integer n = _root_.TLAUniversal.apply f x := '
-            '(_root_.TLAUniversal.mem_integers _).mp (_root_.TLAUniversal.apply_mem hf hx)',
+            '∃ n : _root_.Int, _root_.TLAUniversal.apply f x = _root_.TLAUniversal.integer n := '
+            '(tla_mem_integers_eq _).mp (_root_.TLAUniversal.apply_mem hf hx)',
             'attribute [local aesop safe apply] tla_integer_function_apply']
     if 'ZFSet.𝔹' in code:
         lines.append('attribute [local aesop safe apply] _root_.TLAUniversal.boolean_function_apply')
