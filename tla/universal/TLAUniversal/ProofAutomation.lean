@@ -687,14 +687,16 @@ meta def TLAUniversal.exceptStep : TacticM Unit := do
     remaining := remaining ++ (← getGoals)
   for g in remaining do
     setGoals [g]
-    unless ← TLAUniversal.closes 100 (evalTactic (← `(tactic| tla_except_close))) do
+    unless ← TLAUniversal.closes 20 (evalTactic (← `(tactic| tla_except_close))) do
       throwError "EXCEPT step case not proved"
   setGoals []
 
 syntax (name := tlaExceptStep) "tla_except_step" : tactic
 elab_rules : tactic
   | `(tactic| tla_except_step) =>
-    tryCatchRuntimeEx TLAUniversal.exceptStep fun _ => throwError "tla_except_step: resource limit"
+    -- One overall budget: a step that is not of this shape must fail fast.
+    unless ← TLAUniversal.closes 60 TLAUniversal.exceptStep do
+      throwError "tla_except_step: not proved"
 
 /-- Run a tactic, turning a resource exception (recursion depth, heartbeats)
 into an ordinary failure so that an enclosing `first` can try its next

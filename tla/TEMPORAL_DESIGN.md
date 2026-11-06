@@ -1,6 +1,6 @@
 # Temporal proofs: PTL, fairness and ENABLED
 
-Status: design, not implemented. Covers the corpus inputs that fail for
+Status: partly implemented (2026-11-06); see "Implemented" below. Covers the corpus inputs that fail for
 missing temporal reasoning (SimpleEventually, SimpleEventuallyInt,
 SimpleExampleWF, FOLTL, EWD840 liveness, Euclid Correctness, the
 enabled_cdot tests).
@@ -67,3 +67,26 @@ the universal-value encoding of `Nat`, then let the generated proof
 discharge an imported claim by `exact` of the library lemma when its
 statement matches, falling back to search otherwise. No statement is
 assumed: an unmatched claim stays an obligation.
+
+## Implemented (2026-11-06)
+
+- `TLAUniversal.PTL` (`universal/TLAUniversal/Temporal.lean`): `persist`,
+  `Fair` with `weakFairness_fair`/`strongFairness_fair` (SF used only through
+  its weak consequence), `wf_rank` (WF1 with one persistent rank predicate,
+  proved by contradiction from infinitely many fair steps) and
+  `eventually_from`. Plain Lean theorems; no axioms.
+- `tla_ptl_invariant [defs]`: `[]P` pointwise from facts that hold at every
+  time, else by `temporal_induction`.
+- `tla_wf_rank [defs]`: `<>Q` from a WF/SF hypothesis. Candidate ranks are
+  `True` and the next-state conclusions of cited facts; starting times are
+  the goal's time and the times of eventuality hypotheses.
+- Both instantiate `∀ b n` step facts and `∀ m ≥ n` facts at the single
+  time of each premise, try the facts as abstracted atoms (`generalize` of
+  `truth _` and value equalities, then `simp_all`/`tauto`), then with every
+  definition unfolded. Each attempt has its own heartbeat budget.
+- Generated only for leaves whose BY cites `PTL`.
+
+Not covered: leads-to chaining, lattice/well-founded rules, multiple ranks,
+general `[]<>`/`<>[]` reasoning (FOLTL, SimpleExampleWF, SimpleEventuallyInt
+still fail). Negative fixtures: FalseWeakFairnessRank (WF on the wrong
+action), FalseEventuallyAlways (`<>[]` vs `[]<>`), FalsePTLInvariant.
