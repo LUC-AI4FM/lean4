@@ -270,7 +270,11 @@ class UniversalCompiler:
         if symbol.uid in self.consts:
             values = [self.expr(a, env, b, n) for a in args]
             return f'(c.{ident(symbol.name)} {" ".join(values)})'
-        if env.get('@state_instance'):
+        if self.operator_info(symbol, operator_override)[2]:
+            # Standard-module operators keep their built-in meaning under
+            # INSTANCE; their textual bodies in Naturals etc. are placeholders.
+            emitted = None
+        elif env.get('@state_instance'):
             emitted = self.instance_bodies.get((symbol.uid, env.get('@instance')))
             if emitted is None and symbol.uid in self.closed_symbols:
                 emitted = self.emitted.get(symbol.uid)

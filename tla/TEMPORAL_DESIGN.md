@@ -90,7 +90,11 @@ Added later the same day: `wf_leads` (WF1 leads-to from an eventuality,
 used by `tla_wf_rank`), `Fair.mono`, `until_cases`, `fair_infinitely`; see
 PROOF_PORT_STATUS.md. SimpleEventuallyInt checks.
 
-Not covered: lattice/well-founded rules, multiple ranks,
-general `[]<>`/`<>[]` reasoning (FOLTL, SimpleExampleWF, SimpleEventuallyInt
-still fail). Negative fixtures: FalseWeakFairnessRank (WF on the wrong
+Later: `tla_ptl_saturate` enabled for `BY PTL` leaves (fairness with an
+ExpandENABLED witness, `[]<><<A>>_v` from fair steps, until/escape,
+instantiation over context times); `tla_ptl_invariant` splits `I /\ []P`;
+`tla_iff_rewrite` for `Spec <=> Spec'`. SimpleExampleWF checks.
+
+Not covered: lattice/well-founded rules, multiple ranks, `<>[]` conjunction
+(STL6) and `<>` monotonicity under PTL (FOLTL). Negative fixtures: FalseWeakFairnessRank (WF on the wrong
 action), FalseEventuallyAlways (`<>[]` vs `[]<>`), FalsePTLInvariant.

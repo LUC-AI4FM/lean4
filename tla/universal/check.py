@@ -27,7 +27,7 @@ fixtures = ['Counter.tla'] + [
 fixtures += [str(p.relative_to(root.parent / 'tests')) for p in sorted((root.parent / 'tests' / 'corpus').glob('*.tla'))]
 failures = []
 with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as directory:
-    for fixture in fixtures:
+    for fixture in fixtures[proof_shard::proof_shards]:
         source = root.parent / 'tests' / fixture
         target = Path(directory) / source.with_suffix('.lean').name
         code = compile_file(source, includes=[root.parent / 'tests' / 'corpus' / 'tlaps', root.parent / 'tests' / 'corpus' / 'community'])
@@ -109,7 +109,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
     # The proof CLI writes an artifact only after Lean accepts its proof terms.
     proof_output = Path(directory) / 'CheckedProofs.lean'
     proof_sources = [root.parent / 'tests/proofs' / (name + '.tla') for name in
-                     ('Fairness', 'FunctionRange', 'RecordEquality', 'imported/ImportedLaw', 'TemporalInduction', 'StateGeneralization', 'NaturalInduction', 'CaseReferences', 'Leaves', 'ProofShapes', 'DefinitionScope', 'Arithmetic', 'LocalDefinition', 'LevelBinders', 'Foundation', 'BoundedWitness', 'TupleBinders', 'SymbolicArithmetic', 'InstanceBinding', 'ModuleUse', 'FactScope', 'CitedStep', 'ModuleContext', 'Leibniz', 'NaturalSubtraction', 'BoundedInstance', 'EnabledWitness', 'EnabledUpdate', 'EnabledNext', 'PTLInvariant', 'WeakFairnessRank', 'ExceptStep', 'LeadsTo')]
+                     ('Fairness', 'FunctionRange', 'RecordEquality', 'imported/ImportedLaw', 'TemporalInduction', 'StateGeneralization', 'NaturalInduction', 'CaseReferences', 'Leaves', 'ProofShapes', 'DefinitionScope', 'Arithmetic', 'LocalDefinition', 'LevelBinders', 'Foundation', 'BoundedWitness', 'TupleBinders', 'SymbolicArithmetic', 'InstanceBinding', 'ModuleUse', 'FactScope', 'CitedStep', 'ModuleContext', 'Leibniz', 'NaturalSubtraction', 'BoundedInstance', 'EnabledWitness', 'EnabledUpdate', 'EnabledNext', 'PTLInvariant', 'WeakFairnessRank', 'ExceptStep', 'LeadsTo', 'InstanceArithmetic', 'WeakFairnessInfinitely', 'SpecEquivalence')]
     proof_sources += sorted((root.parent / 'tests/proofs/upstream').glob('*.tla'))
     for proof_source in proof_sources[proof_shard::proof_shards]:
         proof_fixture = proof_source.stem
@@ -139,7 +139,7 @@ with tempfile.TemporaryDirectory(prefix='universal-check-', dir='.') as director
                 failures.append('proof certificate consumer: ' + proof_fixture)
                 print(imported.stdout + imported.stderr, flush=True)
             print('PASS source proof reconstruction: ' + proof_fixture, flush=True)
-    negative_sources = [root.parent / 'tests/proofs' / (name + '.tla') for name in ('FalseIntegerFunction', 'FalseNestedUpdate', 'FalseBooleanFunction', 'FalseFairness', 'FalseFunctionRange', 'FalseRecordEquality', 'imported/FalseImportedLaw', 'FalseTemporalInduction', 'FalseStateGeneralization', 'FalseInduction', 'FalseHave', 'FalseCaseReferences', 'FalseChoice', 'FalseLeaf', 'FalseStep', 'FalseArithmetic', 'FalseSymbolicArithmetic', 'FalseWitness', 'FalseModuleUse', 'FalseFactScope', 'FalseUncitedStep', 'FalseUncitedAssumption', 'FalseNaturalSubtraction', 'FalseBoundedInstance', 'FalseEnabledWitness', 'FalseEnabledNext', 'FalsePTLInvariant', 'FalseWeakFairnessRank', 'FalseEventuallyAlways', 'FalseExceptStep', 'FalseLeadsTo', 'Omitted')]
+    negative_sources = [root.parent / 'tests/proofs' / (name + '.tla') for name in ('FalseIntegerFunction', 'FalseNestedUpdate', 'FalseBooleanFunction', 'FalseFairness', 'FalseFunctionRange', 'FalseRecordEquality', 'imported/FalseImportedLaw', 'FalseTemporalInduction', 'FalseStateGeneralization', 'FalseInduction', 'FalseHave', 'FalseCaseReferences', 'FalseChoice', 'FalseLeaf', 'FalseStep', 'FalseArithmetic', 'FalseSymbolicArithmetic', 'FalseWitness', 'FalseModuleUse', 'FalseFactScope', 'FalseUncitedStep', 'FalseUncitedAssumption', 'FalseNaturalSubtraction', 'FalseBoundedInstance', 'FalseEnabledWitness', 'FalseEnabledNext', 'FalsePTLInvariant', 'FalseWeakFairnessRank', 'FalseEventuallyAlways', 'FalseExceptStep', 'FalseLeadsTo', 'FalseInstanceArithmetic', 'FalseWeakFairnessInfinitely', 'FalseSpecEquivalence', 'Omitted')]
     negative_sources += sorted((root.parent / 'tests/proofs/negative').glob('*.tla'))
     for negative_source in negative_sources[proof_shard::proof_shards]:
         proof_fixture = negative_source.stem

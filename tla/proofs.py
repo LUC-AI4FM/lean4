@@ -173,13 +173,14 @@ class Renderer:
         # Single-time premises of a fairness rule need the definitions
         # TLAPS's PTL treats as atoms; unfolding a definition is always sound.
         definitions = ', '.join(dict.fromkeys(everything))
-        fairness = (f'(solve | tla_ptl_invariant [{definitions}]) | (solve | tla_wf_rank [{definitions}]) | '
+        helpers = ', '.join(dict.fromkeys(everything + list(self.compiler.proof_exports.get('instance_helpers', []))))
+        fairness = (f'(solve | tla_iff_rewrite [{helpers}]) | (solve | tla_ptl_invariant [{definitions}]) | (solve | tla_wf_rank [{definitions}]) | (solve | tla_ptl_saturate [{definitions}]) | '
                     if temporal else '')
         return tracing + [indent + 'try (solve | trivial)',
                 indent + 'try (solve | simp only [' + direct_simplifiers + ']; apply _root_.TLAUniversal.record_mem_singletonSpace; decide)',
                 indent + 'try (solve | simp (config := { maxSteps := 10000 }) [' + simplifiers + '])',
                 indent + 'all_goals simp only [' + simplifiers + '] at *',
-                indent + 'all_goals tla_guard first | ' + fairness + '(solve | exact _root_.TLAUniversal.record_two_ne_iff _ _ _ _ _ _ (by decide)) | (solve | intro fair; exact _root_.TLA.strong_implies_weak _ _ _ _ fair) | (solve | rintro ⟨fair, available⟩; apply _root_.TLA.weak_fairness_continuously_enabled _ _ _ _ fair; simpa [_root_.TLA.always, _root_.TLA.state, _root_.TLA.enabled, _root_.TLA.angle, _root_.TLA.unchanged, _root_.TLA.action] using available) | (solve | apply _root_.TLAUniversal.diagonal_ne <;> assumption) | omega | (solve | norm_num) | (solve | tla_natural_induction <;> (first | assumption | simp_all)) | (solve | tla_state_witness) | (solve | tla_except_step) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by omega), norm (by tla_choice))) | (solve | aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50 }) (simp_config := { maxSteps := 20000 }) (add safe (by omega), norm (by tla_choice))) | (solve | aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | (solve | tla_natural_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), norm (by tla_choice))) | aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by omega), safe (by tla_instantiate), unsafe 50% (by tla_state_witness), norm (by tla_choice))']
+                indent + 'all_goals tla_guard first | ' + fairness + '(solve | tla_chain) | (solve | tla_structural) | (solve | exact _root_.TLAUniversal.record_two_ne_iff _ _ _ _ _ _ (by decide)) | (solve | intro fair; exact _root_.TLA.strong_implies_weak _ _ _ _ fair) | (solve | rintro ⟨fair, available⟩; apply _root_.TLA.weak_fairness_continuously_enabled _ _ _ _ fair; simpa [_root_.TLA.always, _root_.TLA.state, _root_.TLA.enabled, _root_.TLA.angle, _root_.TLA.unchanged, _root_.TLA.action] using available) | (solve | apply _root_.TLAUniversal.diagonal_ne <;> assumption) | tla_omega | (solve | norm_num) | (solve | tla_natural_induction <;> (first | assumption | simp_all)) | (solve | tla_state_witness) | (solve | tla_except_step) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by tla_omega), norm (by tla_choice))) | (solve | aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50 }) (simp_config := { maxSteps := 20000 }) (add safe (by tla_omega), norm (by tla_choice))) | (solve | aesop (config := { maxRuleApplicationDepth := 128, maxRuleApplications := 50, useSimpAll := false }) (add safe (by tla_omega), norm (by tla_choice))) | (solve | tla_temporal_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by tla_omega), norm (by tla_choice))) | (solve | tla_natural_induction <;> aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by tla_omega), norm (by tla_choice))) | aesop (config := { maxRuleApplicationDepth := 128 }) (add safe (by tla_omega), safe (by tla_instantiate), unsafe 50% (by tla_state_witness), norm (by tla_choice))']
 
     def open_statement(self, node, env, indent):
         env = dict(env)
@@ -495,6 +496,7 @@ class Renderer:
                 lines.append(indent + f'| have {general} : ∀ (b : _root_.TLAUniversal.Behavior) '
                              + f'(n : _root_.Nat), {proposition} := by')
                 lines.append(indent + '    intro b n')
+                lines.append(indent + '    tla_rebase b n')
                 lines += ['  ' + line for line in proof_lines]
                 lines.append(indent + f'  have {label} : {proposition} := {general} b n')
                 lines.append(indent + f'| have {label} : {proposition} := by')
@@ -516,7 +518,11 @@ def compile_proofs(source, *, trace=False, **kwargs):
     code = code.replace('public import TLAUniversal', 'public import TLAUniversal\nimport Aesop\nimport Mathlib.Tactic.NormNum', 1)
     lines = [f'namespace {exports["namespace"]}', '@[expose] public noncomputable section',
              'set_option maxHeartbeats 4000000',
-             'set_option linter.unusedSimpArgs false']
+             'set_option linter.unusedSimpArgs false',
+             # Linters re-run proof-search tactics after the proof is done
+             # (doubling search time); they never affect what is checked.
+             'set_option linter.all false',
+             'set_option linter.tacticAnalysis false']
     # Re-run semantic normalization inside proof search after quantified
     # domain witnesses are introduced, not only before the search begins.
     normalized = ('truth_boolean truth_true not_truth_false false_ne_true integer_eq_iff '

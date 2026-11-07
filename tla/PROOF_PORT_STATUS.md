@@ -4,6 +4,50 @@ Objective: unchanged TLAPS proof scripts produce proofs checked by Lean, with
 positive and negative reference tests, complete language/backend coverage and
 verified pushed changes. A leaf-only milestone is not completion.
 
+Current checkpoint (2026-11-06, local suite; PTL saturation; INSTANCE arithmetic):
+- Local-first checking: `python3 local_suite.py` runs the `TLA port` workflow
+  (check.py and the universal shards) and the unchanged-proof audit with CI's
+  commands and budgets in parallel, compares the audit with
+  tests/proofs/lean-baseline.json, re-runs suspected regressions alone, and
+  with `--write-baseline` rewrites the baseline. proof_compatibility.py gains
+  `--jobs`/`--sources` (local only) and records seconds per input;
+  universal/check.py shards its fixture loop too. Full suite: about 16 min on
+  the MacBook. Local timing under 6-way load is about 1.5x slower than a
+  lightly loaded run; CI is about 1.7x slower than the latter.
+- Newly checked locally: SimpleExampleWF, Euclid, two_phase/TwoPhase,
+  TPCommit/PTCommit (173/200 expected; CI audit pending at push).
+- Soundness fix: under INSTANCE, standard-module operators were compiled from
+  their placeholder bodies in Naturals (`a + b == {a, b}`), so master accepted
+  `I!Two = {1}` for `Two == 1 + 1`. They now keep their built-in meaning
+  (universal_compile.py). Fixtures InstanceArithmetic/FalseInstanceArithmetic.
+- `tla_ptl_saturate` is enabled for `BY PTL` leaves. The enabledness premise of
+  `PTL.fair_infinitely` is closed by destructing an ExpandENABLED fact and
+  trying its state as the ENABLED witness; `[]<><<A>>_v` then closes from the
+  fair steps directly. Saturation runs `simp_all` on the instantiated facts
+  only (universal facts cleared), about 3x faster. SimpleExampleWF <4>2.
+- `tla_rebase b n` (start of every fresh-behavior step proof) restates step
+  facts at the fresh behavior and module assumptions when Lean accepts the
+  restatement as definitionally equal (constant-level). Euclid <1>3 now
+  generalizes in 0.9 s instead of failing after 42 s.
+- `tla_chain`: forward chaining with hypotheses up to definitional unfolding
+  (SimpleExampleWF `<3>3` QED). `tla_structural` and `tla_iff_rewrite`:
+  refinement equivalences that differ by instance renaming, grouping and
+  one-element tuples, and `Spec <=> Spec'` from equivalent parts (PTCommit).
+- `tla_ptl_invariant` splits `Init' /\ []P` goals into a state part and an
+  invariant (two_phase QED: 23 s in saturation, now under 1 s).
+- `tla_omega`: core `omega` hides proofs in cached auxiliary lemmas; after
+  backtracking a cached name could be reused for a different statement (kernel
+  error in synchronous elaboration, re-elaboration otherwise). The port's
+  search uses omega's proof inline instead.
+- Generated proofs set `linter.all false`: linters re-ran proof search after
+  each proof (up to 2x time). Linters never affect what is checked.
+- Fixtures WeakFairnessInfinitely/FalseWeakFairnessInfinitely (WF without
+  enabledness), SpecEquivalence/FalseSpecEquivalence (different Init).
+- Remaining: TPCommit/TwoPhase Invariant `<1>2` (records and message sets,
+  ~60 s) and PTwoPhase, which imports its Refinement; FOLTL (STL6 needs
+  `<>[]` conjunction, LATTICE needs well-founded induction, Barcan);
+  Paxos, Bakery, the library proofs and the SANY rejections as before.
+
 Current checkpoint (2026-11-06, WF1 leads-to and NatInduction of temporal claims):
 - Audit [42284300327](https://github.com/LUC-AI4FM/lean4/actions/runs/42284300327)
   at 5a2e602: 169/200 reference-positive scripts check (was 168). Newly
