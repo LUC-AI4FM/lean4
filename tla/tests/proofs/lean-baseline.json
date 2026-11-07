@@ -1,13 +1,13 @@
 {
-  "run": "https://github.com/LUC-AI4FM/lean4/actions/runs/42284300327",
-  "commit": "5a2e602153b967e2175dd7309cac0c4465f794e3",
+  "run": "https://github.com/LUC-AI4FM/lean4/actions/runs/42323284276",
+  "commit": "18ecf280647d40d1b707a0253a714737853aacc1",
   "reference_commit": "d1760ab9a1a3e7e76f81172166a955167cd163f2",
-  "note": "All inputs accounted for. 169/200 reference-positive scripts checked; 26 time out at the 60-second audit budget, 1 is rejected by Lean and 4 by the SANY frontend. No expected-false input accepted. Full port incomplete; see PROOF_PORT_STATUS.md and TEMPORAL_DESIGN.md.",
+  "note": "All inputs accounted for. 173/200 reference-positive scripts checked; 21 time out at the 60-second audit budget, 2 are rejected by Lean and 4 by the SANY frontend. No expected-false input accepted. Full port incomplete; see PROOF_PORT_STATUS.md and TEMPORAL_DESIGN.md.",
   "counts": {
     "translation_rejected": 72,
-    "timeout": 43,
-    "lean_rejected": 46,
-    "checked": 182,
+    "timeout": 37,
+    "lean_rejected": 48,
+    "checked": 186,
     "no_claims": 36
   },
   "results": [
@@ -191,7 +191,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "checked"
     },
     {
       "source": "examples/GraphTheorem.tla",
@@ -240,14 +240,14 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 1,
-      "status": "timeout"
+      "status": "checked"
     },
     {
       "source": "examples/TPCommit/PTwoPhase.tla",
       "expected_false": false,
       "reference_positive": true,
       "claims": 3,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "examples/TPCommit/TCommit.tla",
@@ -359,7 +359,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 2,
-      "status": "timeout"
+      "status": "checked"
     },
     {
       "source": "examples_draft/FOLTL.tla",
@@ -380,7 +380,7 @@
       "expected_false": false,
       "reference_positive": true,
       "claims": 2,
-      "status": "timeout"
+      "status": "checked"
     },
     {
       "source": "library/Bags.tla",
@@ -809,7 +809,7 @@
       "expected_false": false,
       "reference_positive": false,
       "claims": 9,
-      "status": "timeout"
+      "status": "lean_rejected"
     },
     {
       "source": "test/fast/enabled_cdot/InstantiateTLAPS.tla",

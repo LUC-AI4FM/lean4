@@ -14,8 +14,13 @@ Current checkpoint (2026-11-06, local suite; PTL saturation; INSTANCE arithmetic
   universal/check.py shards its fixture loop too. Full suite: about 16 min on
   the MacBook. Local timing under 6-way load is about 1.5x slower than a
   lightly loaded run; CI is about 1.7x slower than the latter.
-- Newly checked locally: SimpleExampleWF, Euclid, two_phase/TwoPhase,
-  TPCommit/PTCommit (173/200 expected; CI audit pending at push).
+- Audit [42323284276](https://github.com/LUC-AI4FM/lean4/actions/runs/42323284276)
+  at 18ecf28: 173/200 reference-positive scripts check (was 169). Newly
+  checked: SimpleExampleWF (37.9 s in CI), Euclid (13.1 s), two_phase/TwoPhase
+  (9.3 s), TPCommit/PTCommit. 21 time out, 2 Lean rejections
+  (PCalBoundedChannel; PTwoPhase now fails fast), 4 SANY rejections. No
+  regressions, no expected-false input accepted. TLA port run 42323278164
+  passed.
 - Soundness fix: under INSTANCE, standard-module operators were compiled from
   their placeholder bodies in Naturals (`a + b == {a, b}`), so master accepted
   `I!Two = {1}` for `Two == 1 + 1`. They now keep their built-in meaning
