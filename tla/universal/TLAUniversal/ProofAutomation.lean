@@ -994,6 +994,43 @@ macro "tla_domain" : tactic =>
 macro "tla_except" : tactic =>
   `(tactic| simp (disch := tla_domain) only [TLAUniversal.apply_update_eq] at *)
 
+/-- `tla_domains`: from each hypothesis `f ∈ [D -> E]` (or `IsFunc D E f`)
+add `domain f = D`, so that reads of EXCEPT updates (`apply_update_eq`) can
+discharge their domain condition by simplification. Each fact is an
+application of `domain_of_mem_funs`/`domain_isFunc` to a hypothesis. -/
+elab "tla_domains" : tactic => withMainContext do
+  let mut goal ← getMainGoal
+  let mut added := false
+  for d in ← getLCtx do
+    if d.isImplementationDetail then continue
+    let type ← instantiateMVars d.type
+    let term? ← try
+        if type.isAppOfArity ``ZFSet.IsFunc 3 then
+          pure (some (← mkAppM ``TLAUniversal.domain_isFunc #[d.toExpr]))
+        else if type.isAppOfArity ``Membership.mem 5 && (type.getArg! 3).isAppOfArity ``ZFSet.funs 2 then
+          pure (some (← mkAppM ``TLAUniversal.domain_of_mem_funs #[d.toExpr]))
+        else pure none
+      catch _ => pure none
+    if let some term := term? then
+      let (_, g) ← goal.note `domain_fact term
+      goal := g
+      added := true
+    -- `f[x] ∈ E` for every argument `x ∈ D` in context.
+    if type.isAppOfArity ``Membership.mem 5 && (type.getArg! 3).isAppOfArity ``ZFSet.funs 2 then
+      let space := type.getArg! 3
+      for e in ← getLCtx do
+        if e.isImplementationDetail then continue
+        let et ← instantiateMVars e.type
+        unless et.isAppOfArity ``Membership.mem 5 do continue
+        unless ← withReducible (isDefEq (et.getArg! 3) (space.getArg! 0)) do continue
+        try
+          let (_, g) ← goal.note `range_fact (← mkAppM ``TLAUniversal.apply_mem_of_mem_funs #[d.toExpr, e.toExpr])
+          goal := g
+          added := true
+        catch _ => pure ()
+  unless added do throwError "tla_domains: no function-space fact"
+  replaceMainGoal [goal]
+
 /-- Close one case of an EXCEPT step: read updates as conditionals, split
 them, then finish by simplification with bounded instantiation. -/
 macro "tla_except_close" : tactic =>
@@ -1008,6 +1045,22 @@ macro "tla_except_close" : tactic =>
       | (solve | apply TLAUniversal.update_isFunc <;> first | assumption | simp_all)
       | (solve | apply TLAUniversal.updatePath_single_mem_funs <;> first | assumption | simp_all)
       | (solve | aesop (config := { maxRuleApplications := 200, terminal := true }) (add safe (by tla_instantiate)))))
+
+/-- Second attempt for a case `tla_except_close` did not prove, with its own
+budget: domain and range facts for function-space hypotheses, reads of
+updates at bound arguments, unions of message sets, record spaces and
+subsets. -/
+macro "tla_except_close_facts" : tactic =>
+  `(tactic| (
+    intros
+    try simp only [TLAUniversal.updatePath] at ⊢
+    try tla_domains
+    try tla_except
+    try split_ifs
+    all_goals first
+      | (solve | simp_all [TLAUniversal.apply_update_eq, TLAUniversal.union_subset_iff, TLAUniversal.enumerate_subset_iff, TLAUniversal.update_isFunc, TLAUniversal.update_mem_funs, or_imp, forall_and])
+      | (solve | ((repeat tla_instantiate); (try casesm* _ ∨ _); all_goals simp_all [TLAUniversal.apply_update_eq, TLAUniversal.union_subset_iff, TLAUniversal.enumerate_subset_iff, TLAUniversal.update_isFunc, TLAUniversal.update_mem_funs, or_imp, forall_and]))
+      | (solve | simp_all [TLAUniversal.apply_update_eq, TLAUniversal.update_isFunc, ZFSet.subset_def])))
 
 /-- Rewrite the goal with the next-state equations `b (n + 1) "v" = e` in context. -/
 meta def TLAUniversal.rewriteNextState : TacticM Unit := withMainContext do
@@ -1035,6 +1088,12 @@ meta def TLAUniversal.exceptStep : TacticM Unit := do
   unless found do throwError "no EXCEPT update"
   evalTactic (← `(tactic| intros))
   evalTactic (← `(tactic| try casesm* _ ∧ _, _ ∨ _, ∃ _, _))
+  -- IF-THEN-ELSE actions (PlusCal): split the conditions, then the branches.
+  evalTactic (← `(tactic| all_goals (try split_ifs at * <;> (try simp only [TLAUniversal.truth_boolean] at *) <;>
+    (try casesm* _ ∧ _, _ ∨ _, ∃ _, _))))
+  -- UNCHANGED <<v, w>> as separate equations, so that they substitute.
+  evalTactic (← `(tactic| all_goals (try simp only [TLAUniversal.tuple_eq_iff, List.cons.injEq, and_true] at *)))
+  evalTactic (← `(tactic| all_goals (try casesm* _ ∧ _)))
   let goals ← getGoals
   let mut remaining := #[]
   for g in goals do
@@ -1044,15 +1103,18 @@ meta def TLAUniversal.exceptStep : TacticM Unit := do
     remaining := remaining ++ (← getGoals)
   for g in remaining do
     setGoals [g]
-    unless ← TLAUniversal.closes 20 (evalTactic (← `(tactic| tla_except_close))) do
+    unless (← TLAUniversal.closes 20 (evalTactic (← `(tactic| tla_except_close)))) ||
+        (← TLAUniversal.closes 20 (evalTactic (← `(tactic| tla_except_close_facts)))) do
+      trace[debug] m!"EXCEPT step case not proved: {g}"
       throwError "EXCEPT step case not proved"
   setGoals []
 
 syntax (name := tlaExceptStep) "tla_except_step" : tactic
 elab_rules : tactic
   | `(tactic| tla_except_step) =>
-    -- One overall budget: a step that is not of this shape must fail fast.
-    unless ← TLAUniversal.closes 60 TLAUniversal.exceptStep do
+    -- Each case has its own budget (20) and the first case that fails
+    -- fails the step, so a step that is not of this shape fails fast.
+    unless ← TLAUniversal.closes 4000 TLAUniversal.exceptStep do
       throwError "tla_except_step: not proved"
 
 /-- Run a tactic, turning a resource exception (recursion depth, heartbeats)
@@ -1078,7 +1140,7 @@ meta def TLAUniversal.rebase (b n : Expr) : TacticM Unit := withMainContext do
     if d.isImplementationDetail then continue
     let name := d.userName.toString
     if name.endsWith "_general" then
-      let base := Name.mkSimple (name.dropRight "_general".length)
+      let base := Name.mkSimple (String.ofList (name.toList.take (name.length - "_general".length)))
       let some old := context.findFromUserName? base | continue
       let term := mkApp2 d.toExpr b n
       let type := (← instantiateMVars (← inferType term)).headBeta
@@ -1202,3 +1264,4 @@ elab "tla_iff_rewrite" " [" ids:ident,* "]" : tactic => withMainContext do
         TLAUniversal.mem_enumerate]
       done)))) do
     throwError "tla_iff_rewrite: no proof"
+

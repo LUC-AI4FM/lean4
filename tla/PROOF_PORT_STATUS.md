@@ -4,6 +4,58 @@ Objective: unchanged TLAPS proof scripts produce proofs checked by Lean, with
 positive and negative reference tests, complete language/backend coverage and
 verified pushed changes. A leaf-only milestone is not completion.
 
+Handoff (2026-11-06, branch wip/handoff-2026-11-06; master a694da0 = 173/200, CI-confirmed):
+
+How to run fast (local-first; CI only to confirm):
+- One-time: TLAPM reference at /private/tmp/tlapm-proof-reference (pinned d1760ab9),
+  CommunityModules at /private/tmp/lean4-tla-community-reference; `export PATH=$HOME/.elan/bin:$PATH`.
+- Full suite (port check + 4 universal shards + audit, ~16 min):
+  `cd tla && python3 local_suite.py --jobs 6`; add `--write-baseline local` to rewrite the baseline.
+- Focused audit: `python3 local_suite.py --only audit --jobs 4 --sources examples/Euclid.tla ...`
+  (results with per-file seconds in .local-suite/audit.json). CI is ~1.7x slower than a lightly
+  loaded MacBook run; 6-way local load is ~1.5x slower again. A file at <35 s locally alone is safe.
+- Keep a second copy for development so lake builds do not disturb a running suite
+  (rsync tla/ elsewhere, symlink universal/.lake/packages).
+- Profiling a file: generate Lean with `proofs.compile_proofs`, insert a stamp tactic before each
+  leaf that appends `IO.monoMsNow` to a file (Lean isolates stdout until a declaration ends), and
+  compare deltas; `set_option profiler true` gives category totals.
+- After pushing: `gh workflow run tla-proof-compatibility.yml -R LUC-AI4FM/lean4 --ref master`,
+  download artifacts, merge shard reports into tests/proofs/lean-baseline.json.
+
+State of this branch (NOT green, do not merge as is):
+- Added: FunctionProofs record/recordSpace membership lemmas (one/two fields, key mismatch),
+  update_mem_funs, apply_mem_of_mem_funs; `tla_domains` (domain and range facts from
+  `f \in [D -> E]`); `tla_except_close_facts` (second attempt per EXCEPT case, own budget);
+  `tla_except_step` now splits IF-THEN-ELSE hypotheses and UNCHANGED tuples, overall budget
+  per case instead of 60; proofs.py marks the record lemmas `local simp ↓`.
+- Regression: examples/TPCommit/TCommit.tla times out in the audit (was 10.8 s). Its step
+  `<1>2` passes in isolation with the step harness, so the likely cause is the general-form
+  attempt (`step_498_general`) or the larger exceptStep budget letting a non-EXCEPT leaf run
+  long. Next: profile TCommit with stamps; if the general attempt is slow, restore the 60
+  overall budget for the first attempt and give the extended pass its own bounded budget.
+
+Remaining targets, with next steps:
+- TPCommit/TwoPhase: Invariant `<1>2` (step_1066) is proved by the branch's tla_except_step
+  (~11-15 s). Refinement `<1>2` (step_1099, `Inv /\ [TPNext]_vars => [TC!TCNext]_rmState`)
+  fails: four cases (RMPrepare, RMChooseToAbort, RMRcvCommitMsg, RMRcvAbortMsg) need an
+  existential witness (the case's `rm`) and, for RMRcvCommitMsg, canCommit from the invariant
+  chain (Commit msg -> tmState committed -> tmPrepared = RM -> Prepared msg -> not working,
+  not aborted) plus the stutter case `update f w (f w) = f`. Next: a `tla_exists_member`
+  tactic trying context terms `t \in S` as witnesses of `\E x \in S`, and an
+  update-same-value lemma.
+- PTwoPhase: cites PTT!Refinement (TwoPhase above); its own TPEquiv/Bridge should follow from
+  tla_iff_rewrite/tla_structural once TwoPhase checks.
+- OneBitMutex: TypeCorrect `<2>3` (e2, IF on primed values) now closes with the branch's
+  except step (IF split + range facts + `ZFSet.subset_def`). Next: re-profile the whole file.
+- FOLTL: needs library proofs it cites (WFInduction, FS_Induction over IsFiniteSet,
+  claims 0-2), `<>[]` conjunction (STL6, max of two times), `<>` monotonicity (Barcan),
+  LATTICE via WF induction. Largest remaining item.
+- Other timeouts (profiled, leaf times locally): SumAndMax step_646 (174 s, arithmetic),
+  SimpleMutex (several ~8 s leaves, one unsolved), Peterson step_880 (109 s),
+  EWD840 (liveness + 66 s leaf), GraphTheorem (unsolved goals, 59 s leaf), Allocator
+  (unsolved, 43 s leaf), BoundedBuffer (hangs after leaf 72), Paxos, Bakery, library
+  *_proofs, enabled_cdot tests. SANY rejections unchanged.
+
 Current checkpoint (2026-11-06, local suite; PTL saturation; INSTANCE arithmetic):
 - Local-first checking: `python3 local_suite.py` runs the `TLA port` workflow
   (check.py and the universal shards) and the unchanged-proof audit with CI's

@@ -146,6 +146,15 @@ theorem updatePath_single_mem_funs {D E f : Value} (key replacement : Value)
   simp only [updatePath]
   exact ZFSet.mem_funs.mpr (update_isFunc (ZFSet.mem_funs.mp hf) hv)
 
+theorem apply_mem_of_mem_funs {D E f x : Value} (hf : f ∈ ZFSet.funs D E) (hx : x ∈ D) :
+    apply f x ∈ E :=
+  apply_mem (ZFSet.mem_funs.mp hf) hx
+
+theorem update_mem_funs {D E f : Value} (key replacement : Value)
+    (hf : f ∈ ZFSet.funs D E) (hv : replacement ∈ E) :
+    update f key replacement ∈ ZFSet.funs D E :=
+  ZFSet.mem_funs.mpr (update_isFunc (ZFSet.mem_funs.mp hf) hv)
+
 theorem singleton_range_isFunc {D E f value : Value}
     (hf : ZFSet.IsFunc D (enumerate [value]) f) (hv : value ∈ E) :
     ZFSet.IsFunc D E f := by
@@ -524,5 +533,59 @@ theorem mem_recordSpace_two (f A B : Value) (a b : String) (different : a ≠ b)
         (by simp [mem_enumerate, hx, hy])
     · have hba : (b == a) = false := beq_eq_false_iff_ne.mpr (Ne.symm different)
       simp [apply_record_lookup, different, Ne.symm different, List.lookup_cons, hba, hx, hy]
+
+/-- A one-field record lies in the one-field record space with the same key
+exactly when its value lies in the field's set. -/
+theorem record_one_mem_recordSpace (a : String) (x A : Value) :
+    record [(a, x)] ∈ recordSpace [(a, A)] ↔ x ∈ A := by
+  rw [mem_recordSpace]
+  constructor
+  · rintro ⟨_, values⟩
+    have h := values (a, A) (by simp)
+    simpa [apply_record_lookup] using h
+  · intro hx
+    constructor
+    · exact record_isFunc [(a, x)] (ZFSet.sUnion (enumerate [A]))
+        (by simp [mem_enumerate, hx])
+    · simp [apply_record_lookup, hx]
+
+/-- Two-field records and two-field record spaces with the same keys. -/
+theorem record_two_mem_recordSpace (a b : String) (x y A B : Value) (different : a ≠ b) :
+    record [(a, x), (b, y)] ∈ recordSpace [(a, A), (b, B)] ↔ x ∈ A ∧ y ∈ B := by
+  rw [mem_recordSpace_two _ _ _ _ _ different]
+  constructor
+  · rintro ⟨u, hu, v, hv, h⟩
+    obtain ⟨rfl, rfl⟩ := (record_two_eq_iff a b x y u v different).mp h
+    exact ⟨hu, hv⟩
+  · rintro ⟨hx, hy⟩
+    exact ⟨x, hx, y, hy, rfl⟩
+
+/-- A record's fields are exactly the keys of any record space containing it,
+so a one-field record is not in a space with two distinct keys. -/
+theorem record_one_not_mem_recordSpace_two (a b c : String) (x A B : Value) (different : a ≠ b) :
+    record [(c, x)] ∉ recordSpace [(a, A), (b, B)] := by
+  intro h
+  have hf := ((mem_recordSpace _ _).mp h).1
+  have domains := (domain_isFunc hf).symm.trans (domain_record [(c, x)])
+  simp only [List.map_cons, List.map_nil] at domains
+  have ha : string a ∈ enumerate [string c] :=
+    domains ▸ (mem_enumerate _ _).mpr (by simp)
+  have hb : string b ∈ enumerate [string c] :=
+    domains ▸ (mem_enumerate _ _).mpr (by simp)
+  simp only [mem_enumerate, List.mem_singleton, string_eq_iff] at ha hb
+  exact different (ha.trans hb.symm)
+
+theorem record_two_not_mem_recordSpace_one (a b c : String) (x y C : Value) (different : a ≠ b) :
+    record [(a, x), (b, y)] ∉ recordSpace [(c, C)] := by
+  intro h
+  have hf := ((mem_recordSpace _ _).mp h).1
+  have domains := (domain_isFunc hf).symm.trans (domain_record [(a, x), (b, y)])
+  simp only [List.map_cons, List.map_nil] at domains
+  have ha : string a ∈ enumerate [string c] :=
+    domains ▸ (mem_enumerate _ _).mpr (by simp)
+  have hb : string b ∈ enumerate [string c] :=
+    domains ▸ (mem_enumerate _ _).mpr (by simp)
+  simp only [mem_enumerate, List.mem_singleton, string_eq_iff] at ha hb
+  exact different (ha.trans hb.symm)
 
 end TLAUniversal
