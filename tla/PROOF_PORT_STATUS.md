@@ -4,6 +4,19 @@ Objective: unchanged TLAPS proof scripts produce proofs checked by Lean, with
 positive and negative reference tests, complete language/backend coverage and
 verified pushed changes. A leaf-only milestone is not completion.
 
+Current checkpoint (2026-11-07, local suite on the wip/handoff-2026-11-06 changes):
+- Local `local_suite.py --jobs 6` (1065 s): port check and four universal shards
+  pass; audit 173/200 reference-positive checked, same as 18ecf28. No regressions
+  against lean-baseline.json, no expected-false input accepted.
+- TCommit regression from the handoff is fixed: the EXCEPT step runs the plain
+  form first with a 60 s budget, and the IF/UNCHANGED/domain-fact form only
+  afterwards with its own budget. TCommit checks at 19.4 s locally.
+- Added record-space membership lemmas (FunctionProofs.lean) and the matching
+  `simp ↓` attributes in proofs.py. No new count: this is groundwork for
+  TwoPhase, OneBitMutex and PTwoPhase, which still time out.
+- Not yet done: TwoPhase Refinement `<1>2` (existential witness and update-same-value),
+  PTwoPhase, OneBitMutex re-profile, FOLTL, SumAndMax, Peterson, EWD840, Paxos, Bakery.
+
 Current checkpoint (2026-11-06, local suite; PTL saturation; INSTANCE arithmetic):
 - Local-first checking: `python3 local_suite.py` runs the `TLA port` workflow
   (check.py and the universal shards) and the unchanged-proof audit with CI's
