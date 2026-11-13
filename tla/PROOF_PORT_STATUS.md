@@ -4,6 +4,50 @@ Objective: unchanged TLAPS proof scripts produce proofs checked by Lean, with
 positive and negative reference tests, complete language/backend coverage and
 verified pushed changes. A leaf-only milestone is not completion.
 
+## Fresh compatibility audit on 2026-11-13
+
+The audit checked **173 of 200 reference-positive scripts** across all 379
+unchanged inputs. The set of checked files matched the 2026-11-06 baseline.
+All five native and universal TLA jobs passed on the tested implementation
+at `a92a8563be0e159d9d80136f471f6ce0e761c692`.
+[Corpus run](https://github.com/LUC-AI4FM/lean4/actions/runs/43470399865) ·
+[TLA port checks](https://github.com/LUC-AI4FM/lean4/actions/runs/43470442738)
+
+| Outcome | All inputs | Reference positives | Expected-false inputs |
+| --- | ---: | ---: | ---: |
+| Checked in Lean | 186 | 173 | 0 |
+| Lean rejection | 49 | 2 | 25 |
+| Translation rejection | 72 | 4 | 2 |
+| Timeout | 36 | 21 | 7 |
+| No proof claims | 36 | 0 | 0 |
+| Total | 379 | 200 | 34 |
+
+The reference-positive and expected-false columns describe subsets of the
+corpus. Full proof compatibility remains incomplete. The runner's success
+status means the audit found zero regressions and zero expected-false
+acceptances. The seven negative timeouts leave their intended proof checks
+unverified within the budget.
+
+GitHub Actions ran `tla/local_suite.py --only audit --jobs 2` on Ubuntu with
+Lean 4.33.0 and a 60-second Lean limit per input. The runner commit
+`cba243fac7cc69c4f0284df978bf1e9978d9c78e` adds only the audit workflow to the
+tested implementation. It used TLAPM `d1760ab9a1a3e7e76f81172166a955167cd163f2`
+and CommunityModules `1805e9d5e1cef05d74806309fb87788e69b48f26`.
+The per-file results and elapsed times are in
+[lean-baseline.json](tests/proofs/lean-baseline.json).
+The raw audit, diagnostics, toolchain information, and resolved dependencies
+are in the [run artifact](https://github.com/LUC-AI4FM/lean4/actions/runs/43470399865/artifacts/14063456307).
+
+The two Lean rejections were `examples/Channel/PCalBoundedChannel.tla`,
+with open sequence membership and length obligations, and
+`examples/SimpleMutex.tla`, with an open mutual-exclusion obligation.
+SANY rejected `library/BagsTheorems_proofs.tla` for an unresolved `Seq`,
+`test/bugs/def_nondef_test.tla` for invalid `DEF` entries,
+`test/fast/language/Operators_test.tla` during parsing, and
+`zenon/regression/misc/Forall.tla` for a duplicate binding of `i`.
+Compared with the historical audit, `PTwoPhase.tla` hit the timeout and
+`SimpleMutex.tla` reached a Lean rejection. Both remain unchecked.
+
 Current checkpoint (2026-11-07, local suite on the wip/handoff-2026-11-06 changes):
 - Local `local_suite.py --jobs 6` (1065 s): port check and four universal shards
   pass; audit 173/200 reference-positive checked, same as 18ecf28. No regressions
