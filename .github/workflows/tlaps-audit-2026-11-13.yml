@@ -1,0 +1,63 @@
+# Copyright (c) 2026 Eric Spencer. Released under Apache 2.0 license.
+name: TLAPS compatibility rerun
+on:
+  push:
+    branches: [tlaps-audit-2026-11-13]
+    paths: ['.github/workflows/tlaps-audit-2026-11-13.yml']
+permissions:
+  contents: read
+concurrency:
+  group: tlaps-compatibility-rerun
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    env:
+      TLA_AUDIT_TIMEOUT: '60'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+        with:
+          repository: tlaplus/tlapm
+          ref: d1760ab9a1a3e7e76f81172166a955167cd163f2
+          path: reference-tlapm
+      - uses: actions/checkout@v5
+        with:
+          repository: tlaplus/CommunityModules
+          ref: 1805e9d5e1cef05d74806309fb87788e69b48f26
+          path: reference-community
+      - name: Prepare audit output
+        run: |
+          logs="$RUNNER_TEMP/tlaps-$(date -u +%Y%m%dT%H%M%SZ)"
+          mkdir "$logs"
+          echo "TLAPS_AUDIT_LOGS=$logs" >> "$GITHUB_ENV"
+          git rev-parse HEAD > "$logs/runner-commit.txt"
+          git -C reference-tlapm rev-parse HEAD > "$logs/tlapm-commit.txt"
+          git -C reference-community rev-parse HEAD > "$logs/community-commit.txt"
+      - name: Install elan
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -o "$RUNNER_TEMP/elan-init.sh"
+          sh "$RUNNER_TEMP/elan-init.sh" -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Prepare the pinned proof backend
+        working-directory: tla/universal
+        run: |
+          lake update
+          lake exe cache get
+          python3 ../tools.py
+          cp lake-manifest.json "$TLAPS_AUDIT_LOGS/lake-manifest.json"
+          lean --version | tee "$TLAPS_AUDIT_LOGS/lean-version.txt"
+      - name: Run the unchanged corpus
+        working-directory: tla
+        run: |
+          python3 local_suite.py --only audit --jobs 2 \
+            --tlapm "$GITHUB_WORKSPACE/reference-tlapm" \
+            --community "$GITHUB_WORKSPACE/reference-community" \
+            --logs "$TLAPS_AUDIT_LOGS" | tee "$TLAPS_AUDIT_LOGS/suite.log"
+      - name: Upload raw results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tlaps-audit-${{ github.run_id }}
+          path: ${{ env.TLAPS_AUDIT_LOGS }}/
+          if-no-files-found: error
